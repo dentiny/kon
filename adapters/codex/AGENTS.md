@@ -5,14 +5,21 @@
 ## Trigger
 
 When the user writes `kon go: <task>`, `kon team: <task>`, `kon quick: <task>`,
-or `kon gc` / `kon gc: <target>`, activate the kon multi-agent workflow.
+`kon ask: <question>`, or `kon gc` / `kon gc: <target>`, activate the kon multi-agent workflow.
 
 ## How to orchestrate
+
+### `kon ask` — read-only exception
+
+For `kon ask` only: **zero writes.** Read `~/Desktop/kon/commands/ask.md`, spawn Azusa read-only, present the answer. Do not create session files, do not modify any file, do not run mutating shell commands.
+
+### All other commands
 
 1. Read the matching command file for the full workflow spec:
    - `kon go` → `~/Desktop/kon/commands/go.md`
    - `kon team` → `~/Desktop/kon/commands/team.md`
    - `kon quick` → `~/Desktop/kon/commands/quick.md`
+   - `kon ask` → `~/Desktop/kon/commands/ask.md`
    - `kon gc` → `~/Desktop/kon/commands/gc.md`
 
 2. Read `~/Desktop/kon/skills/teammate-flow/SKILL.md` for orchestration rules.

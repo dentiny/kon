@@ -33,6 +33,10 @@ entries = [
         {"command": f"python3 {kon_root}/hooks/ensure_project_dir.py"},
     ),
     (
+        "beforeSubmitPrompt",
+        {"command": f"python3 {kon_root}/hooks/init_kon_session.py"},
+    ),
+    (
         "beforeShellExecution",
         {"command": f"python3 {kon_root}/hooks/no_git_write.py"},
     ),

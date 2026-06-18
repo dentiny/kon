@@ -5,11 +5,13 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _hook_io import emit, set_hook_event  # noqa: E402
+from _hook_io import emit, resolve_hook_cwd, set_hook_event  # noqa: E402
+from _kon_paths import kon_root  # noqa: E402
 from teammate_quality_check import ROLE_HANDLERS  # noqa: E402
 
 # Order matters — more specific roles first.
@@ -25,6 +27,20 @@ _ROLE_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
     ("Mugi", re.compile(r"Mugi|Planner|agents/Mugi\.md", re.I)),
     ("Azusa", re.compile(r"Azusa|Explorer|agents/Azusa\.md", re.I)),
 ]
+
+# Session steps_pending uses base agent names, not challenge/revise variants.
+_ROLE_TO_AGENT: dict[str, str] = {
+    "Azusa-challenge": "Azusa",
+    "Mugi-revise": "Mugi",
+    "Jun": "Jun",
+    "Nodoka": "Nodoka",
+    "Sawako": "Sawako",
+    "Ritsu": "Ritsu",
+    "Mio": "Mio",
+    "Yui": "Yui",
+    "Mugi": "Mugi",
+    "Azusa": "Azusa",
+}
 
 
 def _infer_role(data: dict) -> str | None:
@@ -48,6 +64,45 @@ def _load_output(data: dict) -> str:
             except OSError:
                 pass
     return summary
+
+
+def _session_agent_name(role: str) -> str:
+    return _ROLE_TO_AGENT.get(role, role)
+
+
+def _complete_open_session(project: str, agent: str, summary: str) -> None:
+    root = kon_root()
+    script = root / "scripts" / "kon_session.py"
+    if not script.is_file():
+        return
+    proc = subprocess.run(
+        [sys.executable, str(script), "--project", project, "open"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    sid = proc.stdout.strip()
+    if not sid:
+        return
+    one_line = summary.strip().splitlines()[0][:500] if summary.strip() else f"{agent} finished."
+    subprocess.run(
+        [
+            sys.executable,
+            str(script),
+            "--project",
+            project,
+            "complete-agent",
+            "--id",
+            sid,
+            "--agent",
+            agent,
+            "--summary",
+            one_line,
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
 
 
 def main() -> None:
@@ -76,6 +131,10 @@ def main() -> None:
         emit("approve", f"{role}: no quality spec — passing by default")
 
     handler(output)
+
+    project = resolve_hook_cwd(data)
+    agent = _session_agent_name(role)
+    _complete_open_session(project, agent, output)
 
 
 if __name__ == "__main__":

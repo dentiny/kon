@@ -6,6 +6,11 @@
         "command": "python3 $KON_ROOT/hooks/ensure_project_dir.py"
       }
     ],
+    "beforeSubmitPrompt": [
+      {
+        "command": "python3 $KON_ROOT/hooks/init_kon_session.py"
+      }
+    ],
     "beforeShellExecution": [
       {
         "command": "python3 $KON_ROOT/hooks/no_git_write.py"

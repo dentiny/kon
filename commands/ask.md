@@ -1,5 +1,5 @@
 ---
-description: Read-only Q&A about the codebase. Azusa investigates and answers — zero writes anywhere (no code, no session files, no .kon/ artifacts).
+description: Read-only Q&A about the codebase. Azusa investigates and answers — zero repo writes (no code, no .kon/ artifacts); session JSON is tracked under ~/.kon/projects/.
 ---
 
 # /kon:ask
@@ -7,7 +7,9 @@ description: Read-only Q&A about the codebase. Azusa investigates and answers �
 For questions about the codebase — how something works, where logic lives, what a pattern means.
 Read-only exploration and a direct answer.
 
-**Zero writes.** Ask mode must not create or modify any file — not code, not `.kon/sessions/`, not `.kon/plan.md`, not memory, not git state. Read and answer only.
+**Zero repo writes.** Ask mode must not create or modify anything inside the project — not code, not `.kon/plan.md`, not memory, not git state. Read and answer only.
+
+**Session tracking applies.** Create and update a session JSON under `~/.kon/projects/<repo-name>/sessions/` (see [`skills/session-tracking`](https://github.com/dentiny/kon/blob/main/skills/session-tracking/SKILL.md)) so the dashboard records every ask run. Use `command: "kon ask"`, `steps_pending: ["Azusa"]` on create; set `status=waiting` when Azusa finishes.
 
 ## Usage
 
@@ -18,7 +20,7 @@ Read-only exploration and a direct answer.
 Examples:
 
 ```
-/kon:ask how does session tracking write to .kon/sessions/?
+/kon:ask how does session tracking write session files?
 /kon:ask where is the Mio review checklist defined?
 /kon:ask what's the difference between kon go and kon team?
 ```
@@ -32,15 +34,17 @@ Examples:
 
 ## Flow
 
-1. **🎸 Azusa** — investigate the question read-only.
+1. **Orchestrator** — create session file (same snippet as other commands; `cmd = 'kon ask'`). Follow [`skills/session-tracking`](https://github.com/dentiny/kon/blob/main/skills/session-tracking/SKILL.md).
+2. **🎸 Azusa** — investigate the question read-only.
    - Tools allowed: Read, Glob, Grep, Bash (read-only commands only — e.g. `git log`, `git diff`, `git show`, `ls`, `cat`; no writes).
    - **Forbidden tools:** Write, Edit, StrReplace, Delete, and any Bash that mutates disk or git state.
-   - No `.kon/plan.md`, no session JSON, no other artifacts written.
-2. **Orchestrator** — present Azusa's answer to the user with code citations where helpful.
+   - No `.kon/plan.md` or other project artifacts written.
+3. **Orchestrator** — update session: move Azusa to `steps_completed`, add log entry, set `status=waiting`.
+4. **Orchestrator** — present Azusa's answer to the user with code citations where helpful.
    - Do not re-implement or expand beyond what Azusa found unless the user asks a follow-up.
-   - **Orchestrator is also read-only** — do not write files, create sessions, or run mutating shell commands.
+   - **Orchestrator is read-only for repo files** — do not write code or run mutating shell commands.
 
-No session tracking. No Nodoka summarize. No `kon finish` — there is no session to close.
+No Nodoka summarize. User may close the session with `kon finish` or the dashboard ✓ button.
 
 ## Read-only hard floor (orchestrator + Azusa)
 
@@ -48,12 +52,13 @@ No session tracking. No Nodoka summarize. No `kon finish` — there is no sessio
 |--------|----------|
 | Read / Glob / Grep source files | ✅ |
 | Read-only git (`log`, `diff`, `show`, `status`) | ✅ |
-| Write / Edit / StrReplace / Delete any file | ❌ |
-| Create or update `.kon/sessions/*.json` | ❌ |
-| Write `.kon/plan.md` or memory files | ❌ |
+| Write / Edit / StrReplace / Delete any **project** file | ❌ |
+| Create or update session JSON (`~/.kon/projects/*/sessions/`) | ✅ |
+| Write `.kon/plan.md` or memory files in the repo | ❌ |
 | `git add`, `git commit`, `git push`, `git checkout`, `git reset` | ❌ |
-| `mkdir`, `touch`, `rm`, `mv`, `cp`, `tee`, redirect-to-file | ❌ |
-| `python3 -c` that writes to disk | ❌ |
+| `mkdir`, `touch`, `rm`, `mv`, `cp`, `tee`, redirect-to-file **in the repo** | ❌ |
+| `python3 -c` that writes **project or .kon/** files | ❌ |
+| `python3 -c` that writes **session JSON** under `~/.kon/projects/` | ✅ |
 
 If a write would help (e.g. saving notes), tell the user — do not write it yourself.
 
@@ -82,7 +87,7 @@ In addition to exploration notes, Azusa must end with a direct answer:
 - **Do not self-investigate instead of Azusa** — spawn Azusa via Task tool for the exploration pass.
 - **Do not draft commit messages** — there are no code changes.
 - **`--yolo` has no effect** — there are no confirmation checkpoints to skip.
-- **Skip session tracking entirely** — do not read [`skills/session-tracking`](https://github.com/dentiny/kon/blob/main/skills/session-tracking/SKILL.md) for this command; it does not apply.
+- **Follow session-tracking** — create session at start, update after Azusa; see [`skills/session-tracking`](https://github.com/dentiny/kon/blob/main/skills/session-tracking/SKILL.md).
 
 ## Comparison
 
@@ -94,6 +99,6 @@ In addition to exploration notes, Azusa must end with a direct answer:
 | Yui implement | ❌ | ✅ | ✅ |
 | Mio review | ❌ | ✅ lightweight | ✅ full |
 | Ritsu verify | ❌ | ❌ (Stop hook) | ✅ |
-| File changes | ❌ none | ✅ | ✅ |
-| Session tracking | ❌ none | ✅ | ✅ |
+| File changes in repo | ❌ none | ✅ | ✅ |
+| Session tracking | ✅ | ✅ | ✅ |
 | Nodoka summarize | ❌ | ✅ | ✅ |

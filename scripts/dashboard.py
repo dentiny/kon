@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """kon session dashboard.
 
-Serves a live dashboard of all kon agent sessions stored in .kon/sessions/.
+Serves a live dashboard of kon agent sessions stored in ~/.kon/projects/<repo-name>/sessions/.
 Sessions are auto-refreshed every 3 seconds. Click any session to expand its log.
 
 Usage:
-    python3 scripts/dashboard.py            # http://localhost:8080
+    python3 scripts/dashboard.py            # http://localhost:9090
     python3 scripts/dashboard.py --port 9000
     python3 scripts/dashboard.py --open     # also opens browser automatically
+    python3 scripts/dashboard.py --project /path/to/repo  # filter + legacy sessions
 """
 
 from __future__ import annotations
@@ -16,10 +17,23 @@ import argparse
 import json
 import pathlib
 import re
+import sys
 import webbrowser
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
-SESSIONS_DIR = pathlib.Path(".kon/sessions")  # overridden by --dir at runtime
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent / "hooks"))
+from _kon_paths import (  # noqa: E402
+    ensure_project_dir,
+    iter_sessions_dirs,
+    kon_data_dir,
+    legacy_sessions_dir,
+    project_data_dir,
+    resolve_project_path,
+    sessions_dir,
+)
+
+PROJECT_FILTER: str | None = None
+_SESSION_FILES: dict[str, pathlib.Path] = {}
 
 _HTML = """\
 <!DOCTYPE html>
@@ -55,12 +69,14 @@ h1 small { color: #8b949e; font-size: 14px; font-weight: 400; margin-left: 10px;
 .badge { padding: 3px 10px; border-radius: 10px; font-size: 12px;
          font-weight: 600; flex-shrink: 0; }
 .badge.in_progress { background: #1158a0; color: #79c0ff; }
-.badge.waiting     { background: rgba(210, 153, 34, 0.12); color: #b8a88a;
-                     border: 1px solid rgba(210, 153, 34, 0.22); }
+.badge.waiting     { background: rgba(210, 153, 34, 0.10); color: #d4a72c;
+                     border: 1px solid rgba(210, 153, 34, 0.25); }
 .badge.completed   { background: #1a4f2a; color: #56d364; }
 .badge.blocked     { background: #5a1a1a; color: #f85149; }
 .task  { flex: 1; min-width: 0; font-size: 15px; font-weight: 500; color: #e6edf3;
          overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.project { color: #484f58; font-size: 11px; flex-shrink: 0; max-width: 140px;
+           overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cmd   { color: #8b949e; font-size: 13px; flex-shrink: 0; }
 .when  { color: #484f58; font-size: 12px; flex-shrink: 0; white-space: nowrap; }
 .pipeline { display: flex; gap: 4px; align-items: center; flex-shrink: 0; }
@@ -105,6 +121,7 @@ h1 small { color: #8b949e; font-size: 14px; font-weight: 400; margin-left: 10px;
 <div id="root"></div>
 <script>
 const EM = {Azusa:'🎸',Mugi:'🍰',Yui:'🎶',Mio:'📝',Ritsu:'🥁',Sawako:'🧹',Nodoka:'📋'};
+const showProject = __SHOW_PROJECT__;
 const open_ids = new Set();
 let currentTab = 'all';
 let allSessions = [];
@@ -122,6 +139,11 @@ function fmtWhen(iso) {
     ? d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})
     : d.toLocaleDateString([], {month:'short',day:'numeric'}) + ' ' +
       d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+}
+function fmtProject(p) {
+  if (!p) return '';
+  const parts = p.split('/');
+  return parts[parts.length - 1] || p;
 }
 
 function setTab(tab) {
@@ -162,12 +184,16 @@ function renderSession(s) {
       <span class="agent">${EM[e.agent]||''} ${e.agent}</span>
       <span class="summary">${e.summary}</span>
     </div>`).join('');
+  const projectLabel = showProject && s.project_path
+    ? `<span class="project" title="${s.project_path}">${fmtProject(s.project_path)}</span>`
+    : '';
   return `
     <div class="session${isPast?' past':''}">
       <div class="hdr" onclick="toggle('${s.id}')">
         <span class="chevron${isOpen?' open':''}">▶</span>
         <span class="badge ${s.status}">${s.status.replace('_',' ')}</span>
         <span class="task" title="${s.task}">${s.task}</span>
+        ${projectLabel}
         <span class="cmd">${s.command}</span>
         <div class="pipeline">${dots}</div>
         <span class="when">${fmtWhen(s.started_at)}</span>
@@ -249,7 +275,9 @@ setInterval(refresh, 3000);
 class _Handler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         if self.path == "/":
-            self._send(200, "text/html; charset=utf-8", _HTML.encode())
+            show_project = "true" if PROJECT_FILTER is None else "false"
+            html = _HTML.replace("__SHOW_PROJECT__", show_project)
+            self._send(200, "text/html; charset=utf-8", html.encode())
         elif self.path == "/sessions":
             body = json.dumps(_load_sessions(), ensure_ascii=False).encode()
             self._send(200, "application/json", body)
@@ -269,8 +297,8 @@ class _Handler(BaseHTTPRequestHandler):
             except json.JSONDecodeError:
                 self._send(400, "text/plain", b"invalid JSON")
                 return
-            target = SESSIONS_DIR / f"{session_id}.json"
-            if not target.exists():
+            target = _session_file(session_id)
+            if target is None:
                 self._send(404, "text/plain", b"session not found")
                 return
             try:
@@ -289,8 +317,11 @@ class _Handler(BaseHTTPRequestHandler):
             if not re.fullmatch(r"[\w\-]+", session_id):
                 self._send(400, "text/plain", b"invalid session id")
                 return
-            target = SESSIONS_DIR / f"{session_id}.json"
-            summary = SESSIONS_DIR / f"{session_id}-summary.md"
+            target = _session_file(session_id)
+            if target is None:
+                self._send(404, "text/plain", b"session not found")
+                return
+            summary = target.parent / f"{session_id}-summary.md"
             deleted = []
             for path in (target, summary):
                 if path.exists():
@@ -300,6 +331,7 @@ class _Handler(BaseHTTPRequestHandler):
                     except OSError:
                         pass
             if deleted:
+                _SESSION_FILES.pop(session_id, None)
                 self._send(200, "application/json", json.dumps({"deleted": deleted}).encode())
             else:
                 self._send(404, "text/plain", b"session not found")
@@ -315,18 +347,71 @@ class _Handler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def log_message(self, *_: object) -> None:
-        pass  # suppress per-request noise
+        pass
+
+
+def _session_dirs() -> list[pathlib.Path]:
+    if PROJECT_FILTER:
+        return iter_sessions_dirs(PROJECT_FILTER)
+    return iter_sessions_dirs()
+
+
+def _session_file(session_id: str) -> pathlib.Path | None:
+    if session_id in _SESSION_FILES:
+        return _SESSION_FILES[session_id]
+    for d in _session_dirs():
+        path = d / f"{session_id}.json"
+        if path.exists():
+            return path
+    return None
+
+
+def _is_legacy_sessions_dir(directory: pathlib.Path) -> bool:
+    """True for pre-per-repo layouts (flat global or in-repo .kon/sessions/)."""
+    if directory == kon_data_dir() / "sessions":
+        return True
+    return directory.parent.name == ".kon" and directory.name == "sessions"
 
 
 def _load_sessions() -> list[dict]:
-    if not SESSIONS_DIR.exists():
-        return []
-    sessions = []
-    for path in sorted(SESSIONS_DIR.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True):
-        try:
-            sessions.append(json.loads(path.read_text(encoding="utf-8")))
-        except (json.JSONDecodeError, OSError):
-            pass
+    _SESSION_FILES.clear()
+    sessions: list[dict] = []
+    seen: set[str] = set()
+
+    for directory in _session_dirs():
+        if not directory.exists():
+            continue
+        is_legacy = _is_legacy_sessions_dir(directory)
+        for path in sorted(directory.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True):
+            try:
+                data = json.loads(path.read_text(encoding="utf-8"))
+            except (json.JSONDecodeError, OSError):
+                continue
+            sid = data.get("id", path.stem)
+            if sid in seen:
+                continue
+            project = data.get("project_path")
+            if PROJECT_FILTER:
+                if is_legacy:
+                    if project and project != PROJECT_FILTER:
+                        continue
+                elif project and project != PROJECT_FILTER:
+                    # Also match via meta.json for per-repo dirs
+                    meta = directory.parent / "meta.json"
+                    meta_path = None
+                    if meta.is_file():
+                        try:
+                            meta_path = json.loads(meta.read_text(encoding="utf-8")).get(
+                                "project_path"
+                            )
+                        except (json.JSONDecodeError, OSError):
+                            pass
+                    if meta_path != PROJECT_FILTER and project != PROJECT_FILTER:
+                        continue
+            seen.add(sid)
+            _SESSION_FILES[sid] = path
+            sessions.append(data)
+
     return sessions
 
 
@@ -335,20 +420,33 @@ def main() -> None:
     parser.add_argument("--port", type=int, default=9090, help="Port (default: 9090)")
     parser.add_argument("--open", action="store_true", help="Open browser automatically")
     parser.add_argument(
+        "--project",
+        type=str,
+        default=None,
+        help="Only show sessions for this project (also reads legacy .kon/sessions/)",
+    )
+    parser.add_argument(
         "--dir",
         type=str,
         default=None,
-        help="Project directory to watch (default: current directory)",
+        help="Deprecated alias for --project",
     )
     args = parser.parse_args()
 
-    global SESSIONS_DIR
-    project_dir = pathlib.Path(args.dir).resolve() if args.dir else pathlib.Path.cwd()
-    SESSIONS_DIR = project_dir / ".kon" / "sessions"
+    global PROJECT_FILTER
+    project_arg = args.project or args.dir
+    if project_arg:
+        PROJECT_FILTER = str(resolve_project_path(project_arg))
 
     url = f"http://localhost:{args.port}"
     print(f"kon dashboard → {url}")
-    print(f"Watching: {SESSIONS_DIR}")
+    print(f"Watching: {kon_data_dir() / 'projects'}/*/sessions")
+    if PROJECT_FILTER:
+        print(f"Filter:   {PROJECT_FILTER}")
+        print(f"Project:  {project_data_dir(PROJECT_FILTER)}")
+        print(f"Legacy:   {legacy_sessions_dir(PROJECT_FILTER)}")
+    else:
+        print(f"Data dir: {kon_data_dir()}")
     print("Ctrl+C to stop.\n")
     if args.open:
         webbrowser.open(url)

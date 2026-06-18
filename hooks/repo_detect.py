@@ -16,6 +16,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _hook_io import emit  # noqa: E402
+from _kon_paths import ensure_project_dir  # noqa: E402
 
 REPO_RULES: list[dict] = [
     # Add project-specific rules here following the pattern:
@@ -112,8 +113,9 @@ def seed_claude_config(cwd: str, seeds: dict[str, str]) -> list[str]:
 def ensure_kon_ignored(cwd: str) -> None:
     """Make `.kon/` git-ignored locally without touching a tracked .gitignore.
 
-    kon writes working artifacts (plan.md, review-rubric.md, retry logs) into
-    `.kon/` at the repo root; those must never be committed. We append the rule
+    kon writes project-local working artifacts (plan.md, review-rubric.md, retry logs) into
+    ``<project>/.kon/``; those must never be committed. Session history lives in
+    ``~/.kon/projects/<repo-name>/`` outside the repo. We append the rule
     to the repo's `info/exclude` — resolved via `git rev-parse --git-path` so
     it lands in the shared git dir even from a linked worktree.
 
@@ -163,6 +165,7 @@ def main() -> None:
 
         cwd = (data.get("cwd") or os.getcwd()).strip()
 
+        ensure_project_dir(cwd)
         ensure_kon_ignored(cwd)
 
         for rule in REPO_RULES:

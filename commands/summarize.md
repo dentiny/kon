@@ -18,15 +18,15 @@ Can also be called manually to (re)summarize any session.
 ## Flow
 
 1. **Orchestrator** — resolve the target session:
-   - No argument → use the most recent `.kon/sessions/*.json` by mtime
-   - Session ID given → load `.kon/sessions/<id>.json`
-   - No sessions found → print "No sessions found in .kon/sessions/" and exit
+   - No argument → use the most recent session for this repo under `~/.kon/projects/<repo-name>/sessions/` (by mtime; also checks legacy paths)
+   - Session ID given → load from the repo's kon sessions dir (or legacy path)
+   - No sessions found → print "No sessions found for this project" and exit
 
 2. **📋 Nodoka** — read session artifacts and write the summary:
-   - Reads `.kon/sessions/<id>.json` (agent log)
-   - Reads `.kon/plan.md` if it exists
+   - Reads the session JSON (agent log)
+   - Reads `.kon/plan.md` if it exists (project-local)
    - Reads `git diff HEAD` for the actual diff
-   - Writes summary to `.kon/sessions/<id>-summary.md`
+   - Writes summary alongside the session JSON in `~/.kon/projects/<repo-name>/sessions/<id>-summary.md`
    - Updates `summary_path` field in the session JSON
 
 3. **Orchestrator** — print the summary to chat and update the dashboard entry.

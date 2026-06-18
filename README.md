@@ -24,15 +24,23 @@ Narrated by 🌸 Ui.
 
 ## Dashboard
 
-Run a live session dashboard to see all active and past agent runs:
+Run a live session dashboard to see all active and past agent runs across every project:
 
 ```bash
-cd /path/to/your-project
 python3 ~/Desktop/kon/scripts/dashboard.py --open   # http://localhost:9090
-python3 ~/Desktop/kon/scripts/dashboard.py --dir /other/project --open
+python3 ~/Desktop/kon/scripts/dashboard.py --project /path/to/repo --open  # one project only
 ```
 
-Each session card shows: status badge, task, agent pipeline dots (🟢 done / 🔵 running / 🟡 waiting / 🔴 failed / ⚫ pending), timestamp, and current agent.
+Session history lives in `~/.kon/projects/<repo-name>/sessions/` (override with `KON_DATA_DIR`). Project working files
+(`plan.md`, rubrics) stay in `<project>/.kon/`.
+
+Install the Cursor sessionStart hook once so the per-repo directory is created when you open a workspace:
+
+```bash
+bash ~/Desktop/kon/scripts/install_cursor_hooks.sh
+```
+
+Each session card shows: status badge, task, project name (when viewing all), agent pipeline dots (🟢 done / 🔵 running / 🟡 waiting / 🔴 failed / ⚫ pending), timestamp, and current agent.
 **Click** to expand the step-by-step log. **✓** to close a session. **🗑** to delete it.
 Auto-refreshes every 3 seconds. Filter by **All / Active / Past** tabs.
 
@@ -85,6 +93,7 @@ Install the adapter as a global rule (applies to all your projects):
 ```bash
 mkdir -p ~/.cursor/rules
 cp ~/Desktop/kon/adapters/cursor/kon.mdc ~/.cursor/rules/kon.mdc
+bash ~/Desktop/kon/scripts/install_cursor_hooks.sh   # creates ~/.kon/projects/<repo>/ on open
 ```
 
 Or as a project rule (applies only to one project):
@@ -157,7 +166,7 @@ kon ask: how does session tracking work?
 | `kon go: <task>` | Full sequential pipeline: explore → plan → implement → review → verify → summarize |
 | `kon team: <task>` | Same pipeline, review + verify run in parallel (~30% faster) |
 | `kon quick: <task>` | Skip explore/plan, lightweight 4-item review |
-| `kon ask: <question>` | Read-only Q&A — Azusa explores, **zero writes** (no code, no session files) |
+| `kon ask: <question>` | Read-only Q&A — Azusa explores, **no repo writes**; session tracked in `~/.kon/projects/` |
 | `kon gc` | Garbage collect — remove dead code, simplify comments/docs |
 | `kon summarize` | Write a session summary (auto-runs at end of every command) |
 | `kon finish` | Mark the current session as completed |

@@ -45,6 +45,7 @@ Begin sessions stay `in_progress` after each agent — only `/kon:finish` closes
 | **Small** fix, typo, one file | quick | 🎶 Yui → 📝 Mio |
 | **Feature**, multi-file, unclear scope | go or team | full pipeline |
 | **Design** first, no code yet | design | Azusa → Mugi → debate |
+| **Todo** / "remind me to…" / add to list | todo | run `kon_todo.py add` (no agent) |
 | Greeting / meta / "what can you do" | orchestrator | no agent spawn — reply + `log-turn` User |
 
 When unsure between go and quick, ask once in prose — do not widget.

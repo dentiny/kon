@@ -1,7 +1,7 @@
 """Shared path helpers for kon session and project-local artifacts.
 
 Session history lives under ``~/.kon/projects/<repo-name>/sessions/`` (outside any
-git repo). Project working files (plan, rubrics, retry logs) stay in
+git repo). Project working files (plan, rubrics, retry logs, todos) stay in
 ``<project>/.kon/``.
 
 Override the data root with ``KON_DATA_DIR``.

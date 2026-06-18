@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """kon session dashboard.
 
-Serves a live dashboard of kon agent sessions stored in ~/.kon/projects/<repo-name>/sessions/.
-Sessions are auto-refreshed every 3 seconds. Click any session to expand its log.
+Serves a live dashboard of kon agent sessions stored in ~/.kon/projects/<repo-name>/sessions/
+and project todo lists in <project>/.kon/todos.json.
+
+Sessions and todos are auto-refreshed every 3 seconds. Click any session to expand its log.
 
 Usage:
     python3 scripts/dashboard.py            # http://localhost:9090
@@ -29,6 +31,9 @@ from _kon_paths import (  # noqa: E402
     resolve_project_path,
 )
 
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+import kon_todo  # noqa: E402
+
 PROJECT_FILTER: str | None = None
 _SESSION_FILES: dict[str, pathlib.Path] = {}
 
@@ -37,7 +42,7 @@ _HTML = """\
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>kon sessions</title>
+<title>kon dashboard</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -106,22 +111,68 @@ h1 small { color: #8b949e; font-size: 14px; font-weight: 400; margin-left: 10px;
 .ts      { color: #484f58; flex-shrink: 0; font-family: monospace; font-size: 11px; }
 .agent   { color: #e6edf3; flex-shrink: 0; width: 68px; }
 .summary { color: #8b949e; }
+.view-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+.view-tab { padding: 6px 16px; border-radius: 8px; font-size: 14px; cursor: pointer;
+            background: transparent; border: 1px solid #30363d; color: #8b949e; }
+.view-tab.active { background: #21262d; border-color: #58a6ff; color: #79c0ff; font-weight: 600; }
+.todo { background: #161b22; border: 1px solid #30363d; border-radius: 10px;
+        margin-bottom: 10px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; }
+.todo.done { opacity: 0.65; }
+.todo-text { flex: 1; min-width: 0; font-size: 14px; line-height: 1.4; }
+.todo.done .todo-text { text-decoration: line-through; color: #8b949e; }
+.todo-meta { color: #484f58; font-size: 11px; flex-shrink: 0; white-space: nowrap; }
+.todo-id { color: #484f58; font-size: 11px; font-family: monospace; flex-shrink: 0; }
+.todo-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.todo-btn { background: none; border: 1px solid #30363d; cursor: pointer; color: #8b949e;
+            font-size: 12px; padding: 2px 8px; border-radius: 4px; line-height: 1.2; }
+.todo-btn:hover { border-color: #58a6ff; color: #e6edf3; }
+.todo-btn.done-btn { border-color: #238636; color: #56d364; }
+.todo-btn.done-btn:hover { background: #1a4f2a; }
+.todo-btn.del-btn:hover { border-color: #f85149; color: #f85149; }
+.panel { display: none; }
+.panel.active { display: block; }
 </style>
 </head>
 <body>
-<h1>🎸 kon sessions <small id="ts"></small></h1>
+<h1>🎸 kon dashboard <small id="ts"></small></h1>
+<div class="view-tabs">
+  <button class="view-tab active" onclick="setView('sessions')" id="view-sessions">Sessions</button>
+  <button class="view-tab" onclick="setView('todos')" id="view-todos">Todos</button>
+</div>
+<div id="sessions-panel" class="panel active">
 <div class="tabs">
   <button class="tab active" onclick="setTab('all')"   id="tab-all">All</button>
   <button class="tab"        onclick="setTab('active')" id="tab-active">Active</button>
   <button class="tab"        onclick="setTab('past')"   id="tab-past">Past</button>
 </div>
 <div id="root"></div>
+</div>
+<div id="todos-panel" class="panel">
+<div class="tabs">
+  <button class="tab active" onclick="setTodoTab('open')" id="todo-tab-open">Open</button>
+  <button class="tab" onclick="setTodoTab('done')" id="todo-tab-done">Done</button>
+  <button class="tab" onclick="setTodoTab('all')" id="todo-tab-all">All</button>
+</div>
+<div id="todo-root"></div>
+</div>
 <script>
 const EM = {Azusa:'🎸',Jun:'📚',Mugi:'🍰',Yui:'🎶',Mio:'📝',Ritsu:'🥁',Sawako:'🧹',Nodoka:'📋'};
 const showProject = __SHOW_PROJECT__;
 const open_ids = new Set();
 let currentTab = 'all';
+let currentView = 'sessions';
+let currentTodoTab = 'open';
 let allSessions = [];
+let allTodos = [];
+
+function setView(view) {
+  currentView = view;
+  document.getElementById('view-sessions').classList.toggle('active', view === 'sessions');
+  document.getElementById('view-todos').classList.toggle('active', view === 'todos');
+  document.getElementById('sessions-panel').classList.toggle('active', view === 'sessions');
+  document.getElementById('todos-panel').classList.toggle('active', view === 'todos');
+  refresh();
+}
 
 function fmtTime(iso) {
   if (!iso) return '';
@@ -253,11 +304,95 @@ async function deleteSession(id, task, event) {
   } catch (_) {}
 }
 
+function setTodoTab(tab) {
+  currentTodoTab = tab;
+  ['open','done','all'].forEach(t => {
+    document.getElementById('todo-tab-'+t).classList.toggle('active', t === tab);
+  });
+  renderTodos(allTodos);
+}
+
+function renderTodo(t) {
+  const isDone = t.status === 'done';
+  const projectLabel = showProject && t.project_path
+    ? `<span class="project" title="${t.project_path}">${fmtProject(t.project_path)}</span>`
+    : '';
+  return `
+    <div class="todo${isDone ? ' done' : ''}">
+      <div class="todo-text">${t.text}</div>
+      ${projectLabel}
+      <span class="todo-id" title="${t.id}">${t.id.slice(-12)}</span>
+      <span class="todo-meta">${fmtWhen(t.created_at)}</span>
+      <div class="todo-actions">
+        ${!isDone ? `<button class="todo-btn done-btn" onclick="markTodoDone('${t.id}',${JSON.stringify(t.project_path)},event)">✓</button>` : `<button class="todo-btn" onclick="reopenTodo('${t.id}',${JSON.stringify(t.project_path)},event)">↩</button>`}
+        <button class="todo-btn del-btn" onclick="deleteTodo('${t.id}',${JSON.stringify(t.project_path)},${JSON.stringify(t.text)},event)">🗑</button>
+      </div>
+    </div>`;
+}
+
+function renderTodos(todos) {
+  const open = todos.filter(t => t.status === 'open');
+  const done = todos.filter(t => t.status === 'done');
+  document.getElementById('todo-tab-open').innerHTML = `Open <span class="count">${open.length}</span>`;
+  document.getElementById('todo-tab-done').innerHTML = `Done <span class="count">${done.length}</span>`;
+  document.getElementById('todo-tab-all').innerHTML = `All <span class="count">${todos.length}</span>`;
+  const filtered = currentTodoTab === 'open' ? open : currentTodoTab === 'done' ? done : todos;
+  const label = currentTodoTab === 'open'
+    ? 'No open todos — add one with /kon:todo <task>.'
+    : currentTodoTab === 'done' ? 'No completed todos yet.' : 'No todos yet — add one with /kon:todo <task>.';
+  document.getElementById('todo-root').innerHTML = filtered.length
+    ? filtered.map(renderTodo).join('')
+    : `<p class="empty">${label}</p>`;
+}
+
+async function markTodoDone(id, projectPath, event) {
+  event.stopPropagation();
+  try {
+    const r = await fetch('/todos/' + id, {
+      method: 'PATCH',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({status: 'done', project_path: projectPath})
+    });
+    if (r.ok) refresh();
+  } catch (_) {}
+}
+
+async function reopenTodo(id, projectPath, event) {
+  event.stopPropagation();
+  try {
+    const r = await fetch('/todos/' + id, {
+      method: 'PATCH',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({status: 'open', project_path: projectPath})
+    });
+    if (r.ok) refresh();
+  } catch (_) {}
+}
+
+async function deleteTodo(id, projectPath, text, event) {
+  event.stopPropagation();
+  if (!confirm(`Delete todo?\n\n"${text}"`)) return;
+  try {
+    const r = await fetch('/todos/' + id, {
+      method: 'DELETE',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({project_path: projectPath})
+    });
+    if (r.ok) refresh();
+  } catch (_) {}
+}
+
 async function refresh() {
   try {
-    allSessions = await (await fetch('/sessions')).json();
+    const [sessionsResp, todosResp] = await Promise.all([
+      fetch('/sessions'),
+      fetch('/todos'),
+    ]);
+    allSessions = await sessionsResp.json();
+    allTodos = await todosResp.json();
     document.getElementById('ts').textContent = 'refreshed ' + fmtTime(new Date().toISOString());
     render(allSessions);
+    renderTodos(allTodos);
   } catch (_) {}
 }
 
@@ -278,10 +413,41 @@ class _Handler(BaseHTTPRequestHandler):
         elif self.path == "/sessions":
             body = json.dumps(_load_sessions(), ensure_ascii=False).encode()
             self._send(200, "application/json", body)
+        elif self.path == "/todos":
+            body = json.dumps(
+                kon_todo.load_all_todos(PROJECT_FILTER),
+                ensure_ascii=False,
+            ).encode()
+            self._send(200, "application/json", body)
         else:
             self._send(404, "text/plain", b"not found")
 
     def do_PATCH(self) -> None:
+        if self.path.startswith("/todos/"):
+            todo_id = self.path[len("/todos/") :]
+            if not re.fullmatch(r"[\w\-]+", todo_id):
+                self._send(400, "text/plain", b"invalid todo id")
+                return
+            length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(length) if length else b"{}"
+            try:
+                updates = json.loads(body)
+            except json.JSONDecodeError:
+                self._send(400, "text/plain", b"invalid JSON")
+                return
+            project_path = updates.get("project_path")
+            status = updates.get("status")
+            if not project_path or status not in ("open", "done"):
+                self._send(400, "text/plain", b"project_path and status required")
+                return
+            try:
+                item = kon_todo.set_todo_status(todo_id, status, project_path)
+                self._send(200, "application/json", json.dumps(item, ensure_ascii=False).encode())
+            except LookupError:
+                self._send(404, "text/plain", b"todo not found")
+            except (OSError, ValueError):
+                self._send(500, "text/plain", b"write failed")
+            return
         if self.path.startswith("/sessions/"):
             session_id = self.path[len("/sessions/") :]
             if not re.fullmatch(r"[\w\-]+", session_id):
@@ -309,6 +475,34 @@ class _Handler(BaseHTTPRequestHandler):
             self._send(404, "text/plain", b"not found")
 
     def do_DELETE(self) -> None:
+        if self.path.startswith("/todos/"):
+            todo_id = self.path[len("/todos/") :]
+            if not re.fullmatch(r"[\w\-]+", todo_id):
+                self._send(400, "text/plain", b"invalid todo id")
+                return
+            length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(length) if length else b"{}"
+            try:
+                payload = json.loads(body)
+            except json.JSONDecodeError:
+                self._send(400, "text/plain", b"invalid JSON")
+                return
+            project_path = payload.get("project_path")
+            if not project_path:
+                self._send(400, "text/plain", b"project_path required")
+                return
+            try:
+                deleted = kon_todo.delete_todo(todo_id, project_path)
+                self._send(
+                    200,
+                    "application/json",
+                    json.dumps({"deleted": deleted}, ensure_ascii=False).encode(),
+                )
+            except LookupError:
+                self._send(404, "text/plain", b"todo not found")
+            except OSError:
+                self._send(500, "text/plain", b"write failed")
+            return
         if self.path.startswith("/sessions/"):
             session_id = self.path[len("/sessions/") :]
             if not re.fullmatch(r"[\w\-]+", session_id):

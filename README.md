@@ -25,12 +25,14 @@ Narrated by 🌸 Ui.
 
 ## Dashboard
 
-Run a live session dashboard to see all active and past agent runs across every project:
+Run a live dashboard to see agent sessions and project todos:
 
 ```bash
 python3 ~/Desktop/kon/scripts/dashboard.py --open   # http://localhost:9090
 python3 ~/Desktop/kon/scripts/dashboard.py --project /path/to/repo --open  # one project only
 ```
+
+**Sessions** tab — active/past agent runs. **Todos** tab — open items from `.kon/todos.json` (mark done, reopen, delete). Add todos with `/kon:todo <task>`.
 
 Session history lives in `~/.kon/projects/<repo-name>/sessions/` (override with `KON_DATA_DIR`). Project working files
 (`plan.md`, rubrics) stay in `<project>/.kon/`.
@@ -123,6 +125,7 @@ Then in Cursor chat (slash commands):
 /kon:ask how does session tracking work?
 /kon:research what Cursor hook events support followup_message?
 /kon:review
+/kon:todo add rate limiting to the API
 /kon:team refactor the payment module
 /kon:design add rate limiting to the API
 ```
@@ -179,6 +182,7 @@ Then in any Codex session:
 | `/kon:quick <task>` | Skip explore/plan, lightweight 4-item review |
 | `/kon:research <question>` | External lookup — 📚 Jun searches docs/web, writes `.kon/research.md` |
 | `/kon:review` | Code review only — 📝 Mio strict-review on uncommitted/staged diff |
+| `/kon:todo <task>` | Add a project todo — stored in `.kon/todos.json`; manage in dashboard **Todos** tab |
 | `/kon:ask <question>` | Read-only Q&A — 🎸 Azusa explores the repo, **no repo writes**; session tracked in `~/.kon/projects/` |
 | `/kon:gc` | Garbage collect — remove dead code, simplify comments/docs |
 | `/kon:summarize` | Write a session summary (auto-runs at end of every command) |

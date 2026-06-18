@@ -13,6 +13,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "hooks"))
 from _kon_paths import ensure_sessions_dir, iter_sessions_dirs, resolve_project_path  # noqa: E402
 
+_BEGIN_COMMAND = "/kon:begin"
+
+# One-shot commands: auto-complete when the sole agent finishes (no dashboard clutter).
+_EPHEMERAL_COMMANDS = frozenset({"/kon:ask", "/kon:research", "/kon:review"})
+
 
 def _utcnow() -> datetime.datetime:
     return datetime.datetime.now(datetime.timezone.utc)
@@ -53,9 +58,77 @@ def _default_pending(command: str) -> list[str]:
     c = _normalize_command(command)
     if c == "/kon:ask":
         return ["Azusa"]
+    if c == "/kon:research":
+        return ["Jun"]
+    if c == "/kon:review":
+        return ["Mio"]
+    if c == "/kon:begin":
+        return []
     if c == "/kon:design":
         return ["Azusa", "Mugi", "User"]
     return []
+
+
+def _find_active_begin(project: str | None) -> tuple[Path, dict] | None:
+    """Most recent open /kon:begin session for this project."""
+    project_path = str(resolve_project_path(project))
+    best: tuple[Path, dict] | None = None
+    best_key = ""
+    for directory in iter_sessions_dirs(project):
+        for path in directory.glob("*.json"):
+            try:
+                data = json.loads(path.read_text(encoding="utf-8"))
+            except (json.JSONDecodeError, OSError):
+                continue
+            if data.get("command") != _BEGIN_COMMAND:
+                continue
+            if data.get("project_path") != project_path:
+                continue
+            if data.get("status") not in ("in_progress", "waiting"):
+                continue
+            key = data.get("started_at") or data.get("id") or ""
+            if key >= best_key:
+                best_key = key
+                best = (path, data)
+    return best
+
+
+def _terminal_status_when_agents_done(command: str) -> str:
+    if command == _BEGIN_COMMAND:
+        return "in_progress"
+    if command in _EPHEMERAL_COMMANDS:
+        return "completed"
+    return "waiting"
+
+
+def _supersede_open_sessions(project: str | None, new_sid: str) -> None:
+    """Close other in_progress/waiting sessions for this project when a new run starts."""
+    project_path = str(resolve_project_path(project))
+    ts = _utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+    for directory in iter_sessions_dirs(project):
+        for path in directory.glob("*.json"):
+            if path.stem == new_sid:
+                continue
+            try:
+                data = json.loads(path.read_text(encoding="utf-8"))
+            except (json.JSONDecodeError, OSError):
+                continue
+            if data.get("project_path") != project_path:
+                continue
+            if data.get("status") not in ("in_progress", "waiting"):
+                continue
+            data["status"] = "completed"
+            data["current_agent"] = None
+            log = data.get("log") or []
+            log.append(
+                {
+                    "ts": ts,
+                    "agent": "System",
+                    "summary": f"Superseded by new session {new_sid}.",
+                }
+            )
+            data["log"] = log
+            _save(path, data)
 
 
 def cmd_init(args: argparse.Namespace) -> None:
@@ -76,8 +149,11 @@ def cmd_init(args: argparse.Namespace) -> None:
         "steps_waiting": [],
         "log": [],
     }
+    if command == _BEGIN_COMMAND:
+        data["mode"] = "interactive"
     path = ensure_sessions_dir(args.project) / f"{sid}.json"
     _save(path, data)
+    _supersede_open_sessions(args.project, sid)
     print(sid)
 
 
@@ -109,7 +185,7 @@ def cmd_complete_agent(args: argparse.Namespace) -> None:
     waiting = data.get("steps_waiting") or []
     failed = data.get("steps_failed") or []
     if not pending and not waiting and not failed:
-        data["status"] = "waiting"
+        data["status"] = _terminal_status_when_agents_done(data.get("command", ""))
     log = data.get("log") or []
     log.append(
         {
@@ -120,6 +196,30 @@ def cmd_complete_agent(args: argparse.Namespace) -> None:
     )
     data["log"] = log
     _save(path, data)
+
+
+def cmd_log_turn(args: argparse.Namespace) -> None:
+    path, data = _load(args.id, args.project)
+    log = data.get("log") or []
+    log.append(
+        {
+            "ts": _utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "agent": args.agent,
+            "summary": args.summary,
+        }
+    )
+    data["log"] = log
+    if data.get("command") == _BEGIN_COMMAND:
+        data["status"] = "in_progress"
+    _save(path, data)
+
+
+def cmd_active(args: argparse.Namespace) -> None:
+    found = _find_active_begin(args.project)
+    if found is None:
+        return
+    _, data = found
+    print(data["id"])
 
 
 def cmd_set_status(args: argparse.Namespace) -> None:
@@ -151,6 +251,18 @@ def main() -> None:
     done.add_argument("--agent", required=True)
     done.add_argument("--summary", required=True)
     done.set_defaults(func=cmd_complete_agent)
+
+    log_turn = sub.add_parser(
+        "log-turn",
+        help="Append a log entry without completing an agent step",
+    )
+    log_turn.add_argument("--id", required=True)
+    log_turn.add_argument("--agent", required=True)
+    log_turn.add_argument("--summary", required=True)
+    log_turn.set_defaults(func=cmd_log_turn)
+
+    active = sub.add_parser("active", help="Print active /kon:begin session id if any")
+    active.set_defaults(func=cmd_active)
 
     status = sub.add_parser("set-status", help="Set session status")
     status.add_argument("--id", required=True)

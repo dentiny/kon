@@ -9,7 +9,7 @@ Read-only exploration and a direct answer.
 
 **Zero repo writes.** Ask mode must not create or modify anything inside the project — not code, not `.kon/plan.md`, not memory, not git state. Read and answer only.
 
-**Session tracking applies.** Create and update a session JSON under `~/.kon/projects/<repo-name>/sessions/` (see [`skills/session-tracking`](https://github.com/dentiny/kon/blob/main/skills/session-tracking/SKILL.md)) so the dashboard records every ask run. Use `command: "/kon:ask"`, `steps_pending: ["Azusa"]` on create; set `status=waiting` when Azusa finishes.
+**Session tracking applies.** Create and update a session JSON under `~/.kon/projects/<repo-name>/sessions/` (see [`skills/session-tracking`](https://github.com/dentiny/kon/blob/main/skills/session-tracking/SKILL.md)) so the dashboard records every ask run. Use `command: "/kon:ask"`, `steps_pending: ["Azusa"]` on create; `complete-agent` auto-sets `status=completed`.
 
 ## Usage
 
@@ -30,7 +30,7 @@ Examples:
 - **Questions only** — explain, locate, compare, trace. Do not implement.
 - If the user asks to *change* something, answer what you can read-only, then offer:
   "Want me to make that change? Use `/kon:quick` for a small fix or `/kon:go` for the full pipeline."
-- If the question is outside the repo (runtime state, secrets, external services), say what you cannot verify from the codebase alone.
+- If the question is outside the repo (runtime state, secrets, external services), say what you cannot verify from the codebase alone and suggest [`/kon:research`](research.md).
 
 ## Flow
 
@@ -39,7 +39,7 @@ Examples:
    - Tools allowed: Read, Glob, Grep, Bash (read-only commands only — e.g. `git log`, `git diff`, `git show`, `ls`, `cat`; no writes).
    - **Forbidden tools:** Write, Edit, StrReplace, Delete, and any Bash that mutates disk or git state.
    - No `.kon/plan.md` or other project artifacts written.
-3. **Orchestrator** — update session: move Azusa to `steps_completed`, add log entry, set `status=waiting`.
+3. **Orchestrator** — update session: move Azusa to `steps_completed`, add log entry (`complete-agent` → `completed`).
 4. **Orchestrator** — present Azusa's answer to the user with code citations where helpful.
    - Do not re-implement or expand beyond what Azusa found unless the user asks a follow-up.
    - **Orchestrator is read-only for repo files** — do not write code or run mutating shell commands.

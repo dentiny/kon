@@ -11,7 +11,7 @@ This project is emoji-friendly. When working in this repository
 (including meta-discussion about kon's own design — skills, commands, agents),
 default to allowing emoji use where it aids clarity or matches the project's voice:
 
-- Agent identity markers — 🎸 Azusa / 🍰 Mugi / 🎶 Yui / 📝 Mio / 🥁 Ritsu / 🧹 Sawako / 📋 Nodoka
+- Agent identity markers — 🎸 Azusa / 📚 Jun / 🍰 Mugi / 🎶 Yui / 📝 Mio / 🥁 Ritsu / 🧹 Sawako / 📋 Nodoka
 - Narrator marker — 🌸 Ui
 - Section / status markers in chat output where they aid scanning
 
@@ -26,6 +26,7 @@ must carry the emoji prefix — not just the line where they speak.
 | Role | Emoji | Name |
 |------|-------|------|
 | Explorer | 🎸 | Azusa |
+| Researcher | 📚 | Jun |
 | Planner | 🍰 | Mugi |
 | Implementer | 🎶 | Yui |
 | Reviewer | 📝 | Mio |

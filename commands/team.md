@@ -16,8 +16,9 @@ Mio reads the diff; Ritsu runs commands — they don't depend on each other, so 
 
 ## Flow
 
-Sequential segment (🎸 Azusa → 🍰 Mugi → user confirm → 🎶 Yui) follows
+Sequential segment (optional **📚 Jun** ∥ 🎸 Azusa → 🍰 Mugi → user confirm → 🎶 Yui) follows
 [`skills/teammate-flow`](https://github.com/dentiny/kon/blob/main/skills/teammate-flow/SKILL.md).
+Spawn Jun when external docs are needed — [`skills/external-research`](https://github.com/dentiny/kon/blob/main/skills/external-research/SKILL.md).
 
 ## Plan reuse (after `/kon:design`)
 

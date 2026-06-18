@@ -16,6 +16,7 @@ from teammate_quality_check import ROLE_HANDLERS  # noqa: E402
 _ROLE_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
     ("Azusa-challenge", re.compile(r"Azusa-challenge|Azusa \(Challenge\)|challenge mode", re.I)),
     ("Mugi-revise", re.compile(r"Mugi-revise|Mugi \(Revise\)|revise mode", re.I)),
+    ("Jun", re.compile(r"agents/Jun\.md|Researcher \(Jun\)|\bJun \(Researcher\)", re.I)),
     ("Nodoka", re.compile(r"Nodoka|Summarizer|agents/Nodoka\.md", re.I)),
     ("Sawako", re.compile(r"Sawako|Cleaner|agents/Sawako\.md", re.I)),
     ("Ritsu", re.compile(r"Ritsu|Verifier|agents/Ritsu\.md", re.I)),

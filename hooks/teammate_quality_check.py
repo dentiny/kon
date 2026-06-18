@@ -103,6 +103,32 @@ def check_azusa(out: str) -> None:
     emit("approve", "Azusa (Explorer) output includes memory load report")
 
 
+def check_jun(out: str) -> None:
+    require_memory_header(out, "Jun (Researcher)")
+    if not re.search(r"\.kon/research\.md", out):
+        emit(
+            "block",
+            "Jun (Researcher) output must reference `.kon/research.md` "
+            "(write findings there and cite the path in output).",
+        )
+    if not re.search(r"##\s+(Findings|Research summary)", out, re.IGNORECASE):
+        emit(
+            "block",
+            "Jun (Researcher) output is missing `## Findings` or `## Research summary`.",
+        )
+    if not _URL_RE.search(out) and not re.search(
+        r"no web sources|no external sources|docs silent",
+        out,
+        re.IGNORECASE,
+    ):
+        emit(
+            "block",
+            "Jun (Researcher) must cite at least one URL in output, "
+            "or state that no web sources were available.",
+        )
+    emit("approve", "Jun (Researcher) output is compliant")
+
+
 PR_DRAFT_RE = re.compile(r"##\s+Suggested PR title", re.IGNORECASE)
 
 
@@ -421,6 +447,9 @@ ROLE_HANDLERS = {
     "Azusa": check_azusa,
     "explorer": check_azusa,
     "Explorer": check_azusa,
+    "Jun": check_jun,
+    "researcher": check_jun,
+    "Researcher": check_jun,
     "Mugi": check_mugi,
     "planner": check_mugi,
     "Planner": check_mugi,

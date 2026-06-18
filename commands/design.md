@@ -21,7 +21,8 @@ Stops after plan approval — hand off to `/kon:go` or `/kon:team` when ready to
 ## Flow
 
 ```
-🎸 Azusa explore
+optional 📚 Jun (external docs, parallel with Azusa — see skills/external-research)
+  → 🎸 Azusa explore
   → 🍰 Mugi plan v1 (.kon/plan.md)
   → 🎸 Azusa challenge (.kon/design-debate.md)
   → 🍰 Mugi revise (plan v2 + response table)

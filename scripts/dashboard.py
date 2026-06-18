@@ -117,7 +117,7 @@ h1 small { color: #8b949e; font-size: 14px; font-weight: 400; margin-left: 10px;
 </div>
 <div id="root"></div>
 <script>
-const EM = {Azusa:'🎸',Mugi:'🍰',Yui:'🎶',Mio:'📝',Ritsu:'🥁',Sawako:'🧹',Nodoka:'📋'};
+const EM = {Azusa:'🎸',Jun:'📚',Mugi:'🍰',Yui:'🎶',Mio:'📝',Ritsu:'🥁',Sawako:'🧹',Nodoka:'📋'};
 const showProject = __SHOW_PROJECT__;
 const open_ids = new Set();
 let currentTab = 'all';

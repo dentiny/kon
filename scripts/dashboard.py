@@ -19,6 +19,7 @@ import argparse
 import json
 import pathlib
 import re
+import shutil
 import sys
 import webbrowser
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -28,6 +29,7 @@ from _kon_paths import (  # noqa: E402
     iter_sessions_dirs,
     kon_data_dir,
     project_data_dir,
+    project_kon_dir,
     resolve_project_path,
 )
 
@@ -241,8 +243,8 @@ function renderSession(s) {
     </div>`).join('');
   const projectLabel = projectBadge(s.project_path);
   return `
-    <div class="session${isPast?' past':''}">
-      <div class="hdr" onclick="toggle('${s.id}')">
+    <div class="session${isPast?' past':''}" data-session-id="${s.id}">
+      <div class="hdr">
         <span class="chevron${isOpen?' open':''}">▶</span>
         <span class="badge ${s.status}">${s.status.replace('_',' ')}</span>
         ${projectLabel}
@@ -251,8 +253,8 @@ function renderSession(s) {
         <div class="pipeline">${dots}</div>
         <span class="when">${fmtWhen(s.started_at)}</span>
         <span class="cur-agent">${curLabel}</span>
-        ${canClose ? `<button class="close-btn" onclick="closeSession('${s.id}',event)" title="Mark as done">✓</button>` : ''}
-        <button class="del-btn" onclick="deleteSession('${s.id}',${JSON.stringify(s.task)},event)" title="Delete session">🗑</button>
+        ${canClose ? `<button type="button" class="close-btn" title="Mark as done">✓</button>` : ''}
+        <button type="button" class="del-btn" title="Delete session">🗑</button>
       </div>
       <div class="log${isOpen?' open':''}" id="log-${s.id}">
         ${logRows || '<div class="log-row"><span class="summary" style="color:#484f58">No log entries yet.</span></div>'}
@@ -275,13 +277,16 @@ function render(sessions) {
 
 function toggle(id) {
   if (open_ids.has(id)) open_ids.delete(id); else open_ids.add(id);
-  document.getElementById('log-'+id).classList.toggle('open');
-  const hdr = document.getElementById('log-'+id).previousElementSibling;
-  hdr.querySelector('.chevron').classList.toggle('open');
+  const session = document.querySelector('.session[data-session-id="' + id + '"]');
+  if (!session) return;
+  const log = session.querySelector('.log');
+  const chevron = session.querySelector('.chevron');
+  if (log) log.classList.toggle('open');
+  if (chevron) chevron.classList.toggle('open');
 }
 
 async function closeSession(id, event) {
-  event.stopPropagation();
+  if (event) event.stopPropagation();
   try {
     const r = await fetch('/sessions/' + id, {
       method: 'PATCH',
@@ -296,18 +301,47 @@ async function closeSession(id, event) {
   } catch (_) {}
 }
 
-async function deleteSession(id, task, event) {
-  event.stopPropagation();
-  if (!confirm(`Delete session?\n\n"${task}"\n\nThis removes the session file and its summary.`)) return;
+async function deleteSession(id, event) {
+  if (event) event.stopPropagation();
+  const s = allSessions.find(x => x.id === id);
+  const task = s ? s.task : id;
+  if (!confirm(`Delete session?\\n\\n"${task}"\\n\\nThis removes session files from disk.`)) return;
   try {
-    const r = await fetch('/sessions/' + id, {method: 'DELETE'});
+    const r = await fetch('/sessions/' + encodeURIComponent(id), {method: 'DELETE'});
     if (r.ok) {
       allSessions = allSessions.filter(s => s.id !== id);
       open_ids.delete(id);
       render(allSessions);
+    } else {
+      const msg = await r.text();
+      alert('Delete failed (' + r.status + '): ' + msg);
     }
-  } catch (_) {}
+  } catch (err) {
+    alert('Delete failed: ' + err);
+  }
 }
+
+document.getElementById('root').addEventListener('click', (e) => {
+  const delBtn = e.target.closest('.del-btn');
+  if (delBtn) {
+    e.stopPropagation();
+    const id = delBtn.closest('.session')?.dataset.sessionId;
+    if (id) deleteSession(id, e);
+    return;
+  }
+  const closeBtn = e.target.closest('.close-btn');
+  if (closeBtn) {
+    e.stopPropagation();
+    const id = closeBtn.closest('.session')?.dataset.sessionId;
+    if (id) closeSession(id, e);
+    return;
+  }
+  const hdr = e.target.closest('.hdr');
+  if (hdr && !e.target.closest('button')) {
+    const id = hdr.closest('.session')?.dataset.sessionId;
+    if (id) toggle(id);
+  }
+});
 
 function setTodoTab(tab) {
   currentTodoTab = tab;
@@ -451,8 +485,8 @@ class _Handler(BaseHTTPRequestHandler):
                 self._send(500, "text/plain", b"write failed")
             return
         if self.path.startswith("/sessions/"):
-            session_id = self.path[len("/sessions/") :]
-            if not re.fullmatch(r"[\w\-]+", session_id):
+            session_id = _path_id(self.path, "/sessions/")
+            if session_id is None or not re.fullmatch(r"[\w\-]+", session_id):
                 self._send(400, "text/plain", b"invalid session id")
                 return
             length = int(self.headers.get("Content-Length", 0))
@@ -506,26 +540,17 @@ class _Handler(BaseHTTPRequestHandler):
                 self._send(500, "text/plain", b"write failed")
             return
         if self.path.startswith("/sessions/"):
-            session_id = self.path[len("/sessions/") :]
-            if not re.fullmatch(r"[\w\-]+", session_id):
+            session_id = _path_id(self.path, "/sessions/")
+            if session_id is None or not re.fullmatch(r"[\w\-]+", session_id):
                 self._send(400, "text/plain", b"invalid session id")
                 return
-            target = _session_file(session_id)
-            if target is None:
-                self._send(404, "text/plain", b"session not found")
-                return
-            summary = target.parent / f"{session_id}-summary.md"
-            deleted = []
-            for path in (target, summary):
-                if path.exists():
-                    try:
-                        path.unlink()
-                        deleted.append(path.name)
-                    except OSError:
-                        pass
+            deleted = delete_session(session_id)
             if deleted:
-                _SESSION_FILES.pop(session_id, None)
-                self._send(200, "application/json", json.dumps({"deleted": deleted}).encode())
+                self._send(
+                    200,
+                    "application/json",
+                    json.dumps({"deleted": deleted}, ensure_ascii=False).encode(),
+                )
             else:
                 self._send(404, "text/plain", b"session not found")
         else:
@@ -543,6 +568,13 @@ class _Handler(BaseHTTPRequestHandler):
         pass
 
 
+def _path_id(path: str, prefix: str) -> str | None:
+    if not path.startswith(prefix):
+        return None
+    segment = path[len(prefix) :].split("?", 1)[0]
+    return segment or None
+
+
 def _session_dirs() -> list[pathlib.Path]:
     if PROJECT_FILTER:
         return iter_sessions_dirs(PROJECT_FILTER)
@@ -552,11 +584,73 @@ def _session_dirs() -> list[pathlib.Path]:
 def _session_file(session_id: str) -> pathlib.Path | None:
     if session_id in _SESSION_FILES:
         return _SESSION_FILES[session_id]
-    for d in _session_dirs():
-        path = d / f"{session_id}.json"
-        if path.exists():
+    for directory in _session_dirs():
+        path = directory / f"{session_id}.json"
+        if path.is_file():
             return path
     return None
+
+
+def _session_related_paths(session_id: str, project_path: str | None = None) -> list[pathlib.Path]:
+    """All session artifacts to remove: json, summary, optional legacy copies, session dir."""
+    paths: list[pathlib.Path] = []
+    seen: set[pathlib.Path] = set()
+
+    def add(path: pathlib.Path) -> None:
+        resolved = path.resolve()
+        if resolved not in seen:
+            seen.add(resolved)
+            paths.append(path)
+
+    canonical = _session_file(session_id)
+    if canonical is not None:
+        add(canonical)
+        add(canonical.parent / f"{session_id}-summary.md")
+        session_dir = canonical.parent / session_id
+        if session_dir.is_dir():
+            add(session_dir)
+
+    for directory in _session_dirs():
+        add(directory / f"{session_id}.json")
+        add(directory / f"{session_id}-summary.md")
+        add(directory / session_id)
+
+    if project_path:
+        legacy_sessions = project_kon_dir(project_path) / "sessions"
+        add(legacy_sessions / f"{session_id}.json")
+        add(legacy_sessions / f"{session_id}-summary.md")
+        add(legacy_sessions / session_id)
+
+    return paths
+
+
+def delete_session(session_id: str) -> list[str]:
+    """Delete session artifacts from disk. Returns deleted path names."""
+    target = _session_file(session_id)
+    project_path: str | None = None
+    if target is not None and target.is_file():
+        try:
+            data = json.loads(target.read_text(encoding="utf-8"))
+            project_path = data.get("project_path")
+        except (json.JSONDecodeError, OSError):
+            pass
+
+    deleted: list[str] = []
+    for path in _session_related_paths(session_id, project_path):
+        if not path.exists():
+            continue
+        try:
+            if path.is_dir():
+                shutil.rmtree(path)
+            else:
+                path.unlink()
+            deleted.append(str(path))
+        except OSError:
+            continue
+
+    if deleted:
+        _SESSION_FILES.pop(session_id, None)
+    return deleted
 
 
 def _load_sessions() -> list[dict]:

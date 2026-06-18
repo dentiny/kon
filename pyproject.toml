@@ -1,0 +1,11 @@
+[project]
+name = "kon"
+version = "0.1.0"
+description = "K-On! Ho-kago Tea Time driven general-purpose dev agent flow"
+requires-python = ">=3.10"
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]

@@ -69,8 +69,12 @@ def _default_pending(command: str) -> list[str]:
     return []
 
 
-def _find_active_begin(project: str | None) -> tuple[Path, dict] | None:
-    """Most recent open /kon:begin session for this project."""
+def _find_open_session(
+    project: str | None,
+    *,
+    command: str | None = None,
+) -> tuple[Path, dict] | None:
+    """Most recent open session for this project (optionally filtered by command)."""
     project_path = str(resolve_project_path(project))
     best: tuple[Path, dict] | None = None
     best_key = ""
@@ -80,7 +84,7 @@ def _find_active_begin(project: str | None) -> tuple[Path, dict] | None:
                 data = json.loads(path.read_text(encoding="utf-8"))
             except (json.JSONDecodeError, OSError):
                 continue
-            if data.get("command") != _BEGIN_COMMAND:
+            if command is not None and data.get("command") != command:
                 continue
             if data.get("project_path") != project_path:
                 continue
@@ -91,6 +95,11 @@ def _find_active_begin(project: str | None) -> tuple[Path, dict] | None:
                 best_key = key
                 best = (path, data)
     return best
+
+
+def _find_active_begin(project: str | None) -> tuple[Path, dict] | None:
+    """Most recent open /kon:begin session for this project."""
+    return _find_open_session(project, command=_BEGIN_COMMAND)
 
 
 def _terminal_status_when_agents_done(command: str) -> str:
@@ -222,6 +231,14 @@ def cmd_active(args: argparse.Namespace) -> None:
     print(data["id"])
 
 
+def cmd_open(args: argparse.Namespace) -> None:
+    found = _find_open_session(args.project)
+    if found is None:
+        return
+    _, data = found
+    print(data["id"])
+
+
 def cmd_set_status(args: argparse.Namespace) -> None:
     path, data = _load(args.id, args.project)
     data["status"] = args.status
@@ -263,6 +280,9 @@ def main() -> None:
 
     active = sub.add_parser("active", help="Print active /kon:begin session id if any")
     active.set_defaults(func=cmd_active)
+
+    open_cmd = sub.add_parser("open", help="Print most recent open session id if any")
+    open_cmd.set_defaults(func=cmd_open)
 
     status = sub.add_parser("set-status", help="Set session status")
     status.add_argument("--id", required=True)

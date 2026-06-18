@@ -206,3 +206,46 @@ class TestVerifyCompletion:
             {"hook_event_name": "stop", "status": "aborted"},
         )
         assert result == {}
+
+
+class TestInitKonSession:
+    def test_creates_session_on_review_command(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        project = tmp_path / "repo"
+        project.mkdir()
+        data_root = tmp_path / "kon-data"
+        monkeypatch.setenv("KON_DATA_DIR", str(data_root))
+        monkeypatch.setenv("KON_ROOT", str(ROOT))
+
+        result = _run_hook(
+            "init_kon_session.py",
+            {
+                "prompt": "/kon:review check dashboard session tracking",
+                "cwd": str(project),
+            },
+        )
+        assert result == {"continue": True}
+
+        sessions_dir = data_root / "projects" / "repo" / "sessions"
+        files = list(sessions_dir.glob("*.json"))
+        assert len(files) == 1
+        data = json.loads(files[0].read_text(encoding="utf-8"))
+        assert data["command"] == "/kon:review"
+        assert data["status"] == "in_progress"
+        assert data["steps_pending"] == ["Mio"]
+
+    def test_skips_plain_prompt(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        project = tmp_path / "repo"
+        project.mkdir()
+        data_root = tmp_path / "kon-data"
+        monkeypatch.setenv("KON_DATA_DIR", str(data_root))
+        monkeypatch.setenv("KON_ROOT", str(ROOT))
+
+        result = _run_hook(
+            "init_kon_session.py",
+            {"prompt": "fix the bug in dashboard.py", "cwd": str(project)},
+        )
+        assert result == {"continue": True}
+        sessions_dir = data_root / "projects" / "repo" / "sessions"
+        assert not sessions_dir.exists() or not list(sessions_dir.glob("*.json"))

@@ -16,7 +16,9 @@ can display live status and a clickable log of every run.
 `~/.kon/projects/<repo-name>/sessions/<session-id>.json` (override root with `KON_DATA_DIR`)
 
 `<repo-name>` is the git repo root directory name (e.g. `kon` for `~/Desktop/kon`).
-Created automatically on Cursor session start via `ensure_project_dir` hook.
+Created automatically on Cursor session start via `ensure_project_dir` hook (creates the directory only).
+
+**Auto-init:** when you send a `/kon:*` slash command, `beforeSubmitPrompt` → `init_kon_session.py` writes the session JSON under `~/.kon/projects/<repo>/sessions/` before the agent runs. Orchestrators should still call `init` if the hook is not installed; duplicate `init` is safe (supersedes prior open sessions).
 
 Session history lives **outside the project repo**. Project working files
 (`plan.md`, rubrics, retry logs) still go in `<project>/.kon/`.

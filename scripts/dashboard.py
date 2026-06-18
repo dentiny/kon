@@ -54,10 +54,11 @@ h1 small { color: #8b949e; font-size: 14px; font-weight: 400; margin-left: 10px;
 .chevron.open { transform: rotate(90deg); }
 .badge { padding: 3px 10px; border-radius: 10px; font-size: 12px;
          font-weight: 600; flex-shrink: 0; }
-.in_progress { background: #1158a0; color: #79c0ff; }
-.waiting     { background: #4d3000; color: #e3b341; }
-.completed   { background: #1a4f2a; color: #56d364; }
-.blocked     { background: #5a1a1a; color: #f85149; }
+.badge.in_progress { background: #1158a0; color: #79c0ff; }
+.badge.waiting     { background: rgba(210, 153, 34, 0.12); color: #b8a88a;
+                     border: 1px solid rgba(210, 153, 34, 0.22); }
+.badge.completed   { background: #1a4f2a; color: #56d364; }
+.badge.blocked     { background: #5a1a1a; color: #f85149; }
 .task  { flex: 1; min-width: 0; font-size: 15px; font-weight: 500; color: #e6edf3;
          overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cmd   { color: #8b949e; font-size: 13px; flex-shrink: 0; }
@@ -69,11 +70,12 @@ h1 small { color: #8b949e; font-size: 14px; font-weight: 400; margin-left: 10px;
   background: #1c2128; border: 1px solid #30363d; padding: 3px 7px;
   border-radius: 4px; font-size: 11px; white-space: nowrap;
   color: #e6edf3; z-index: 10; pointer-events: none; }
-.done    { background: #238636; }                           /* green  — completed */
-.active  { background: #1f6feb; box-shadow: 0 0 0 3px #388bfd33; } /* blue — running */
-.waiting { background: #e3b341; }                           /* yellow — waiting for input */
-.failed  { background: #da3633; }                           /* red    — failed/blocked */
-.pending { background: #30363d; }                           /* gray   — not started */
+.dot.done    { background: #238636; }
+.dot.active  { background: #1f6feb; box-shadow: 0 0 0 3px #388bfd33; }
+.dot.waiting { background: rgba(210, 153, 34, 0.35);
+               border: 1px solid rgba(210, 153, 34, 0.45); box-sizing: border-box; }
+.dot.failed  { background: #da3633; }
+.dot.pending { background: #30363d; }
 .cur-agent { font-size: 14px; color: #8b949e; flex-shrink: 0; min-width: 80px; text-align: right; }
 .close-btn { background: none; border: 1px solid #238636; cursor: pointer; color: #56d364;
              font-size: 13px; padding: 2px 8px; border-radius: 4px; flex-shrink: 0;
@@ -136,6 +138,7 @@ function renderSession(s) {
   const pend    = s.steps_pending   || [];
   const failed  = s.steps_failed    || [];
   const waiting = s.steps_waiting   || [];
+  const done    = s.steps_completed || [];
   const all     = [...done, ...failed, ...waiting, ...(cur ? [cur] : []), ...pend];
   const dots    = all.map(a => {
     let cls;

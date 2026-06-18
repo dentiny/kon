@@ -55,6 +55,7 @@ h1 small { color: #8b949e; font-size: 14px; font-weight: 400; margin-left: 10px;
 .badge { padding: 3px 10px; border-radius: 10px; font-size: 12px;
          font-weight: 600; flex-shrink: 0; }
 .in_progress { background: #1158a0; color: #79c0ff; }
+.waiting     { background: #4d3000; color: #e3b341; }
 .completed   { background: #1a4f2a; color: #56d364; }
 .blocked     { background: #5a1a1a; color: #f85149; }
 .task  { flex: 1; min-width: 0; font-size: 15px; font-weight: 500; color: #e6edf3;
@@ -68,10 +69,16 @@ h1 small { color: #8b949e; font-size: 14px; font-weight: 400; margin-left: 10px;
   background: #1c2128; border: 1px solid #30363d; padding: 3px 7px;
   border-radius: 4px; font-size: 11px; white-space: nowrap;
   color: #e6edf3; z-index: 10; pointer-events: none; }
-.done    { background: #238636; }
-.active  { background: #1f6feb; box-shadow: 0 0 0 3px #388bfd33; }
-.pending { background: #30363d; }
+.done    { background: #238636; }                           /* green  — completed */
+.active  { background: #1f6feb; box-shadow: 0 0 0 3px #388bfd33; } /* blue — running */
+.waiting { background: #e3b341; }                           /* yellow — waiting for input */
+.failed  { background: #da3633; }                           /* red    — failed/blocked */
+.pending { background: #30363d; }                           /* gray   — not started */
 .cur-agent { font-size: 14px; color: #8b949e; flex-shrink: 0; min-width: 80px; text-align: right; }
+.close-btn { background: none; border: 1px solid #238636; cursor: pointer; color: #56d364;
+             font-size: 13px; padding: 2px 8px; border-radius: 4px; flex-shrink: 0;
+             line-height: 1; transition: all .15s; }
+.close-btn:hover { background: #1a4f2a; }
 .del-btn { background: none; border: none; cursor: pointer; color: #484f58;
            font-size: 14px; padding: 2px 4px; border-radius: 4px; flex-shrink: 0;
            line-height: 1; transition: color .15s; }
@@ -124,17 +131,28 @@ function setTab(tab) {
 }
 
 function renderSession(s) {
-  const isPast  = s.status !== 'in_progress';
-  const done    = s.steps_completed || [];
+  const isPast  = s.status === 'completed' || s.status === 'blocked';
   const cur     = s.current_agent;
   const pend    = s.steps_pending   || [];
-  const all     = [...done, ...(cur ? [cur] : []), ...pend];
+  const failed  = s.steps_failed    || [];
+  const waiting = s.steps_waiting   || [];
+  const all     = [...done, ...failed, ...waiting, ...(cur ? [cur] : []), ...pend];
   const dots    = all.map(a => {
-    const cls = done.includes(a) ? 'done' : a === cur ? 'active' : 'pending';
+    let cls;
+    if (done.includes(a))    cls = 'done';
+    else if (failed.includes(a))  cls = 'failed';
+    else if (waiting.includes(a)) cls = 'waiting';
+    else if (a === cur)      cls = (s.status === 'waiting' ? 'waiting' : 'active');
+    else                     cls = 'pending';
     return `<div class="dot ${cls}" data-label="${EM[a]||''} ${a}"></div>`;
   }).join('');
-  const curLabel = cur ? `${EM[cur]||''} ${cur}` : (s.status==='completed' ? '✓ done' : s.status==='blocked' ? '✗ blocked' : '—');
+  const curLabel = cur
+    ? `${EM[cur]||''} ${cur}`
+    : (s.status==='completed' ? '✓ done'
+    : s.status==='waiting'   ? '⏸ waiting'
+    : s.status==='blocked'   ? '✗ blocked' : '—');
   const isOpen   = open_ids.has(s.id);
+  const canClose = s.status === 'in_progress' || s.status === 'waiting';
   const logRows  = (s.log||[]).map(e =>
     `<div class="log-row">
       <span class="ts">${fmtTime(e.ts)}</span>
@@ -151,6 +169,7 @@ function renderSession(s) {
         <div class="pipeline">${dots}</div>
         <span class="when">${fmtWhen(s.started_at)}</span>
         <span class="cur-agent">${curLabel}</span>
+        ${canClose ? `<button class="close-btn" onclick="closeSession('${s.id}',event)" title="Mark as done">✓</button>` : ''}
         <button class="del-btn" onclick="deleteSession('${s.id}',${JSON.stringify(s.task)},event)" title="Delete session">🗑</button>
       </div>
       <div class="log${isOpen?' open':''}" id="log-${s.id}">
@@ -160,8 +179,8 @@ function renderSession(s) {
 }
 
 function render(sessions) {
-  const active = sessions.filter(s => s.status === 'in_progress');
-  const past   = sessions.filter(s => s.status !== 'in_progress');
+  const active = sessions.filter(s => s.status === 'in_progress' || s.status === 'waiting');
+  const past   = sessions.filter(s => s.status === 'completed' || s.status === 'blocked');
   document.getElementById('tab-all').innerHTML    = `All <span class="count">${sessions.length}</span>`;
   document.getElementById('tab-active').innerHTML = `Active <span class="count">${active.length}</span>`;
   document.getElementById('tab-past').innerHTML   = `Past <span class="count">${past.length}</span>`;
@@ -177,6 +196,22 @@ function toggle(id) {
   document.getElementById('log-'+id).classList.toggle('open');
   const hdr = document.getElementById('log-'+id).previousElementSibling;
   hdr.querySelector('.chevron').classList.toggle('open');
+}
+
+async function closeSession(id, event) {
+  event.stopPropagation();
+  try {
+    const r = await fetch('/sessions/' + id, {
+      method: 'PATCH',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({status: 'completed'})
+    });
+    if (r.ok) {
+      const s = allSessions.find(s => s.id === id);
+      if (s) { s.status = 'completed'; s.current_agent = null; }
+      render(allSessions);
+    }
+  } catch (_) {}
 }
 
 async function deleteSession(id, task, event) {
@@ -215,6 +250,34 @@ class _Handler(BaseHTTPRequestHandler):
         elif self.path == "/sessions":
             body = json.dumps(_load_sessions(), ensure_ascii=False).encode()
             self._send(200, "application/json", body)
+        else:
+            self._send(404, "text/plain", b"not found")
+
+    def do_PATCH(self) -> None:
+        if self.path.startswith("/sessions/"):
+            session_id = self.path[len("/sessions/"):]
+            if not re.fullmatch(r"[\w\-]+", session_id):
+                self._send(400, "text/plain", b"invalid session id")
+                return
+            length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(length) if length else b"{}"
+            try:
+                updates = json.loads(body)
+            except json.JSONDecodeError:
+                self._send(400, "text/plain", b"invalid JSON")
+                return
+            target = SESSIONS_DIR / f"{session_id}.json"
+            if not target.exists():
+                self._send(404, "text/plain", b"session not found")
+                return
+            try:
+                data = json.loads(target.read_text(encoding="utf-8"))
+                data.update({k: v for k, v in updates.items()
+                             if k in ("status", "current_agent")})
+                target.write_text(json.dumps(data, ensure_ascii=False, indent=2))
+                self._send(200, "application/json", json.dumps({"ok": True}).encode())
+            except (OSError, json.JSONDecodeError):
+                self._send(500, "text/plain", b"write failed")
         else:
             self._send(404, "text/plain", b"not found")
 

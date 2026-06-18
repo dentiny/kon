@@ -9,7 +9,7 @@ Read-only exploration and a direct answer.
 
 **Zero repo writes.** Ask mode must not create or modify anything inside the project — not code, not `.kon/plan.md`, not memory, not git state. Read and answer only.
 
-**Session tracking applies.** Create and update a session JSON under `~/.kon/projects/<repo-name>/sessions/` (see [`skills/session-tracking`](https://github.com/dentiny/kon/blob/main/skills/session-tracking/SKILL.md)) so the dashboard records every ask run. Use `command: "kon ask"`, `steps_pending: ["Azusa"]` on create; set `status=waiting` when Azusa finishes.
+**Session tracking applies.** Create and update a session JSON under `~/.kon/projects/<repo-name>/sessions/` (see [`skills/session-tracking`](https://github.com/dentiny/kon/blob/main/skills/session-tracking/SKILL.md)) so the dashboard records every ask run. Use `command: "/kon:ask"`, `steps_pending: ["Azusa"]` on create; set `status=waiting` when Azusa finishes.
 
 ## Usage
 
@@ -34,7 +34,7 @@ Examples:
 
 ## Flow
 
-1. **Orchestrator** — create session file (same snippet as other commands; `cmd = 'kon ask'`). Follow [`skills/session-tracking`](https://github.com/dentiny/kon/blob/main/skills/session-tracking/SKILL.md).
+1. **Orchestrator** — create session file (same snippet as other commands; `cmd = '/kon:ask'`). Follow [`skills/session-tracking`](https://github.com/dentiny/kon/blob/main/skills/session-tracking/SKILL.md).
 2. **🎸 Azusa** — investigate the question read-only.
    - Tools allowed: Read, Glob, Grep, Bash (read-only commands only — e.g. `git log`, `git diff`, `git show`, `ls`, `cat`; no writes).
    - **Forbidden tools:** Write, Edit, StrReplace, Delete, and any Bash that mutates disk or git state.

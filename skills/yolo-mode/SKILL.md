@@ -34,7 +34,7 @@ Auto-accepted decisions and auto-retries are recorded in the session log
    if there is no `[**default**]` and the choice genuinely changes scope or behavior,
    stop and ask. Do not invent a default.
 
-3. **Sawako GC inventory confirmation** — `kon gc` always requires the user to
+3. **Sawako GC inventory confirmation** — `/kon:gc` always requires the user to
    review the cleanup inventory before files are removed. Never skip this.
 
 4. **Scope expansion beyond the original task** — if implementing correctly would

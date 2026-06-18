@@ -5,7 +5,7 @@ description: Write a clean session summary. Called automatically at the end of e
 # /kon:summarize
 
 Have Nodoka write a complete session report for the current (or specified) session.
-Called automatically at the end of every `kon go`, `kon team`, `kon quick`, and `kon gc` run.
+Called automatically at the end of every `/kon:go`, `/kon:team`, `/kon:quick`, and `/kon:gc` run.
 Can also be called manually to (re)summarize any session.
 
 ## Usage
@@ -18,8 +18,8 @@ Can also be called manually to (re)summarize any session.
 ## Flow
 
 1. **Orchestrator** — resolve the target session:
-   - No argument → use the most recent session for this repo under `~/.kon/projects/<repo-name>/sessions/` (by mtime; also checks legacy paths)
-   - Session ID given → load from the repo's kon sessions dir (or legacy path)
+   - No argument → use the most recent session for this repo under `~/.kon/projects/<repo-name>/sessions/` (by mtime)
+   - Session ID given → load from `~/.kon/projects/<repo-name>/sessions/<id>.json`
    - No sessions found → print "No sessions found for this project" and exit
 
 2. **📋 Nodoka** — read session artifacts and write the summary:

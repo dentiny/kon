@@ -1,5 +1,5 @@
 ---
-description: kon K-On! multi-agent dev workflow. Invoke with "kon go/team/quick/ask: <task>" or "kon gc".
+description: kon K-On! multi-agent dev workflow. Invoke with "/kon:go", "/kon:ask", etc.
 alwaysApply: false
 ---
 
@@ -9,25 +9,30 @@ alwaysApply: false
 
 ## Trigger
 
-User writes one of:
-- `kon go: <task>` — full pipeline (explore → plan → implement → review → verify)
-- `kon team: <task>` — same, review + verify run in parallel
-- `kon quick: <task>` — skip explore/plan, lightweight review
-- `kon ask: <question>` — read-only Q&A (Azusa explores, **no repo writes** — session still tracked)
-- `kon gc` or `kon gc: <target>` — garbage collect (dead code, comments, docs)
+User invokes a **slash command** (kon extension system commands):
+
+- `/kon:go <task>` — full pipeline (explore → plan → implement → review → verify)
+- `/kon:team <task>` — same, review + verify run in parallel
+- `/kon:quick <task>` — skip explore/plan, lightweight review
+- `/kon:ask <question>` — read-only Q&A (Azusa explores, **no repo writes** — session still tracked)
+- `/kon:gc` or `/kon:gc <target>` — garbage collect (dead code, comments, docs)
+- `/kon:finish` — mark current session completed
+- `/kon:summarize` — write session summary
+
+Append `--yolo` for autonomous mode: `/kon:go --yolo <task>`.
 
 ## How to run
 
-### `kon ask` — read-only repo, session tracked
+### `/kon:ask` — read-only repo, session tracked
 
-For `kon ask`: **create session JSON first** (same snippet; `cmd = 'kon ask'`), then read `~/Desktop/kon/commands/ask.md`. Spawn Azusa read-only only — no code edits, no `.kon/plan.md`, no mutating shell. Update session after Azusa. Do not read `teammate-flow`.
+For `/kon:ask`: **create session JSON first**, then read `~/Desktop/kon/commands/ask.md`. Spawn Azusa read-only only — no code edits, no `.kon/plan.md`, no mutating shell. Update session after Azusa. Do not read `teammate-flow`.
 
 ### All commands (including ask)
 
 1. **Session file (do this first, before anything else):**
    ```bash
-   python3 ~/Desktop/kon/scripts/kon_session.py init --command "kon ask" --task "<question>"
-   # other commands: --command "kon go" | "kon team" | "kon quick" | "kon gc"
+   python3 ~/Desktop/kon/scripts/kon_session.py init --command "/kon:ask" --task "<question>"
+   # other commands: --command "/kon:go" | "/kon:team" | "/kon:quick" | "/kon:gc"
    ```
    Save the printed session ID. After each agent step:
    ```bash
@@ -35,16 +40,18 @@ For `kon ask`: **create session JSON first** (same snippet; `cmd = 'kon ask'`), 
    ```
    Sessions live in `~/.kon/projects/<repo-name>/sessions/`. Path helper: `scripts/kon_session.py`.
 
-### Workflow commands (go / team / quick / gc / ask)
+### Workflow commands
 
 2. Read the matching workflow file:
-   - `kon go` → `~/Desktop/kon/commands/go.md`
-   - `kon team` → `~/Desktop/kon/commands/team.md`
-   - `kon quick` → `~/Desktop/kon/commands/quick.md`
-   - `kon ask` → `~/Desktop/kon/commands/ask.md`
-   - `kon gc` → `~/Desktop/kon/commands/gc.md`
+   - `/kon:go` → `~/Desktop/kon/commands/go.md`
+   - `/kon:team` → `~/Desktop/kon/commands/team.md`
+   - `/kon:quick` → `~/Desktop/kon/commands/quick.md`
+   - `/kon:ask` → `~/Desktop/kon/commands/ask.md`
+   - `/kon:gc` → `~/Desktop/kon/commands/gc.md`
+   - `/kon:finish` → `~/Desktop/kon/commands/finish.md`
+   - `/kon:summarize` → `~/Desktop/kon/commands/summarize.md`
 
-3. Read `~/Desktop/kon/skills/teammate-flow/SKILL.md` for orchestration rules — **skip for `kon ask`** (Azusa only).
+3. Read `~/Desktop/kon/skills/teammate-flow/SKILL.md` for orchestration rules — **skip for `/kon:ask`** (Azusa only).
 
 4. For each agent step, spawn a Task subagent. Pass the agent file as context in the prompt:
 
@@ -57,15 +64,15 @@ For `kon ask`: **create session JSON first** (same snippet; `cmd = 'kon ask'`), 
    | Verifier | `~/Desktop/kon/agents/Ritsu.md` |
    | Cleaner | `~/Desktop/kon/agents/Sawako.md` |
 
-4. After Mio and Ritsu complete, validate output quality:
+5. After Mio and Ritsu complete, validate output quality:
    ```bash
    echo '{"teammate_role":"Mio","teammate_output":"<output>"}' \
      | python3 ~/Desktop/kon/hooks/teammate_quality_check.py
    ```
 
-5. Use `~/Desktop/kon/skills/narration/SKILL.md` for 🌸 Ui narration beats.
+6. Use `~/Desktop/kon/skills/narration/SKILL.md` for 🌸 Ui narration beats.
 
-6. Failure handling: `~/Desktop/kon/skills/failure-handling/SKILL.md`.
+7. Failure handling: `~/Desktop/kon/skills/failure-handling/SKILL.md`.
 
 ## Hard rule
 

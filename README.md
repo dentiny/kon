@@ -51,8 +51,8 @@ Auto-refreshes every 3 seconds. Filter by **All / Active / Past** tabs.
 Append `--yolo` to any command to run fully autonomously:
 
 ```
-kon go --yolo: add email validation to auth.py
-kon team --yolo: refactor the payment module
+/kon:go --yolo add email validation to auth.py
+/kon:team --yolo refactor the payment module
 ```
 
 The orchestrator auto-accepts plan defaults and silently retries failures.
@@ -72,15 +72,16 @@ skills/*.md      ← shared process knowledge (harness-agnostic markdown)
 hooks/*.py       ← quality checks (pure Python, any harness can shell out)
 
 adapters/
-  cursor/kon.mdc          ← Cursor integration (~30 lines)
-  claude-code/            ← Claude Code plugin manifest + hook config
+  cursor/kon.mdc          ← Cursor integration
+  codex/AGENTS.md         ← Codex CLI integration
 ```
 
-The content layer (agents / commands / skills) never changes per harness.
 Each harness needs only a thin adapter that defines:
-1. How the user triggers a workflow
+1. How the user invokes a workflow (**slash commands**: `/kon:go`, `/kon:ask`, …)
 2. How to pass agent file content to subagents
 3. How to invoke the hook scripts (optional)
+
+> **Command syntax:** `/kon:<name>` extension system commands. Session JSON stores the same form.
 
 ---
 
@@ -103,25 +104,16 @@ mkdir -p /path/to/your/project/.cursor/rules
 cp ~/Desktop/kon/adapters/cursor/kon.mdc /path/to/your/project/.cursor/rules/kon.mdc
 ```
 
-Then in Cursor chat:
+Then in Cursor chat (slash commands):
 
 ```
-kon go: add email validation to auth.py
-kon quick: fix the typo in README line 42
-kon ask: how does session tracking work?
-kon team: refactor the payment module
+/kon:go add email validation to auth.py
+/kon:quick fix the typo in README line 42
+/kon:ask how does session tracking work?
+/kon:team refactor the payment module
 ```
 
 > If you installed kon somewhere other than `~/Desktop/kon`, edit the path in `kon.mdc`.
-
-### Claude Code
-
-```bash
-cd /path/to/your/project
-claude --plugin-dir ~/Desktop/kon
-```
-
-Then use `/kon:go`, `/kon:team`, `/kon:quick`, `/kon:ask`.
 
 ### Codex CLI
 
@@ -140,9 +132,9 @@ cat ~/Desktop/kon/adapters/codex/AGENTS.md >> /path/to/your/project/AGENTS.md
 Then in any Codex session:
 
 ```
-kon go: add email validation to auth.py
-kon quick: fix the typo in README line 42
-kon ask: how does session tracking work?
+/kon:go add email validation to auth.py
+/kon:quick fix the typo in README line 42
+/kon:ask how does session tracking work?
 ```
 
 > `AGENTS.md` is a universal standard — the same file format also works in Cursor,
@@ -163,20 +155,20 @@ kon ask: how does session tracking work?
 
 | Command | What it does |
 |---------|-------------|
-| `kon go: <task>` | Full sequential pipeline: explore → plan → implement → review → verify → summarize |
-| `kon team: <task>` | Same pipeline, review + verify run in parallel (~30% faster) |
-| `kon quick: <task>` | Skip explore/plan, lightweight 4-item review |
-| `kon ask: <question>` | Read-only Q&A — Azusa explores, **no repo writes**; session tracked in `~/.kon/projects/` |
-| `kon gc` | Garbage collect — remove dead code, simplify comments/docs |
-| `kon summarize` | Write a session summary (auto-runs at end of every command) |
-| `kon finish` | Mark the current session as completed |
+| `/kon:go <task>` | Full sequential pipeline: explore → plan → implement → review → verify → summarize |
+| `/kon:team <task>` | Same pipeline, review + verify run in parallel (~30% faster) |
+| `/kon:quick <task>` | Skip explore/plan, lightweight 4-item review |
+| `/kon:ask <question>` | Read-only Q&A — Azusa explores, **no repo writes**; session tracked in `~/.kon/projects/` |
+| `/kon:gc` | Garbage collect — remove dead code, simplify comments/docs |
+| `/kon:summarize` | Write a session summary (auto-runs at end of every command) |
+| `/kon:finish` | Mark the current session as completed |
 
 ### YOLO mode
 
 Append `--yolo` to any command to run fully autonomously:
 
 ```
-kon go --yolo: <task>
+/kon:go --yolo <task>
 ```
 
 Auto-accepts plan defaults, silently retries failures. Only stops for: retry limit hit,
@@ -193,7 +185,7 @@ in_progress (blue) → waiting (yellow) → completed (green)
                        blocked (red)
 ```
 
-Close a session by clicking **✓** in the dashboard, or by running `kon finish`.
+Close a session by clicking **✓** in the dashboard, or by running `/kon:finish`.
 
 ---
 

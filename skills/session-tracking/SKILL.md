@@ -32,7 +32,7 @@ Example: `20260617-203042-add-email-validation`
 {
   "id": "20260617-203042-add-email-validation",
   "task": "add email validation to auth.py",
-  "command": "kon go",
+  "command": "/kon:go",
   "project_path": "/Users/you/projects/myapp",
   "started_at": "2026-06-17T20:30:42Z",
   "status": "in_progress",
@@ -68,7 +68,7 @@ in_progress  →  waiting  →  completed
 {
   "id": "...",
   "task": "...",
-  "command": "kon go",
+  "command": "/kon:go",
   "project_path": "/absolute/path/to/project",
   "started_at": "...",
   "status": "in_progress | waiting | completed | blocked",
@@ -101,7 +101,7 @@ in_progress  →  waiting  →  completed
 
 Ask is read-only for the repo but still tracks a session:
 
-- On create: `command: "kon ask"`, `steps_pending: ["Azusa"]`, other agent lists empty
+- On create: `command: "/kon:ask"`, `steps_pending: ["Azusa"]`, other agent lists empty
 - After Azusa answers: `steps_completed: ["Azusa"]`, `status=waiting`, log entry with one-sentence summary of the answer topic
 - Do **not** auto-set `completed` — same lifecycle as other commands
 
@@ -109,7 +109,7 @@ Write the file with `scripts/kon_session.py` (preferred) or a single `python3 -c
 
 ```bash
 # Create (all commands including ask)
-python3 ~/Desktop/kon/scripts/kon_session.py init --command "kon ask" --task "<question>"
+python3 ~/Desktop/kon/scripts/kon_session.py init --command "/kon:ask" --task "<question>"
 
 # After each agent completes
 python3 ~/Desktop/kon/scripts/kon_session.py complete-agent --id <sid> --agent Azusa --summary "<one sentence>"

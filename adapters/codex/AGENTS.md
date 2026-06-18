@@ -4,27 +4,33 @@
 
 ## Trigger
 
-When the user writes `kon go: <task>`, `kon team: <task>`, `kon quick: <task>`,
-`kon ask: <question>`, or `kon gc` / `kon gc: <target>`, activate the kon multi-agent workflow.
+When the user invokes a **slash command**:
+
+- `/kon:go <task>`, `/kon:team <task>`, `/kon:quick <task>`
+- `/kon:ask <question>`
+- `/kon:gc` or `/kon:gc <target>`
+- `/kon:finish`, `/kon:summarize`
+
+YOLO: `/kon:go --yolo <task>`.
 
 ## How to orchestrate
 
-### `kon ask` — read-only repo, session tracked
+### `/kon:ask` — read-only repo, session tracked
 
-For `kon ask`: create session JSON first (step 1), then read `commands/ask.md`. Spawn Azusa read-only — no code edits, no `.kon/plan.md`, no mutating shell. Update session after Azusa. Skip steps 3–4 (teammate-flow / Mio–Ritsu validation).
+For `/kon:ask`: create session JSON first (step 1), then read `commands/ask.md`. Spawn Azusa read-only — no code edits, no `.kon/plan.md`, no mutating shell. Update session after Azusa. Skip teammate-flow / Mio–Ritsu validation.
 
 ### All commands
 
-1. **Session file (do this first)** — same as Cursor adapter: `ensure_sessions_dir()`, set `cmd`, for ask use `steps_pending: ["Azusa"]`. See `adapters/cursor/kon.mdc` or `skills/session-tracking/SKILL.md`.
+1. **Session file (do this first)** — `python3 ~/Desktop/kon/scripts/kon_session.py init --command "/kon:go" --task "…"`. For ask: `--command "/kon:ask"`. See `adapters/cursor/kon.mdc` or `skills/session-tracking/SKILL.md`.
 
 2. Read the matching command file:
-   - `kon go` → `~/Desktop/kon/commands/go.md`
-   - `kon team` → `~/Desktop/kon/commands/team.md`
-   - `kon quick` → `~/Desktop/kon/commands/quick.md`
-   - `kon ask` → `~/Desktop/kon/commands/ask.md`
-   - `kon gc` → `~/Desktop/kon/commands/gc.md`
+   - `/kon:go` → `~/Desktop/kon/commands/go.md`
+   - `/kon:team` → `~/Desktop/kon/commands/team.md`
+   - `/kon:quick` → `~/Desktop/kon/commands/quick.md`
+   - `/kon:ask` → `~/Desktop/kon/commands/ask.md`
+   - `/kon:gc` → `~/Desktop/kon/commands/gc.md`
 
-3. Read `~/Desktop/kon/skills/teammate-flow/SKILL.md` — **skip for `kon ask`**.
+3. Read `~/Desktop/kon/skills/teammate-flow/SKILL.md` — **skip for `/kon:ask`**.
 
 4. For each agent step, spawn a subagent. Include the agent file as the subagent's
    system context in the prompt:

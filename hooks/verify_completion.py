@@ -4,7 +4,7 @@
 Detects project type → runs the appropriate test command → blocks on failure.
 Even if the orchestrator skipped Ritsu, this hook still runs as a backstop.
 
-Supported config files (place in the user project's `.claude/` directory):
+Supported config files (place in the user project's ``<project>/.kon/`` directory):
 - `skip-test-verification` — first non-empty, non-comment line is the skip reason
 - `test-command` — override the test command (first non-empty, non-comment line)
 - `known-test-failures` — known-failing test IDs (one per line), not blocked
@@ -164,7 +164,7 @@ def main() -> None:
         data = {}
 
     cwd = Path(data.get("cwd") or os.getcwd()).resolve()
-    claude_dir = cwd / ".claude"
+    kon_dir = cwd / ".kon"
 
     if not has_git_modifications(cwd):
         emit(
@@ -172,18 +172,18 @@ def main() -> None:
             "Ritsu (Verifier): no uncommitted file changes this session — skipping test verification",
         )
 
-    skip_reason = read_config_line(claude_dir / "skip-test-verification")
+    skip_reason = read_config_line(kon_dir / "skip-test-verification")
     if skip_reason is not None:
         emit("approve", f"verify_completion skipped: {skip_reason}")
 
-    custom_cmd = read_config_line(claude_dir / "test-command")
+    custom_cmd = read_config_line(kon_dir / "test-command")
     cmd = shlex.split(custom_cmd) if custom_cmd else detect_test_command(cwd)
 
     if cmd is None:
         emit("approve", "Ritsu (Verifier): no test setup detected — skipping (no-op)")
         return
 
-    known = read_known_failures(claude_dir / "known-test-failures")
+    known = read_known_failures(kon_dir / "known-test-failures")
     exit_code, output = run_command(cmd, cwd)
 
     if exit_code == 0:
@@ -195,8 +195,8 @@ def main() -> None:
             "approve",
             f"Ritsu (Verifier): `{' '.join(cmd)}` failed due to host build env "
             f"({build_env_match.group(0)!r}), not a test failure — skipping. "
-            "Fix the host build env, or set `.claude/test-command` to a runnable command, "
-            "or add a reason to `.claude/skip-test-verification`.",
+            "Fix the host build env, or set `.kon/test-command` to a runnable command, "
+            "or add a reason to `.kon/skip-test-verification`.",
         )
 
     fatal_match = FATAL_MARKER_RE.search(output)
@@ -230,7 +230,7 @@ def main() -> None:
             f"{warning}Ritsu (Verifier): `{' '.join(cmd)}` exit {exit_code}, "
             f"{len(new_failures)} new failure(s):\n{details}\n\n"
             "(Known failures are ignored; to suppress a new failure, "
-            "add its test ID to .claude/known-test-failures)",
+            "add its test ID to .kon/known-test-failures)",
         )
 
     if actual and not new_failures:

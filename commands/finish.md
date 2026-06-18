@@ -18,34 +18,25 @@ extra commands, or ask for more work before declaring the task complete.
 
 ## Flow
 
-1. **Orchestrator** — find the most recent `in_progress` or `waiting` session for this project in `~/.kon/projects/<repo-name>/sessions/` (also checks legacy paths):
+1. **Orchestrator** — find the most recent `in_progress` or `waiting` session for this project in `~/.kon/projects/<repo-name>/sessions/`:
    ```bash
    python3 -c "
    import json, pathlib, datetime, os, sys
    root = pathlib.Path(os.environ.get('KON_ROOT', pathlib.Path.home() / 'Desktop/kon')).expanduser()
    sys.path.insert(0, str(root / 'hooks'))
-   from _kon_paths import iter_sessions_dirs, legacy_sessions_dir, resolve_project_path
+   from _kon_paths import sessions_dir, resolve_project_path
    project = str(resolve_project_path())
-   seen = set()
-   for d in iter_sessions_dirs('.'):
-       for p in sorted(d.glob('*.json'), key=lambda x: x.stat().st_mtime, reverse=True):
-           d_data = json.loads(p.read_text())
-           sid = d_data.get('id', p.stem)
-           if sid in seen:
-               continue
-           seen.add(sid)
-           if d != legacy_sessions_dir() and d_data.get('project_path', project) != project:
-               continue
-           if d_data.get('status') in ('in_progress', 'waiting'):
-               d_data['status'] = 'completed'
-               d_data['log'].append({'ts': datetime.datetime.now(datetime.UTC).strftime('%Y-%m-%dT%H:%M:%SZ'),
-                                     'agent': 'User', 'summary': 'Session closed by user.'})
-               p.write_text(json.dumps(d_data, indent=2, ensure_ascii=False))
-               print('Closed:', d_data['id'])
-               break
-       else:
+   for p in sorted(sessions_dir('.').glob('*.json'), key=lambda x: x.stat().st_mtime, reverse=True):
+       d = json.loads(p.read_text())
+       if d.get('project_path', project) != project:
            continue
-       break
+       if d.get('status') in ('in_progress', 'waiting'):
+           d['status'] = 'completed'
+           d['log'].append({'ts': datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
+                            'agent': 'User', 'summary': 'Session closed by user.'})
+           p.write_text(json.dumps(d, indent=2, ensure_ascii=False))
+           print('Closed:', d['id'])
+           break
    else:
        print('No open session found.')
    "

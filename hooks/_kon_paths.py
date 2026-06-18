@@ -68,18 +68,8 @@ def sessions_dir(project_dir: Path | str | None = None) -> Path:
 
 
 def project_kon_dir(project_dir: Path | str | None = None) -> Path:
-    """Project-local working artifacts (plan, rubrics, retry logs)."""
+    """Project-local working artifacts (plan, rubrics, retry logs, test config)."""
     return resolve_project_path(project_dir) / ".kon"
-
-
-def legacy_sessions_dir(project_dir: Path | str | None = None) -> Path:
-    """Pre-migration session location inside a project repo."""
-    return project_kon_dir(project_dir) / "sessions"
-
-
-def legacy_flat_sessions_dir() -> Path:
-    """Flat global sessions dir from an earlier layout."""
-    return kon_data_dir() / "sessions"
 
 
 def ensure_project_dir(project_dir: Path | str | None = None) -> Path:
@@ -118,35 +108,27 @@ def ensure_sessions_dir(project_dir: Path | str | None = None) -> Path:
 
 
 def iter_sessions_dirs(project_dir: Path | str | None = None) -> list[Path]:
-    """All session directories to scan (current repo, all projects, legacy)."""
+    """Session directories to scan — one repo or all projects under ~/.kon/projects/."""
+    if project_dir is not None:
+        return [sessions_dir(project_dir).resolve()]
+
     seen: set[Path] = set()
     dirs: list[Path] = []
-
-    def add(path: Path) -> None:
-        resolved = path.resolve()
-        if resolved not in seen:
-            seen.add(resolved)
-            dirs.append(resolved)
-
-    if project_dir is not None:
-        add(sessions_dir(project_dir))
-        add(legacy_sessions_dir(project_dir))
-    else:
-        projects_root = kon_data_dir() / _PROJECTS_SUBDIR
-        if projects_root.is_dir():
-            for entry in sorted(projects_root.iterdir()):
-                if entry.is_dir():
-                    add(entry / "sessions")
-        add(legacy_flat_sessions_dir())
-
+    projects_root = kon_data_dir() / _PROJECTS_SUBDIR
+    if projects_root.is_dir():
+        for entry in sorted(projects_root.iterdir()):
+            if entry.is_dir():
+                path = (entry / "sessions").resolve()
+                if path not in seen:
+                    seen.add(path)
+                    dirs.append(path)
     return dirs
 
 
 def _cli() -> None:
     if len(sys.argv) < 2:
         print(
-            "usage: _kon_paths.py "
-            "<data|sessions|project-data|project-kon|legacy-sessions|repo-name|ensure>",
+            "usage: _kon_paths.py <data|sessions|project-data|project-kon|repo-name|ensure>",
             file=sys.stderr,
         )
         sys.exit(1)
@@ -159,8 +141,6 @@ def _cli() -> None:
         print(project_data_dir())
     elif cmd == "project-kon":
         print(project_kon_dir())
-    elif cmd == "legacy-sessions":
-        print(legacy_sessions_dir())
     elif cmd == "repo-name":
         print(git_repo_name())
     elif cmd == "ensure":

@@ -211,5 +211,6 @@ Close a session by clicking **✓** in the dashboard, or by running `kon finish`
 bash scripts/install_hooks.sh   # creates .venv, installs ruff, sets git hooks (one-time)
 ```
 
-The pre-push hook runs `ruff format --check` using the project venv.
-If any file would be reformatted, the push is blocked — run `ruff format .` to fix.
+`pre-commit` and `pre-push` run `ruff format` (autofix) automatically.
+Pre-commit re-stages fixed files. Pre-push autofixes then blocks only if formatting
+still fails or auto-fixed changes were not committed.

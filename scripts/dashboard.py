@@ -23,13 +23,11 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent / "hooks"))
 from _kon_paths import (  # noqa: E402
-    ensure_project_dir,
     iter_sessions_dirs,
     kon_data_dir,
     legacy_sessions_dir,
     project_data_dir,
     resolve_project_path,
-    sessions_dir,
 )
 
 PROJECT_FILTER: str | None = None

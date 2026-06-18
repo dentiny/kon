@@ -142,7 +142,9 @@ def main() -> None:
 
     status = sub.add_parser("set-status", help="Set session status")
     status.add_argument("--id", required=True)
-    status.add_argument("--status", required=True, choices=["in_progress", "waiting", "completed", "blocked"])
+    status.add_argument(
+        "--status", required=True, choices=["in_progress", "waiting", "completed", "blocked"]
+    )
     status.set_defaults(func=cmd_set_status)
 
     args = parser.parse_args()

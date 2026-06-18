@@ -9,22 +9,24 @@ When the user writes `kon go: <task>`, `kon team: <task>`, `kon quick: <task>`,
 
 ## How to orchestrate
 
-### `kon ask` — read-only exception
+### `kon ask` — read-only repo, session tracked
 
-For `kon ask` only: **zero writes.** Read `~/Desktop/kon/commands/ask.md`, spawn Azusa read-only, present the answer. Do not create session files, do not modify any file, do not run mutating shell commands.
+For `kon ask`: create session JSON first (step 1), then read `commands/ask.md`. Spawn Azusa read-only — no code edits, no `.kon/plan.md`, no mutating shell. Update session after Azusa. Skip steps 3–4 (teammate-flow / Mio–Ritsu validation).
 
-### All other commands
+### All commands
 
-1. Read the matching command file for the full workflow spec:
+1. **Session file (do this first)** — same as Cursor adapter: `ensure_sessions_dir()`, set `cmd`, for ask use `steps_pending: ["Azusa"]`. See `adapters/cursor/kon.mdc` or `skills/session-tracking/SKILL.md`.
+
+2. Read the matching command file:
    - `kon go` → `~/Desktop/kon/commands/go.md`
    - `kon team` → `~/Desktop/kon/commands/team.md`
    - `kon quick` → `~/Desktop/kon/commands/quick.md`
    - `kon ask` → `~/Desktop/kon/commands/ask.md`
    - `kon gc` → `~/Desktop/kon/commands/gc.md`
 
-2. Read `~/Desktop/kon/skills/teammate-flow/SKILL.md` for orchestration rules.
+3. Read `~/Desktop/kon/skills/teammate-flow/SKILL.md` — **skip for `kon ask`**.
 
-3. For each agent step, spawn a subagent. Include the agent file as the subagent's
+4. For each agent step, spawn a subagent. Include the agent file as the subagent's
    system context in the prompt:
 
    | Step | Agent file |
@@ -36,15 +38,15 @@ For `kon ask` only: **zero writes.** Read `~/Desktop/kon/commands/ask.md`, spawn
    | Verifier | `~/Desktop/kon/agents/Ritsu.md` |
    | Cleaner | `~/Desktop/kon/agents/Sawako.md` |
 
-4. After Mio and Ritsu complete, validate their output:
+5. After Mio and Ritsu complete, validate their output:
    ```bash
    echo '{"teammate_role":"Mio","teammate_output":"<output>"}' \
      | python3 ~/Desktop/kon/hooks/teammate_quality_check.py
    ```
 
-5. Failure handling: `~/Desktop/kon/skills/failure-handling/SKILL.md`.
+6. Failure handling: `~/Desktop/kon/skills/failure-handling/SKILL.md`.
 
-6. Narration (🌸 Ui): `~/Desktop/kon/skills/narration/SKILL.md`.
+7. Narration (🌸 Ui): `~/Desktop/kon/skills/narration/SKILL.md`.
 
 ## Hard rule
 

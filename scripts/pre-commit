@@ -1,0 +1,6 @@
+#!/bin/sh
+# Pre-commit: auto-format and lint-fix Python; re-stage reformatted staged files.
+# Setup: bash scripts/install_hooks.sh
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+exec "$REPO_ROOT/scripts/ruff_autofix.sh" --restage

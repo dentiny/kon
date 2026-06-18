@@ -16,7 +16,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _hook_io import emit  # noqa: E402
 from _retry_log import record_and_count  # noqa: E402
 
-
 MIO_RETRY_LIMIT = 2
 _RETRY_LOG_BASE = Path(".kon")
 _MUST_FIX_FILE_RE = re.compile(r"`([\w./-]+\.\w+)(?::\d+)?`")

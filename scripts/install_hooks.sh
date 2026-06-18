@@ -17,7 +17,10 @@ if [ ! -x "$REPO_ROOT/.venv/bin/ruff" ]; then
 fi
 echo "  ruff: $("$REPO_ROOT/.venv/bin/ruff" --version)"
 
-# Point git at scripts/ for hooks
+# Ensure hook scripts are executable
+chmod +x "$SCRIPT_DIR/pre-commit" "$SCRIPT_DIR/pre-push" "$SCRIPT_DIR/ruff_autofix.sh"
+
+# Point git at scripts/ for hooks (pre-commit + pre-push)
 git -C "$REPO_ROOT" config core.hooksPath "$SCRIPT_DIR"
 echo "  git hooks: $SCRIPT_DIR"
 

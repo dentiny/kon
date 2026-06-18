@@ -1,8 +1,7 @@
 #!/bin/sh
-# Pre-push hook: fail if any Python file would be reformatted by ruff.
+# Pre-push: autofix format, then block only if formatting still wrong or fixes uncommitted.
 # Setup: bash scripts/install_hooks.sh
 
-# Find ruff: prefer project venv, fall back to PATH
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 RUFF="$REPO_ROOT/.venv/bin/ruff"
 if [ ! -x "$RUFF" ]; then
@@ -14,7 +13,18 @@ if [ -z "$RUFF" ]; then
   exit 1
 fi
 
+cd "$REPO_ROOT" || exit 1
+"$REPO_ROOT/scripts/ruff_autofix.sh"
+
 if ! "$RUFF" format --check . 2>/dev/null; then
-  echo "Fix with: ruff format ." >&2
+  echo "kon pre-push: formatting issues remain after autofix." >&2
   exit 1
 fi
+if ! git diff --quiet; then
+  echo "kon pre-push: ruff auto-formatted files that are not committed yet." >&2
+  echo "  git add -u && git commit -m 'style: ruff format' && git push" >&2
+  git diff --name-only | sed 's/^/    /' >&2
+  exit 1
+fi
+
+exit 0

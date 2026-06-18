@@ -4,7 +4,10 @@ Session history lives under ``~/.kon/projects/<repo-name>/sessions/`` (outside a
 git repo). Project working files (plan, rubrics, retry logs, todos) stay in
 ``<project>/.kon/``.
 
-Override the data root with ``KON_DATA_DIR``.
+Override paths with environment variables:
+
+- ``KON_ROOT`` — kon plugin clone (agents, commands, hooks, scripts)
+- ``KON_DATA_DIR`` — user data root (default ``~/.kon``)
 """
 
 from __future__ import annotations
@@ -18,6 +21,10 @@ from pathlib import Path
 
 GIT_TIMEOUT_SEC = 3
 _PROJECTS_SUBDIR = "projects"
+_CONFIG_FILENAME = "config.json"
+_LIB_SUBDIR = "lib"
+_LIB_MODULE = "_kon_paths.py"
+_DEFAULT_KON_ROOT = Path.home() / "Desktop" / "kon"
 
 
 def kon_data_dir() -> Path:
@@ -26,6 +33,82 @@ def kon_data_dir() -> Path:
     if raw:
         return Path(raw).expanduser().resolve()
     return (Path.home() / ".kon").resolve()
+
+
+def kon_config_path() -> Path:
+    return kon_data_dir() / _CONFIG_FILENAME
+
+
+def bundled_paths_module() -> Path:
+    """Installed copy of this module (written by ``install_cursor_hooks.sh``)."""
+    return kon_data_dir() / _LIB_SUBDIR / _LIB_MODULE
+
+
+def read_config_kon_root() -> Path | None:
+    path = kon_config_path()
+    if not path.is_file():
+        return None
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return None
+    raw = data.get("kon_root")
+    if not raw:
+        return None
+    return Path(raw).expanduser().resolve()
+
+
+def write_kon_config(kon_root: Path | str) -> Path:
+    """Persist ``kon_root`` to ``~/.kon/config.json`` (merge with existing keys)."""
+    root = Path(kon_root).expanduser().resolve()
+    path = kon_config_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    data: dict[str, str] = {}
+    if path.is_file():
+        try:
+            existing = json.loads(path.read_text(encoding="utf-8"))
+            if isinstance(existing, dict):
+                data.update({k: v for k, v in existing.items() if isinstance(v, str)})
+        except (json.JSONDecodeError, OSError):
+            pass
+    data["kon_root"] = str(root)
+    path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    return path
+
+
+def _package_root_from_file() -> Path | None:
+    """If this file lives inside a kon clone, return that clone root."""
+    root = Path(__file__).resolve().parent.parent
+    if (root / "agents").is_dir() and (root / "hooks").is_dir():
+        return root
+    return None
+
+
+def kon_root() -> Path:
+    """Resolve the kon plugin root directory.
+
+    Order: ``KON_ROOT`` env → ``~/.kon/config.json`` → kon clone containing this
+    file → ``~/Desktop/kon`` (legacy default).
+    """
+    raw = os.environ.get("KON_ROOT")
+    if raw:
+        return Path(raw).expanduser().resolve()
+    configured = read_config_kon_root()
+    if configured is not None:
+        return configured
+    package = _package_root_from_file()
+    if package is not None:
+        return package
+    return _DEFAULT_KON_ROOT.resolve()
+
+
+def install_bundled_paths_module(source: Path | None = None) -> Path:
+    """Copy ``_kon_paths.py`` to ``~/.kon/lib/`` for orchestrators without a clone path."""
+    src = (source or Path(__file__).resolve()).expanduser().resolve()
+    dest = bundled_paths_module()
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_text(src.read_text(encoding="utf-8"), encoding="utf-8")
+    return dest
 
 
 def resolve_project_path(project_dir: Path | str | None = None) -> Path:
@@ -128,12 +211,20 @@ def iter_sessions_dirs(project_dir: Path | str | None = None) -> list[Path]:
 def _cli() -> None:
     if len(sys.argv) < 2:
         print(
-            "usage: _kon_paths.py <data|sessions|project-data|project-kon|repo-name|ensure>",
+            "usage: _kon_paths.py "
+            "<root|data|sessions|project-data|project-kon|repo-name|ensure|write-config>",
             file=sys.stderr,
         )
         sys.exit(1)
     cmd = sys.argv[1]
-    if cmd == "data":
+    if cmd == "root":
+        print(kon_root())
+    elif cmd == "write-config":
+        if len(sys.argv) < 3:
+            print("usage: _kon_paths.py write-config <kon_root>", file=sys.stderr)
+            sys.exit(1)
+        print(write_kon_config(sys.argv[2]))
+    elif cmd == "data":
         print(kon_data_dir())
     elif cmd == "sessions":
         print(sessions_dir())

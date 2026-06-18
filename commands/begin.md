@@ -29,7 +29,7 @@ Or click **✓** on the dashboard card. Same as closing any open session.
 
 1. **Orchestrator** — create session:
    ```bash
-   python3 ~/Desktop/kon/scripts/kon_session.py init \
+   python3 $KON_ROOT/scripts/kon_session.py init \
      --command "/kon:begin" --task "<goal or interactive session>"
    ```
    `steps_pending` is empty; `status=in_progress` until `/kon:finish`.
@@ -66,4 +66,4 @@ Or click **✓** on the dashboard card. Same as closing any open session.
 
 - **Narration:** 🌸 Ui opening/closing per [`skills/narration`](../skills/narration/SKILL.md)
 - **Skip teammate-flow** for the begin command itself — read interactive-session for routing
-- Check active session: `python3 ~/Desktop/kon/scripts/kon_session.py active`
+- Check active session: `python3 $KON_ROOT/scripts/kon_session.py active`

@@ -111,7 +111,7 @@ Mugi MUST NOT:
 On init:
 
 ```bash
-python3 ~/Desktop/kon/scripts/kon_session.py init \
+python3 $KON_ROOT/scripts/kon_session.py init \
   --command "/kon:design" --task "<task>" \
   --pending Azusa Mugi User
 ```
@@ -130,10 +130,10 @@ After each challenge and revise spawn:
 
 ```bash
 echo '{"teammate_role":"Azusa-challenge","teammate_output":"<output>"}' \
-  | python3 ~/Desktop/kon/hooks/teammate_quality_check.py
+  | python3 $KON_ROOT/hooks/teammate_quality_check.py
 
 echo '{"teammate_role":"Mugi-revise","teammate_output":"<output>"}' \
-  | python3 ~/Desktop/kon/hooks/teammate_quality_check.py
+  | python3 $KON_ROOT/hooks/teammate_quality_check.py
 ```
 
 ### User confirm

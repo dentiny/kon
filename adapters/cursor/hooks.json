@@ -3,22 +3,22 @@
   "hooks": {
     "sessionStart": [
       {
-        "command": "python3 ~/Desktop/kon/hooks/ensure_project_dir.py"
+        "command": "python3 $KON_ROOT/hooks/ensure_project_dir.py"
       }
     ],
     "beforeShellExecution": [
       {
-        "command": "python3 ~/Desktop/kon/hooks/no_git_write.py"
+        "command": "python3 $KON_ROOT/hooks/no_git_write.py"
       }
     ],
     "subagentStop": [
       {
-        "command": "python3 ~/Desktop/kon/hooks/on_subagent_stop.py"
+        "command": "python3 $KON_ROOT/hooks/on_subagent_stop.py"
       }
     ],
     "stop": [
       {
-        "command": "python3 ~/Desktop/kon/hooks/verify_completion.py",
+        "command": "python3 $KON_ROOT/hooks/verify_completion.py",
         "loop_limit": 3
       }
     ]

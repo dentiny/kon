@@ -148,18 +148,24 @@ Write the file with `scripts/kon_session.py` (preferred) or a single `python3 -c
 
 ```bash
 # Create (all commands including ask)
-python3 ~/Desktop/kon/scripts/kon_session.py init --command "/kon:ask" --task "<question>"
+python3 $KON_ROOT/scripts/kon_session.py init --command "/kon:ask" --task "<question>"
 
 # After each agent completes
-python3 ~/Desktop/kon/scripts/kon_session.py complete-agent --id <sid> --agent Azusa --summary "<one sentence>"
+python3 $KON_ROOT/scripts/kon_session.py complete-agent --id <sid> --agent Azusa --summary "<one sentence>"
 ```
 
 Inline fallback if the script is unavailable:
 
 ```bash
 python3 -c "
-import json, pathlib, datetime, os, sys
-root = pathlib.Path(os.environ.get('KON_ROOT', pathlib.Path.home() / 'Desktop/kon')).expanduser()
+import json, pathlib, datetime, os, sys, subprocess
+bundled = pathlib.Path.home() / '.kon/lib/_kon_paths.py'
+if os.environ.get('KON_ROOT'):
+    root = pathlib.Path(os.environ['KON_ROOT']).expanduser().resolve()
+elif bundled.is_file():
+    root = pathlib.Path(subprocess.check_output(['python3', str(bundled), 'root'], text=True).strip())
+else:
+    root = pathlib.Path.home() / 'Desktop/kon'
 sys.path.insert(0, str(root / 'hooks'))
 from _kon_paths import ensure_sessions_dir
 p = ensure_sessions_dir() / '<id>.json'

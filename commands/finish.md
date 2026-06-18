@@ -21,8 +21,14 @@ Pipeline commands also stay in `waiting` until closed; one-shot commands auto-co
 1. **Orchestrator** — find the most recent `in_progress` or `waiting` session for this project in `~/.kon/projects/<repo-name>/sessions/`:
    ```bash
    python3 -c "
-   import json, pathlib, datetime, os, sys
-   root = pathlib.Path(os.environ.get('KON_ROOT', pathlib.Path.home() / 'Desktop/kon')).expanduser()
+   import json, pathlib, datetime, os, sys, subprocess
+   bundled = pathlib.Path.home() / '.kon/lib/_kon_paths.py'
+   if os.environ.get('KON_ROOT'):
+       root = pathlib.Path(os.environ['KON_ROOT']).expanduser().resolve()
+   elif bundled.is_file():
+       root = pathlib.Path(subprocess.check_output(['python3', str(bundled), 'root'], text=True).strip())
+   else:
+       root = pathlib.Path.home() / 'Desktop/kon'
    sys.path.insert(0, str(root / 'hooks'))
    from _kon_paths import sessions_dir, resolve_project_path
    project = str(resolve_project_path())

@@ -25,6 +25,8 @@ _CONFIG_FILENAME = "config.json"
 _LIB_SUBDIR = "lib"
 _LIB_MODULE = "_kon_paths.py"
 _DEFAULT_KON_ROOT = Path.home() / "Desktop" / "kon"
+_LAST_WORKSPACE_FILENAME = "last_workspace.json"
+_LOGS_SUBDIR = "logs"
 
 
 def kon_data_dir() -> Path:
@@ -188,6 +190,59 @@ def ensure_sessions_dir(project_dir: Path | str | None = None) -> Path:
     """Create the repo's sessions directory if needed; return its path."""
     ensure_project_dir(project_dir)
     return sessions_dir(project_dir)
+
+
+def last_workspace_path() -> Path:
+    """Path to the file that records the most recently active workspace."""
+    return kon_data_dir() / _LAST_WORKSPACE_FILENAME
+
+
+def write_last_workspace(project_path: Path | str) -> Path:
+    """Persist the active workspace so user-level hooks can recover it.
+
+    User-level Cursor hooks run with cwd=``~/.cursor/`` and the
+    ``beforeSubmitPrompt`` payload omits workspace fields, so hooks that fire
+    later in the lifecycle need a side channel. ``ensure_project_dir`` (which
+    runs on ``sessionStart`` with the real workspace) writes this file; other
+    hooks read it.
+    """
+    project = Path(project_path).expanduser().resolve()
+    target = last_workspace_path()
+    target.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "project_path": str(project),
+        "repo_name": git_repo_name(project),
+    }
+    target.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    return target
+
+
+def read_last_workspace() -> str | None:
+    """Return the persisted workspace path if still on disk, else ``None``."""
+    path = last_workspace_path()
+    if not path.is_file():
+        return None
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return None
+    project = data.get("project_path") if isinstance(data, dict) else None
+    if not isinstance(project, str) or not project.strip():
+        return None
+    if not Path(project).is_dir():
+        return None
+    return project.strip()
+
+
+def hook_log_path(name: str) -> Path:
+    """Path to a hook's debug log under ``~/.kon/logs/``."""
+    logs_dir = kon_data_dir() / _LOGS_SUBDIR
+    logs_dir.mkdir(parents=True, exist_ok=True)
+    safe = re.sub(r"[^a-zA-Z0-9_.-]+", "-", name).strip("-") or "hook"
+    return logs_dir / f"{safe}.log"
 
 
 def iter_sessions_dirs(project_dir: Path | str | None = None) -> list[Path]:

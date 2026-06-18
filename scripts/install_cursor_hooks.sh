@@ -1,47 +1,64 @@
 #!/usr/bin/env bash
-# Install kon Cursor hooks into ~/.cursor/hooks.json (merges sessionStart hook).
+# Install kon Cursor hooks into ~/.cursor/hooks.json (merges all kon hooks idempotently).
 set -euo pipefail
 
 KON_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 CURSOR_DIR="${HOME}/.cursor"
 HOOKS_JSON="${CURSOR_DIR}/hooks.json"
-ENSURE_HOOK="python3 ${KON_ROOT}/hooks/ensure_project_dir.py"
 
 mkdir -p "${CURSOR_DIR}"
 
-if [[ ! -f "${HOOKS_JSON}" ]]; then
-  cat > "${HOOKS_JSON}" <<EOF
-{
-  "version": 1,
-  "hooks": {
-    "sessionStart": [
-      {
-        "command": "${ENSURE_HOOK}"
-      }
-    ]
-  }
-}
-EOF
-  echo "Created ${HOOKS_JSON}"
-  exit 0
-fi
-
-python3 - "${HOOKS_JSON}" "${ENSURE_HOOK}" <<'PY'
+python3 - "${HOOKS_JSON}" "${KON_ROOT}" <<'PY'
 import json
 import sys
 from pathlib import Path
 
 hooks_path = Path(sys.argv[1])
-ensure_cmd = sys.argv[2]
-data = json.loads(hooks_path.read_text(encoding="utf-8"))
+kon_root = Path(sys.argv[2]).resolve()
+
+entries = [
+    (
+        "sessionStart",
+        {"command": f"python3 {kon_root}/hooks/ensure_project_dir.py"},
+    ),
+    (
+        "beforeShellExecution",
+        {"command": f"python3 {kon_root}/hooks/no_git_write.py"},
+    ),
+    (
+        "subagentStop",
+        {"command": f"python3 {kon_root}/hooks/on_subagent_stop.py"},
+    ),
+    (
+        "stop",
+        {
+            "command": f"python3 {kon_root}/hooks/verify_completion.py",
+            "loop_limit": 3,
+        },
+    ),
+]
+
+if hooks_path.is_file():
+    data = json.loads(hooks_path.read_text(encoding="utf-8"))
+else:
+    data = {"version": 1, "hooks": {}}
+
 if data.get("version") != 1:
     data["version"] = 1
+
 hooks = data.setdefault("hooks", {})
-starts = hooks.setdefault("sessionStart", [])
-if any(h.get("command") == ensure_cmd for h in starts):
-    print(f"sessionStart hook already present in {hooks_path}")
-    sys.exit(0)
-starts.append({"command": ensure_cmd})
+added = 0
+already = 0
+
+for event, spec in entries:
+    bucket = hooks.setdefault(event, [])
+    command = spec["command"]
+    if any(h.get("command") == command for h in bucket):
+        already += 1
+        continue
+    bucket.append(spec)
+    added += 1
+
 hooks_path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-print(f"Added kon sessionStart hook to {hooks_path}")
+print(f"Updated {hooks_path}: added {added} hook(s), {already} already present")
 PY

@@ -19,6 +19,11 @@ Mio reads the diff; Ritsu runs commands — they don't depend on each other, so 
 Sequential segment (🎸 Azusa → 🍰 Mugi → user confirm → 🎶 Yui) follows
 [`skills/teammate-flow`](https://github.com/dentiny/kon/blob/main/skills/teammate-flow/SKILL.md).
 
+## Plan reuse (after `/kon:design`)
+
+Same rules as [`/kon:go`](https://github.com/dentiny/kon/blob/main/commands/go.md#plan-reuse-after-kondesign):
+if `.kon/plan.md` exists, ask once to reuse or re-plan; skip Azusa + Mugi on reuse.
+
 **Parallel (trigger both Tasks in one message):**
 
 5a. **📝 Mio** — review the changes (follow `skills/strict-review`).

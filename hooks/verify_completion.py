@@ -13,7 +13,6 @@ Supported config files (place in the user project's ``<project>/.kon/`` director
 from __future__ import annotations
 
 import json
-import os
 import re
 import shlex
 import shutil
@@ -22,7 +21,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _hook_io import emit  # noqa: E402
+from _hook_io import emit, resolve_hook_cwd, set_hook_event  # noqa: E402
 from _retry_log import record_and_count  # noqa: E402
 
 TEST_TIMEOUT_SEC = 90
@@ -163,13 +162,19 @@ def main() -> None:
     except json.JSONDecodeError:
         data = {}
 
-    cwd = Path(data.get("cwd") or os.getcwd()).resolve()
+    set_hook_event(data.get("hook_event_name"))
+
+    status = str(data.get("status") or "completed")
+    if status != "completed":
+        emit("approve", f"agent status={status} — skipping test verification")
+
+    cwd = Path(resolve_hook_cwd(data)).resolve()
     kon_dir = cwd / ".kon"
 
     if not has_git_modifications(cwd):
         emit(
             "approve",
-            "Ritsu (Verifier): no uncommitted file changes this session — skipping test verification",
+            "Ritsu (Verifier): no uncommitted changes — skipping test verification",
         )
 
     skip_reason = read_config_line(kon_dir / "skip-test-verification")

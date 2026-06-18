@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""kon TeammateIdle hook: per-agent output spec check.
+"""kon TeammateIdle / subagentStop quality check: per-agent output spec check.
+
+Called directly by the orchestrator (stdin JSON with ``teammate_role`` /
+``teammate_output``) or via ``on_subagent_stop.py`` on Cursor ``subagentStop``.
 
 Blocks when output is non-compliant; fail-open on malformed input or unknown role.
 """
@@ -117,12 +120,12 @@ def check_mugi(out: str) -> None:
             )
         emit("approve", "Mugi (Planner) PR draft structure is complete")
 
-    # plan / review / triage mode: output written to .kon/ files
-    if not re.search(r"\.kon/(plan|review-rubric|triage-rubric)\.md", out):
+    # plan / review mode: output written to .kon/ files
+    if not re.search(r"\.kon/(plan|review-rubric)\.md", out):
         emit(
             "block",
             "Mugi (Planner) output does not reference "
-            ".kon/plan.md / .kon/review-rubric.md / .kon/triage-rubric.md. "
+            ".kon/plan.md or .kon/review-rubric.md. "
             "Write the plan / rubric to that file and report it.",
         )
     if not re.search(

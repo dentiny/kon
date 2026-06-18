@@ -220,7 +220,7 @@ class _Handler(BaseHTTPRequestHandler):
 
     def do_DELETE(self) -> None:
         if self.path.startswith("/sessions/"):
-            session_id = self.path[len("/sessions/"):]
+            session_id = self.path[len("/sessions/") :]
             if not re.fullmatch(r"[\w\-]+", session_id):
                 self._send(400, "text/plain", b"invalid session id")
                 return
@@ -235,8 +235,7 @@ class _Handler(BaseHTTPRequestHandler):
                     except OSError:
                         pass
             if deleted:
-                self._send(200, "application/json",
-                           json.dumps({"deleted": deleted}).encode())
+                self._send(200, "application/json", json.dumps({"deleted": deleted}).encode())
             else:
                 self._send(404, "text/plain", b"session not found")
         else:
@@ -270,8 +269,12 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="kon session dashboard")
     parser.add_argument("--port", type=int, default=9090, help="Port (default: 9090)")
     parser.add_argument("--open", action="store_true", help="Open browser automatically")
-    parser.add_argument("--dir", type=str, default=None,
-                        help="Project directory to watch (default: current directory)")
+    parser.add_argument(
+        "--dir",
+        type=str,
+        default=None,
+        help="Project directory to watch (default: current directory)",
+    )
     args = parser.parse_args()
 
     global SESSIONS_DIR

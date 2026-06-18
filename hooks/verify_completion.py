@@ -167,7 +167,10 @@ def main() -> None:
     claude_dir = cwd / ".claude"
 
     if not has_git_modifications(cwd):
-        emit("approve", "Ritsu (Verifier): no uncommitted file changes this session — skipping test verification")
+        emit(
+            "approve",
+            "Ritsu (Verifier): no uncommitted file changes this session — skipping test verification",
+        )
 
     skip_reason = read_config_line(claude_dir / "skip-test-verification")
     if skip_reason is not None:
@@ -210,15 +213,11 @@ def main() -> None:
     if new_failures:
         counts = _record_and_count(_retry_log_path(cwd), new_failures)
         over_limit = {
-            tid: c
-            for tid, c in counts.items()
-            if tid in new_failures and c >= RETRY_LIMIT
+            tid: c for tid, c in counts.items() if tid in new_failures and c >= RETRY_LIMIT
         }
         warning = ""
         if over_limit:
-            lines = "\n".join(
-                f"  - {tid} ({c} times)" for tid, c in sorted(over_limit.items())
-            )
+            lines = "\n".join(f"  - {tid} ({c} times)" for tid, c in sorted(over_limit.items()))
             warning = (
                 f"WARNING: RETRY LIMIT REACHED: the following tests have failed "
                 f">= {RETRY_LIMIT} consecutive times — consider stopping and asking the user:\n"

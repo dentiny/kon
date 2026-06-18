@@ -163,3 +163,21 @@ kon quick: fix the typo in README line 42
 - Python 3.10+ (for hooks)
 - `git` (for repo detection and diff)
 - `gh` CLI (optional, for PR workflows)
+
+---
+
+## Development setup
+
+```bash
+pip install ruff               # install the formatter
+bash scripts/install_hooks.sh  # point git at scripts/ for hooks (one-time)
+```
+
+The pre-push hook runs `ruff format --check` on all Python files.
+
+```
+kon pre-push: the following Python files need formatting:
+  Would reformat hooks/verify_completion.py
+
+Run:  ruff format .   then stage and commit the result.
+```

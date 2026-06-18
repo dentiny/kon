@@ -46,9 +46,7 @@ def _extract_mio_must_fix_keys(out: str) -> set[str]:
         section_start = heading_match.end()
         next_heading = _NEXT_HEADING_RE.search(out, section_start)
         section_text = (
-            out[section_start : next_heading.start()]
-            if next_heading
-            else out[section_start:]
+            out[section_start : next_heading.start()] if next_heading else out[section_start:]
         )
         items = _MUST_FIX_LINE_RE.findall(section_text)
     else:
@@ -171,13 +169,9 @@ def check_mio(out: str) -> None:
         keys = _extract_mio_must_fix_keys(out)
         if keys:
             counts = _mio_record_and_count(_mio_log_path(cwd), keys)
-            over_limit = {
-                k: c for k, c in counts.items() if k in keys and c >= MIO_RETRY_LIMIT
-            }
+            over_limit = {k: c for k, c in counts.items() if k in keys and c >= MIO_RETRY_LIMIT}
             if over_limit:
-                lines = "\n".join(
-                    f"  - {k} ({c} times)" for k, c in sorted(over_limit.items())
-                )
+                lines = "\n".join(f"  - {k} ({c} times)" for k, c in sorted(over_limit.items()))
                 emit(
                     "block",
                     f"WARNING: RETRY LIMIT REACHED (Mio): the following must-fix items "
@@ -192,20 +186,98 @@ def check_mio(out: str) -> None:
 
 _URL_RE = re.compile(r"https?://\S+")
 _FILE_PATH_EXTS = (
-    "py", "pyi",
-    "js", "jsx", "mjs", "cjs", "ts", "tsx", "vue", "svelte", "astro",
-    "java", "kt", "kts", "scala", "groovy",
-    "rs", "go", "c", "cc", "cpp", "cxx", "h", "hh", "hpp", "hxx",
-    "rb", "php", "swift", "m", "mm", "cs", "fs", "fsx",
-    "ex", "exs", "erl", "hs", "lua", "pl", "r", "jl", "dart",
-    "clj", "cljs", "zig", "nim",
-    "html", "htm", "css", "scss", "sass", "less",
-    "md", "mdx", "rst", "txt", "adoc",
-    "json", "yml", "yaml", "toml", "ini", "conf", "cfg", "env",
-    "xml", "csv", "tsv", "lock", "properties",
-    "sh", "bash", "zsh", "fish", "ps1", "bat", "cmd",
-    "mk", "bzl", "bazel", "gradle", "sbt", "cmake", "tf", "tfvars", "dockerfile",
-    "sql", "proto", "graphql", "gql", "ipynb",
+    "py",
+    "pyi",
+    "js",
+    "jsx",
+    "mjs",
+    "cjs",
+    "ts",
+    "tsx",
+    "vue",
+    "svelte",
+    "astro",
+    "java",
+    "kt",
+    "kts",
+    "scala",
+    "groovy",
+    "rs",
+    "go",
+    "c",
+    "cc",
+    "cpp",
+    "cxx",
+    "h",
+    "hh",
+    "hpp",
+    "hxx",
+    "rb",
+    "php",
+    "swift",
+    "m",
+    "mm",
+    "cs",
+    "fs",
+    "fsx",
+    "ex",
+    "exs",
+    "erl",
+    "hs",
+    "lua",
+    "pl",
+    "r",
+    "jl",
+    "dart",
+    "clj",
+    "cljs",
+    "zig",
+    "nim",
+    "html",
+    "htm",
+    "css",
+    "scss",
+    "sass",
+    "less",
+    "md",
+    "mdx",
+    "rst",
+    "txt",
+    "adoc",
+    "json",
+    "yml",
+    "yaml",
+    "toml",
+    "ini",
+    "conf",
+    "cfg",
+    "env",
+    "xml",
+    "csv",
+    "tsv",
+    "lock",
+    "properties",
+    "sh",
+    "bash",
+    "zsh",
+    "fish",
+    "ps1",
+    "bat",
+    "cmd",
+    "mk",
+    "bzl",
+    "bazel",
+    "gradle",
+    "sbt",
+    "cmake",
+    "tf",
+    "tfvars",
+    "dockerfile",
+    "sql",
+    "proto",
+    "graphql",
+    "gql",
+    "ipynb",
 )
 FILE_PATH_RE = re.compile(
     r"[\w./-]+\.(?:" + "|".join(_FILE_PATH_EXTS) + r")\b",

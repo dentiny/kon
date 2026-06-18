@@ -30,10 +30,10 @@ _HTML = """\
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-       background: #0d1117; color: #e6edf3; padding: 24px; min-height: 100vh; }
-h1   { font-size: 20px; margin-bottom: 16px; }
-h1 small { color: #8b949e; font-size: 13px; font-weight: 400; margin-left: 10px; }
-.tabs { display: flex; gap: 4px; margin-bottom: 16px; }
+       background: #0d1117; color: #e6edf3; padding: 32px; min-height: 100vh; }
+h1   { font-size: 22px; margin-bottom: 20px; }
+h1 small { color: #8b949e; font-size: 14px; font-weight: 400; margin-left: 10px; }
+.tabs { display: flex; gap: 6px; margin-bottom: 20px; }
 .tab { padding: 5px 14px; border-radius: 6px; font-size: 13px; cursor: pointer;
        background: transparent; border: 1px solid #30363d; color: #8b949e;
        transition: all .15s; }
@@ -42,27 +42,27 @@ h1 small { color: #8b949e; font-size: 13px; font-weight: 400; margin-left: 10px;
 .count { font-size: 11px; background: #21262d; padding: 1px 5px;
          border-radius: 8px; margin-left: 4px; }
 .empty { color: #8b949e; padding: 16px 0; font-size: 14px; }
-.session { background: #161b22; border: 1px solid #30363d; border-radius: 8px;
-           margin-bottom: 10px; overflow: hidden; transition: opacity .2s; }
+.session { background: #161b22; border: 1px solid #30363d; border-radius: 10px;
+           margin-bottom: 14px; overflow: hidden; transition: opacity .2s; }
 .session.past { opacity: 0.6; }
 .session.past:hover { opacity: 1; }
-.hdr { padding: 13px 16px; display: flex; align-items: center; gap: 10px;
-       cursor: pointer; user-select: none; }
+.hdr { padding: 18px 20px; display: flex; align-items: center; gap: 12px;
+       cursor: pointer; user-select: none; min-height: 58px; }
 .hdr:hover { background: #1c2128; }
 .chevron { color: #484f58; font-size: 10px; flex-shrink: 0;
            transition: transform .15s; display: inline-block; }
 .chevron.open { transform: rotate(90deg); }
-.badge { padding: 2px 8px; border-radius: 10px; font-size: 11px;
+.badge { padding: 3px 10px; border-radius: 10px; font-size: 12px;
          font-weight: 600; flex-shrink: 0; }
 .in_progress { background: #1158a0; color: #79c0ff; }
 .completed   { background: #1a4f2a; color: #56d364; }
 .blocked     { background: #5a1a1a; color: #f85149; }
-.task  { flex: 1; font-size: 14px; font-weight: 500;
+.task  { flex: 1; min-width: 0; font-size: 15px; font-weight: 500; color: #e6edf3;
          overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.cmd   { color: #8b949e; font-size: 12px; flex-shrink: 0; }
-.when  { color: #484f58; font-size: 11px; flex-shrink: 0; }
+.cmd   { color: #8b949e; font-size: 13px; flex-shrink: 0; }
+.when  { color: #484f58; font-size: 12px; flex-shrink: 0; white-space: nowrap; }
 .pipeline { display: flex; gap: 4px; align-items: center; flex-shrink: 0; }
-.dot { width: 10px; height: 10px; border-radius: 50%; position: relative; cursor: default; }
+.dot { width: 12px; height: 12px; border-radius: 50%; position: relative; cursor: default; }
 .dot:hover::after { content: attr(data-label);
   position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
   background: #1c2128; border: 1px solid #30363d; padding: 3px 7px;
@@ -71,7 +71,7 @@ h1 small { color: #8b949e; font-size: 13px; font-weight: 400; margin-left: 10px;
 .done    { background: #238636; }
 .active  { background: #1f6feb; box-shadow: 0 0 0 3px #388bfd33; }
 .pending { background: #30363d; }
-.cur-agent { font-size: 13px; color: #8b949e; flex-shrink: 0; min-width: 70px; text-align: right; }
+.cur-agent { font-size: 14px; color: #8b949e; flex-shrink: 0; min-width: 80px; text-align: right; }
 .del-btn { background: none; border: none; cursor: pointer; color: #484f58;
            font-size: 14px; padding: 2px 4px; border-radius: 4px; flex-shrink: 0;
            line-height: 1; transition: color .15s; }

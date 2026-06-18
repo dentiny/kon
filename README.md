@@ -34,11 +34,20 @@ python3 ~/Desktop/kon/scripts/dashboard.py --project /path/to/repo --open  # one
 Session history lives in `~/.kon/projects/<repo-name>/sessions/` (override with `KON_DATA_DIR`). Project working files
 (`plan.md`, rubrics) stay in `<project>/.kon/`.
 
-Install the Cursor sessionStart hook once so the per-repo directory is created when you open a workspace:
+Install kon Cursor hooks once (session dir + git guard + subagent quality check + stop test backstop):
 
 ```bash
 bash ~/Desktop/kon/scripts/install_cursor_hooks.sh
 ```
+
+This merges into `~/.cursor/hooks.json`:
+
+| Hook event | Script | Purpose |
+|------------|--------|---------|
+| `sessionStart` | `ensure_project_dir.py` | create `~/.kon/projects/<repo>/` |
+| `beforeShellExecution` | `no_git_write.py` | block `git commit` / `git push` |
+| `subagentStop` | `on_subagent_stop.py` | validate Task subagent output (Mio/Yui/…) |
+| `stop` | `verify_completion.py` | run tests when there are uncommitted changes |
 
 Each session card shows: status badge, task, project name (when viewing all), agent pipeline dots (🟢 done / 🔵 running / 🟡 waiting / 🔴 failed / ⚫ pending), timestamp, and current agent.
 **Click** to expand the step-by-step log. **✓** to close a session. **🗑** to delete it.
@@ -188,6 +197,22 @@ in_progress (blue) → waiting (yellow) → completed (green)
 ```
 
 Close a session by clicking **✓** in the dashboard, or by running `/kon:finish`.
+
+---
+
+## Cross-project memory (optional)
+
+kon agents can load preferences from `~/.config/kon/memory/` at startup (see `skills/memory-loading`).
+
+Bootstrap once:
+
+```bash
+bash ~/Desktop/kon/scripts/bootstrap_memory.sh
+```
+
+This creates `~/.config/kon/memory/MEMORY.md`. Add lines like `- [Title](slug.md) — description`
+and create matching `.md` files with frontmatter. Agents propose new entries during review via
+`skills/memory-propose-confirm` — the orchestrator asks before writing.
 
 ---
 

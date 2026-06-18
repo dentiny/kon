@@ -5,7 +5,10 @@ description = "K-On! Ho-kago Tea Time driven general-purpose dev agent flow"
 requires-python = ">=3.10"
 
 [project.optional-dependencies]
-dev = ["ruff>=0.4"]
+dev = ["ruff>=0.4", "pytest>=8.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
 
 [tool.ruff]
 line-length = 100

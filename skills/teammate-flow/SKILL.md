@@ -15,6 +15,9 @@ Each agent owns their segment; the orchestrator strings them together.
 
 These four steps are required in order for both `/kon:go` and `/kon:team`:
 
+0. **Plan reuse check** — if `.kon/plan.md` exists, read it and ask the user once: reuse or re-plan?
+   Skip Azusa + Mugi on reuse (unless user chooses re-plan). With `--yolo`, auto-reuse when the plan
+   matches the current task. See [`commands/go.md`](../commands/go.md#plan-reuse-after-kondesign).
 1. **🎸 Azusa** — explore the codebase, find relevant locations and conventions. "Done. Three relevant files."
 2. **🍰 Mugi** — structure the work into `.kon/plan.md`. "Let me think through what this is really asking for first."
 3. **User confirms plan** (if there are open questions, resolve them before continuing)
@@ -25,6 +28,13 @@ Step 5 onward is command-specific — `/kon:go` is sequential (📝 Mio then �
 
 After Ritsu passes, always call **📋 Nodoka** as the final step to write the session summary.
 Follow [`/kon:summarize`](https://github.com/dentiny/kon/blob/main/commands/summarize.md).
+
+### Quality checks
+
+Cursor `subagentStop` runs `on_subagent_stop.py` after each Task subagent. For manual backstop,
+pipe output to `hooks/teammate_quality_check.py` with the matching `teammate_role`
+(Azusa, Mugi, Yui, Mio, Ritsu, Sawako, Nodoka, Azusa-challenge, Mugi-revise).
+Block on failure; retry the agent per [`skills/failure-handling`](failure-handling/SKILL.md).
 
 ## Orchestrator rules
 

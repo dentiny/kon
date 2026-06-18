@@ -45,16 +45,32 @@ For `/kon:ask`: create session JSON first (step 1), then read `commands/ask.md`.
    | Reviewer | `~/Desktop/kon/agents/Mio.md` + `~/Desktop/kon/skills/strict-review/SKILL.md` |
    | Verifier | `~/Desktop/kon/agents/Ritsu.md` |
    | Cleaner | `~/Desktop/kon/agents/Sawako.md` |
+   | Summarizer | `~/Desktop/kon/agents/Nodoka.md` |
 
-5. After Mio and Ritsu complete, validate their output:
+5. **Quality checks** — Cursor `subagentStop` auto-validates Task subagent output via `on_subagent_stop.py`. Manual backstop (pipe each agent's full output):
+
+   | Agent | `teammate_role` |
+   |-------|-----------------|
+   | Azusa | `Azusa` |
+   | Mugi | `Mugi` |
+   | Yui | `Yui` |
+   | Mio | `Mio` |
+   | Ritsu | `Ritsu` |
+   | Sawako | `Sawako` |
+   | Nodoka | `Nodoka` |
+   | Design challenge | `Azusa-challenge` |
+   | Design revise | `Mugi-revise` |
+
    ```bash
    echo '{"teammate_role":"Mio","teammate_output":"<output>"}' \
      | python3 ~/Desktop/kon/hooks/teammate_quality_check.py
    ```
 
-6. Failure handling: `~/Desktop/kon/skills/failure-handling/SKILL.md`.
+6. After Ritsu passes, spawn **Nodoka** — follow `commands/summarize.md`.
 
-7. Narration (🌸 Ui): `~/Desktop/kon/skills/narration/SKILL.md`.
+7. Failure handling: `~/Desktop/kon/skills/failure-handling/SKILL.md`.
+
+8. Narration (🌸 Ui): `~/Desktop/kon/skills/narration/SKILL.md`.
 
 ## Hard rule
 

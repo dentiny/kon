@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Install kon Cursor hooks into ~/.cursor/hooks.json (merges all kon hooks idempotently).
+# Also writes ~/.kon/config.json (kon_root) and ~/.kon/lib/_kon_paths.py for path resolution.
 set -euo pipefail
 
 KON_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -7,6 +8,16 @@ CURSOR_DIR="${HOME}/.cursor"
 HOOKS_JSON="${CURSOR_DIR}/hooks.json"
 
 mkdir -p "${CURSOR_DIR}"
+
+python3 "${KON_ROOT}/hooks/_kon_paths.py" write-config "${KON_ROOT}"
+python3 - <<PY
+from pathlib import Path
+import sys
+sys.path.insert(0, "${KON_ROOT}/hooks")
+from _kon_paths import install_bundled_paths_module
+dest = install_bundled_paths_module(Path("${KON_ROOT}/hooks/_kon_paths.py"))
+print(f"Wrote {dest}")
+PY
 
 python3 - "${HOOKS_JSON}" "${KON_ROOT}" <<'PY'
 import json

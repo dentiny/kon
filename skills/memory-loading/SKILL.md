@@ -40,7 +40,7 @@ On a problem: **do not abort**, continue using the entry (lenient), but append `
 - No relevant entries in the index → treat as "no memory"
 
 Do not ask the user to create the memory directory or index.
-To enable memory, run once: `bash ~/Desktop/kon/scripts/bootstrap_memory.sh` (creates the index).
+To enable memory, run once: `bash $KON_ROOT/scripts/bootstrap_memory.sh` (creates the index).
 
 ## Output format example
 

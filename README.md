@@ -28,19 +28,42 @@ Narrated by 🌸 Ui.
 Run a live dashboard to see agent sessions and project todos:
 
 ```bash
-python3 ~/Desktop/kon/scripts/dashboard.py --open   # http://localhost:9090
-python3 ~/Desktop/kon/scripts/dashboard.py --project /path/to/repo --open  # one project only
+python3 $KON_ROOT/scripts/dashboard.py --open   # http://localhost:9090
+python3 $KON_ROOT/scripts/dashboard.py --project /path/to/repo --open  # one project only
 ```
 
 **Sessions** tab — active/past agent runs. **Todos** tab — open items from `.kon/todos.json` (mark done, reopen, delete). Add todos with `/kon:todo <task>`.
 
 Session history lives in `~/.kon/projects/<repo-name>/sessions/` (override with `KON_DATA_DIR`). Project working files
-(`plan.md`, rubrics) stay in `<project>/.kon/`.
+(`plan.md`, rubrics, todos) stay in `<project>/.kon/`.
+
+### Path configuration
+
+| Variable | Purpose | Default |
+|----------|---------|---------|
+| `KON_ROOT` | Plugin clone (agents, commands, hooks, scripts) | `~/.kon/config.json` → clone path → `~/Desktop/kon` |
+| `KON_DATA_DIR` | User data root (sessions, config) | `~/.kon` |
+
+After cloning kon, run the install script **once** from your clone — it writes `~/.kon/config.json` and copies path helpers:
+
+```bash
+bash $KON_ROOT/scripts/install_cursor_hooks.sh
+```
+
+Resolve the root in shell or scripts:
+
+```bash
+export KON_ROOT="$(python3 "$HOME/.kon/lib/_kon_paths.py" root)"
+# or
+export KON_ROOT="$(bash $KON_ROOT/scripts/resolve_kon_root.sh)"
+```
+
+Override for a non-default location: `export KON_ROOT=/path/to/kon` (shell, Cursor user env, or CI).
 
 Install kon Cursor hooks once (session dir + git guard + subagent quality check + stop test backstop):
 
 ```bash
-bash ~/Desktop/kon/scripts/install_cursor_hooks.sh
+bash $KON_ROOT/scripts/install_cursor_hooks.sh
 ```
 
 This merges into `~/.cursor/hooks.json`:
@@ -105,15 +128,16 @@ Install the adapter as a global rule (applies to all your projects):
 
 ```bash
 mkdir -p ~/.cursor/rules
-cp ~/Desktop/kon/adapters/cursor/kon.mdc ~/.cursor/rules/kon.mdc
-bash ~/Desktop/kon/scripts/install_cursor_hooks.sh   # creates ~/.kon/projects/<repo>/ on open
+cp $KON_ROOT/adapters/cursor/kon.mdc ~/.cursor/rules/kon.mdc
+bash $KON_ROOT/scripts/install_cursor_hooks.sh   # writes ~/.kon/config.json + hooks
 ```
 
 Or as a project rule (applies only to one project):
 
 ```bash
 mkdir -p /path/to/your/project/.cursor/rules
-cp ~/Desktop/kon/adapters/cursor/kon.mdc /path/to/your/project/.cursor/rules/kon.mdc
+cp $KON_ROOT/adapters/cursor/kon.mdc /path/to/your/project/.cursor/rules/kon.mdc
+bash $KON_ROOT/scripts/install_cursor_hooks.sh
 ```
 
 Then in Cursor chat (slash commands):
@@ -130,20 +154,20 @@ Then in Cursor chat (slash commands):
 /kon:design add rate limiting to the API
 ```
 
-> If you installed kon somewhere other than `~/Desktop/kon`, edit the path in `kon.mdc`.
+The Cursor rule resolves `$KON_ROOT` automatically (see **Path configuration** above). Re-run `install_cursor_hooks.sh` after moving your clone.
 
 ### Codex CLI
 
 Install as a global instruction (applies to all your projects):
 
 ```bash
-cat ~/Desktop/kon/adapters/codex/AGENTS.md >> ~/.codex/AGENTS.md
+cat $KON_ROOT/adapters/codex/AGENTS.md >> ~/.codex/AGENTS.md
 ```
 
 Or as a project instruction (copy into your project's `AGENTS.md`):
 
 ```bash
-cat ~/Desktop/kon/adapters/codex/AGENTS.md >> /path/to/your/project/AGENTS.md
+cat $KON_ROOT/adapters/codex/AGENTS.md >> /path/to/your/project/AGENTS.md
 ```
 
 Then in any Codex session:
@@ -224,7 +248,7 @@ kon agents can load preferences from `~/.config/kon/memory/` at startup (see `sk
 Bootstrap once:
 
 ```bash
-bash ~/Desktop/kon/scripts/bootstrap_memory.sh
+bash $KON_ROOT/scripts/bootstrap_memory.sh
 ```
 
 This creates `~/.config/kon/memory/MEMORY.md`. Add lines like `- [Title](slug.md) — description`

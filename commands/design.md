@@ -38,7 +38,7 @@ Debate protocol: [`skills/design-debate`](https://github.com/dentiny/kon/blob/ma
 Create session first:
 
 ```bash
-python3 ~/Desktop/kon/scripts/kon_session.py init \
+python3 $KON_ROOT/scripts/kon_session.py init \
   --command "/kon:design" --task "<task>" \
   --pending Azusa Mugi User
 ```

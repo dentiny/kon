@@ -11,7 +11,7 @@ description: Route plain-text user messages while a /kon:begin session is open. 
 ## Detect active session
 
 ```bash
-python3 ~/Desktop/kon/scripts/kon_session.py active
+python3 $KON_ROOT/scripts/kon_session.py active
 # prints session id, or nothing
 ```
 
@@ -26,10 +26,10 @@ If `active` prints an id → user is in interactive mode unless they sent an exp
 Append work to the existing session:
 
 ```bash
-python3 ~/Desktop/kon/scripts/kon_session.py log-turn \
+python3 $KON_ROOT/scripts/kon_session.py log-turn \
   --id <begin-sid> --agent User --summary "<one line paraphrase>"
 
-python3 ~/Desktop/kon/scripts/kon_session.py complete-agent \
+python3 $KON_ROOT/scripts/kon_session.py complete-agent \
   --id <begin-sid> --agent Azusa --summary "<one sentence>"
 ```
 

@@ -57,18 +57,18 @@ Schema:
 1. **Orchestrator** — parse subcommand (default `add` when the first token is not a known verb).
 2. **Run CLI:**
    ```bash
-   python3 ~/Desktop/kon/scripts/kon_todo.py add --text "<description>"
-   python3 ~/Desktop/kon/scripts/kon_todo.py list [--status open|done|all]
-   python3 ~/Desktop/kon/scripts/kon_todo.py done --id <id>
-   python3 ~/Desktop/kon/scripts/kon_todo.py open --id <id>
-   python3 ~/Desktop/kon/scripts/kon_todo.py delete --id <id>
+   python3 $KON_ROOT/scripts/kon_todo.py add --text "<description>"
+   python3 $KON_ROOT/scripts/kon_todo.py list [--status open|done|all]
+   python3 $KON_ROOT/scripts/kon_todo.py done --id <id>
+   python3 $KON_ROOT/scripts/kon_todo.py open --id <id>
+   python3 $KON_ROOT/scripts/kon_todo.py delete --id <id>
    ```
 3. **Orchestrator** — print result (new id on add; table on list). Mention dashboard **Todos** tab for UI management.
 
 ## Dashboard
 
 ```bash
-python3 ~/Desktop/kon/scripts/dashboard.py --open
+python3 $KON_ROOT/scripts/dashboard.py --open
 ```
 
 Open the **Todos** tab — mark done (✓), reopen (↩), delete (🗑). Refreshes every 3 seconds.

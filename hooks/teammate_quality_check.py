@@ -31,6 +31,24 @@ _MUST_FIX_HEADING_RE = re.compile(
     r"##\s+(?:must[-\s]?fix)",
     re.IGNORECASE,
 )
+_EVIDENCE_PENDING_HEADING_RE = re.compile(
+    r"##\s+evidence\s+pending",
+    re.IGNORECASE,
+)
+_CHECKLIST_HEADING_RE = re.compile(r"##\s+checklist\b", re.IGNORECASE)
+_CHECKLIST_ITEM_RE = re.compile(r"^\s*-\s*\[([ xX—\-])\]\s*(.+)$", re.MULTILINE)
+
+_MIO_REQUIRED_CHECKLIST: list[tuple[str, re.Pattern[str]]] = [
+    ("acceptance match", re.compile(r"acceptance\s+match", re.IGNORECASE)),
+    ("evidence per function", re.compile(r"evidence\s+per\s+function", re.IGNORECASE)),
+    ("edge case coverage", re.compile(r"edge\s+case\s+coverage", re.IGNORECASE)),
+    ("convention conformance", re.compile(r"convention\s+conformance", re.IGNORECASE)),
+    ("no unsafe pattern", re.compile(r"no\s+unsafe\s+pattern", re.IGNORECASE)),
+    ("no unexplained magic", re.compile(r"no\s+unexplained\s+magic", re.IGNORECASE)),
+    ("no TODO evasion", re.compile(r"no\s+todo\s+evasion", re.IGNORECASE)),
+    ("no defensive bloat", re.compile(r"no\s+defensive\s+bloat", re.IGNORECASE)),
+    ("no completeness theatre", re.compile(r"no\s+completeness\s+theatre", re.IGNORECASE)),
+]
 _NEXT_HEADING_RE = re.compile(r"^##\s+", re.MULTILINE)
 
 
@@ -214,6 +232,33 @@ def check_mugi_revise(out: str) -> None:
     emit("approve", "Mugi (Revise) output structure is complete")
 
 
+def _extract_section(out: str, heading_re: re.Pattern[str]) -> str:
+    match = heading_re.search(out)
+    if not match:
+        return ""
+    start = match.end()
+    next_heading = _NEXT_HEADING_RE.search(out, start)
+    return out[start : next_heading.start()] if next_heading else out[start:]
+
+
+def _parse_mio_checklist_items(section: str) -> list[tuple[str, str]]:
+    return [(mark, text.strip()) for mark, text in _CHECKLIST_ITEM_RE.findall(section)]
+
+
+def _missing_mio_checklist_items(checklist_section: str) -> list[str]:
+    if not checklist_section.strip():
+        return [label for label, _ in _MIO_REQUIRED_CHECKLIST]
+    items = _parse_mio_checklist_items(checklist_section)
+    if not items:
+        return [label for label, _ in _MIO_REQUIRED_CHECKLIST]
+    missing: list[str] = []
+    joined = "\n".join(text for _, text in items)
+    for label, pattern in _MIO_REQUIRED_CHECKLIST:
+        if not pattern.search(joined):
+            missing.append(label)
+    return missing
+
+
 def check_mio(out: str) -> None:
     require_memory_header(out, "Mio (Reviewer)")
     verdict_match = re.search(r"\b(APPROVED|NEEDS_CHANGES|BLOCKED)\b", out)
@@ -226,12 +271,35 @@ def check_mio(out: str) -> None:
         return
     verdict = verdict_match.group(1)
 
-    if not re.search(r"\[[xX ]\]", out):
+    checklist_section = _extract_section(out, _CHECKLIST_HEADING_RE)
+    missing_items = _missing_mio_checklist_items(checklist_section)
+    if missing_items:
         emit(
             "block",
-            "Mio (Reviewer) output is missing a checklist ([x] / [ ] items). "
-            "All 9 mandatory checks must be marked.",
+            "Mio (Reviewer) checklist is incomplete — all 9 mandatory items from "
+            "skills/strict-review must appear in `## Checklist`. "
+            f"Missing: {', '.join(missing_items)}.",
         )
+
+    if verdict == "APPROVED":
+        if re.search(r"^\s*-\s*\[ \]", checklist_section, re.MULTILINE):
+            emit(
+                "block",
+                "Mio (Reviewer) issued APPROVED but the checklist contains unchecked "
+                "items ([ ]). APPROVED requires every mandatory item to be [x].",
+            )
+        if _MUST_FIX_HEADING_RE.search(out):
+            emit(
+                "block",
+                "Mio (Reviewer) issued APPROVED but output includes a `## Must-fix` "
+                "section. Remove must-fix items or change the verdict.",
+            )
+        if _EVIDENCE_PENDING_HEADING_RE.search(out):
+            emit(
+                "block",
+                "Mio (Reviewer) issued APPROVED but output includes "
+                "`## Evidence pending`. Resolve or change the verdict.",
+            )
 
     if verdict != "APPROVED":
         if not re.search(r"(must[-\s]?fix|fix:|evidence|pending)", out, re.IGNORECASE):

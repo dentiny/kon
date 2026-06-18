@@ -7,12 +7,43 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parent.parent
 HOOKS = ROOT / "hooks"
 
 sys.path.insert(0, str(HOOKS))
 from _hook_io import format_payload  # noqa: E402
+from no_git_write import is_git_write_blocked  # noqa: E402
 from on_subagent_stop import _infer_role  # noqa: E402
+
+
+def _mio_output(
+    verdict: str,
+    *,
+    checklist_marks: list[str] | None = None,
+    extra: str = "",
+) -> str:
+    labels = [
+        "acceptance match",
+        "evidence per function",
+        "edge case coverage",
+        "convention conformance",
+        "no unsafe pattern",
+        "no unexplained magic",
+        "no TODO evasion",
+        "no defensive bloat",
+        "no completeness theatre",
+    ]
+    if checklist_marks is None:
+        checklist_marks = ["x"] * len(labels)
+    checklist = "\n".join(f"- [{mark}] {label}" for mark, label in zip(checklist_marks, labels))
+    return (
+        "## Loaded memory entries\n(no relevant entries)\n\n"
+        f"## Verdict\n{verdict}\n\n"
+        f"## Checklist\n{checklist}\n"
+        f"{extra}"
+    )
 
 
 def _run_hook(script: str, payload: dict) -> dict:
@@ -53,6 +84,18 @@ class TestNoGitWrite:
         )
         assert result["permission"] == "deny"
 
+    @pytest.mark.parametrize(
+        "command",
+        [
+            "git -C . commit -m test",
+            "git --git-dir=.git push origin main",
+            "git -c user.name=x commit -m test",
+            "env FOO=1 git -C repo commit -m test",
+        ],
+    )
+    def test_blocks_git_write_variants(self, command: str) -> None:
+        assert is_git_write_blocked(command)
+
     def test_allows_status(self) -> None:
         result = _run_hook(
             "no_git_write.py",
@@ -62,6 +105,10 @@ class TestNoGitWrite:
             },
         )
         assert result["permission"] == "allow"
+
+    def test_allows_diff(self) -> None:
+        assert not is_git_write_blocked("git -C repo diff")
+        assert not is_git_write_blocked("git --git-dir=.git log -1")
 
 
 class TestOnSubagentStop:
@@ -85,16 +132,49 @@ class TestOnSubagentStop:
 
 class TestTeammateQualityCheck:
     def test_mio_approved(self) -> None:
+        result = _run_hook(
+            "teammate_quality_check.py",
+            {"teammate_role": "Mio", "teammate_output": _mio_output("APPROVED")},
+        )
+        assert result["decision"] == "approve"
+
+    def test_mio_rejects_partial_checklist(self) -> None:
         output = (
             "## Loaded memory entries\n(no relevant entries)\n\n"
-            "Verdict: APPROVED\n"
-            "- [x] item 1\n- [x] item 2\n"
+            "## Verdict\nAPPROVED\n\n"
+            "## Checklist\n- [x] item 1\n- [x] item 2\n"
         )
         result = _run_hook(
             "teammate_quality_check.py",
             {"teammate_role": "Mio", "teammate_output": output},
         )
-        assert result["decision"] == "approve"
+        assert result["decision"] == "block"
+        assert "checklist" in result["reason"].lower()
+
+    def test_mio_rejects_approved_with_unchecked_item(self) -> None:
+        marks = ["x"] * 8 + [" "]
+        result = _run_hook(
+            "teammate_quality_check.py",
+            {
+                "teammate_role": "Mio",
+                "teammate_output": _mio_output("APPROVED", checklist_marks=marks),
+            },
+        )
+        assert result["decision"] == "block"
+        assert "unchecked" in result["reason"].lower() or "[ ]" in result["reason"]
+
+    def test_mio_rejects_approved_with_must_fix_section(self) -> None:
+        result = _run_hook(
+            "teammate_quality_check.py",
+            {
+                "teammate_role": "Mio",
+                "teammate_output": _mio_output(
+                    "APPROVED",
+                    extra="## Must-fix\n- `foo.py:1` — problem\n",
+                ),
+            },
+        )
+        assert result["decision"] == "block"
 
     def test_jun_with_sources(self) -> None:
         output = (

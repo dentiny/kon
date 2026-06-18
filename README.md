@@ -24,15 +24,17 @@ Narrated by 🌸 Ui.
 
 ## Dashboard
 
-Run a live session dashboard to see all active agent runs:
+Run a live session dashboard to see all active and past agent runs:
 
 ```bash
-python3 scripts/dashboard.py        # http://localhost:8080
-python3 scripts/dashboard.py --open # opens browser automatically
+cd /path/to/your-project
+python3 ~/Desktop/kon/scripts/dashboard.py --open   # http://localhost:9090
+python3 ~/Desktop/kon/scripts/dashboard.py --dir /other/project --open
 ```
 
-Each session card shows the status, task, agent pipeline, and current agent.
-**Click any card** to expand its full log. Auto-refreshes every 3 seconds.
+Each session card shows: status badge, task, agent pipeline dots (🟢 done / 🔵 running / 🟡 waiting / 🔴 failed / ⚫ pending), timestamp, and current agent.
+**Click** to expand the step-by-step log. **✓** to close a session. **🗑** to delete it.
+Auto-refreshes every 3 seconds. Filter by **All / Active / Past** tabs.
 
 ---
 
@@ -150,11 +152,36 @@ kon quick: fix the typo in README line 42
 
 | Command | What it does |
 |---------|-------------|
-| `kon go` | Full sequential pipeline |
-| `kon team` | Full pipeline, review + verify in parallel (~30% faster) |
-| `kon quick` | Skip explore/plan, lightweight 4-item review |
+| `kon go: <task>` | Full sequential pipeline: explore → plan → implement → review → verify → summarize |
+| `kon team: <task>` | Same pipeline, review + verify run in parallel (~30% faster) |
+| `kon quick: <task>` | Skip explore/plan, lightweight 4-item review |
 | `kon gc` | Garbage collect — remove dead code, simplify comments/docs |
-| `kon summarize` | Write a session summary (runs automatically at end of every command) |
+| `kon summarize` | Write a session summary (auto-runs at end of every command) |
+| `kon finish` | Mark the current session as completed |
+
+### YOLO mode
+
+Append `--yolo` to any command to run fully autonomously:
+
+```
+kon go --yolo: <task>
+```
+
+Auto-accepts plan defaults, silently retries failures. Only stops for: retry limit hit,
+a decision with no default, or scope expansion required.
+
+### Session lifecycle
+
+Sessions stay **open** after agents finish — they move to `waiting` (yellow) until you
+explicitly close them. This gives you time to review changes before declaring done.
+
+```
+in_progress (blue) → waiting (yellow) → completed (green)
+                          ↓
+                       blocked (red)
+```
+
+Close a session by clicking **✓** in the dashboard, or by running `kon finish`.
 
 ---
 
@@ -169,15 +196,8 @@ kon quick: fix the typo in README line 42
 ## Development setup
 
 ```bash
-pip install ruff               # install the formatter
-bash scripts/install_hooks.sh  # point git at scripts/ for hooks (one-time)
+bash scripts/install_hooks.sh   # creates .venv, installs ruff, sets git hooks (one-time)
 ```
 
-The pre-push hook runs `ruff format --check` on all Python files.
-
-```
-kon pre-push: the following Python files need formatting:
-  Would reformat hooks/verify_completion.py
-
-Run:  ruff format .   then stage and commit the result.
-```
+The pre-push hook runs `ruff format --check` using the project venv.
+If any file would be reformatted, the push is blocked — run `ruff format .` to fix.

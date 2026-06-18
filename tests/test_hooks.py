@@ -249,3 +249,54 @@ class TestInitKonSession:
         assert result == {"continue": True}
         sessions_dir = data_root / "projects" / "repo" / "sessions"
         assert not sessions_dir.exists() or not list(sessions_dir.glob("*.json"))
+
+    def test_uses_last_workspace_when_stdin_has_no_cwd(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        # Reproduces the real Cursor case: beforeSubmitPrompt stdin only has
+        # `prompt` and `attachments`; the resolver must fall back to
+        # ~/.kon/last_workspace.json (written by sessionStart).
+        project = tmp_path / "myrepo"
+        project.mkdir()
+        data_root = tmp_path / "kon-data"
+        monkeypatch.setenv("KON_DATA_DIR", str(data_root))
+        monkeypatch.setenv("KON_ROOT", str(ROOT))
+
+        data_root.mkdir()
+        (data_root / "last_workspace.json").write_text(
+            json.dumps({"project_path": str(project), "repo_name": "myrepo"}),
+            encoding="utf-8",
+        )
+
+        result = _run_hook(
+            "init_kon_session.py",
+            {"prompt": "/kon:review just diff", "attachments": []},
+        )
+        assert result == {"continue": True}
+
+        sessions_dir = data_root / "projects" / "myrepo" / "sessions"
+        files = list(sessions_dir.glob("*.json"))
+        assert len(files) == 1, f"expected 1 session, got {files}"
+        session = json.loads(files[0].read_text(encoding="utf-8"))
+        assert session["command"] == "/kon:review"
+        assert session["project_path"] == str(project.resolve())
+
+    def test_ensure_project_dir_writes_last_workspace(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        project = tmp_path / "myrepo"
+        project.mkdir()
+        data_root = tmp_path / "kon-data"
+        monkeypatch.setenv("KON_DATA_DIR", str(data_root))
+        monkeypatch.setenv("KON_ROOT", str(ROOT))
+
+        result = _run_hook(
+            "ensure_project_dir.py",
+            {"cwd": str(project)},
+        )
+        assert result["ok"] is True
+
+        last = data_root / "last_workspace.json"
+        assert last.is_file()
+        payload = json.loads(last.read_text(encoding="utf-8"))
+        assert payload["project_path"] == str(project.resolve())

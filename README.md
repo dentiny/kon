@@ -70,8 +70,8 @@ This merges into `~/.cursor/hooks.json`:
 
 | Hook event | Script | Purpose |
 |------------|--------|---------|
-| `sessionStart` | `ensure_project_dir.py` | create `~/.kon/projects/<repo>/` |
-| `beforeSubmitPrompt` | `init_kon_session.py` | auto-create session JSON when you send `/kon:*` |
+| `sessionStart` | `ensure_project_dir.py` | create `~/.kon/projects/<repo>/`, record current workspace in `~/.kon/last_workspace.json` |
+| `beforeSubmitPrompt` | `init_kon_session.py` | auto-create session JSON when you send `/kon:*` (debug log at `~/.kon/logs/init_kon_session.log`) |
 | `beforeShellExecution` | `no_git_write.py` | block `git commit` / `git push` |
 | `subagentStop` | `on_subagent_stop.py` | validate Task subagent output (Mio/Yui/…) |
 | `stop` | `verify_completion.py` | run tests when there are uncommitted changes |

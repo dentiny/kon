@@ -85,31 +85,6 @@ def match_rule(cwd: str, rule: dict) -> tuple[bool, str]:
     return False, ""
 
 
-def seed_claude_config(cwd: str, seeds: dict[str, str]) -> list[str]:
-    """Write seed files into .claude/ if absent. Return list of newly-written filenames.
-
-    Never overwrites — once a file exists it is treated as authoritative.
-    """
-    written: list[str] = []
-    if not seeds:
-        return written
-    claude_dir = Path(cwd) / ".claude"
-    try:
-        claude_dir.mkdir(exist_ok=True)
-    except OSError:
-        return written
-    for name, content in seeds.items():
-        target = claude_dir / name
-        if target.exists():
-            continue
-        try:
-            target.write_text(content, encoding="utf-8")
-            written.append(name)
-        except OSError:
-            continue
-    return written
-
-
 def ensure_kon_ignored(cwd: str) -> None:
     """Make `.kon/` git-ignored locally without touching a tracked .gitignore.
 
@@ -176,15 +151,11 @@ def main() -> None:
             if matched:
                 name = rule["name"]
                 skill = rule["skill"]
-                written = seed_claude_config(cwd, rule.get("claude_config_seeds", {}))
                 msg = (
                     f"Detected {name} repo (via {detector_desc}). "
                     f"Please read skills/{skill}/SKILL.md and apply its conventions "
                     f"for all skills executed in this session."
                 )
-                if written:
-                    files = ", ".join(f".claude/{f}" for f in written)
-                    msg += f" Wrote {files} (edit manually to override)."
                 emit("approve", msg)
 
         emit("approve", "")

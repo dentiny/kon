@@ -41,19 +41,28 @@ def _save(path: Path, data: dict) -> None:
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
+def _normalize_command(command: str) -> str:
+    """Require slash form: /kon:go, /kon:ask, …"""
+    c = command.strip()
+    if not c.startswith("/kon:"):
+        raise SystemExit(f'command must be /kon:<name> (e.g. "/kon:go"), got: {command!r}')
+    return c
+
+
 def _default_pending(command: str) -> list[str]:
-    if command == "kon ask":
+    if _normalize_command(command) == "/kon:ask":
         return ["Azusa"]
     return []
 
 
 def cmd_init(args: argparse.Namespace) -> None:
     sid = _utcnow().strftime("%Y%m%d-%H%M%S") + "-" + _slug(args.task)
-    pending = args.pending if args.pending is not None else _default_pending(args.command)
+    command = _normalize_command(args.command)
+    pending = args.pending if args.pending is not None else _default_pending(command)
     data = {
         "id": sid,
         "task": args.task,
-        "command": args.command,
+        "command": command,
         "project_path": str(resolve_project_path(args.project)),
         "started_at": _utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
         "status": "in_progress",
@@ -124,7 +133,7 @@ def main() -> None:
     sub = parser.add_subparsers(dest="cmd", required=True)
 
     init = sub.add_parser("init", help="Create a new session JSON")
-    init.add_argument("--command", required=True, help='e.g. "kon ask", "kon go"')
+    init.add_argument("--command", required=True, help='e.g. "/kon:ask", "/kon:go"')
     init.add_argument("--task", required=True, help="Task or question text")
     init.add_argument("--pending", nargs="*", default=None, help="Override steps_pending")
     init.set_defaults(func=cmd_init)

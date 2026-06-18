@@ -31,7 +31,7 @@ A structured session report at `~/.kon/projects/<repo-name>/sessions/<id>-summar
 ```markdown
 # Session summary: <task>
 
-**Command**: kon go / team / quick / gc
+**Command**: /kon:go / team / quick / gc
 **Status**: completed / blocked
 **Date**: <ISO date>
 

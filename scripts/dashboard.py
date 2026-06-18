@@ -8,7 +8,7 @@ Usage:
     python3 scripts/dashboard.py            # http://localhost:9090
     python3 scripts/dashboard.py --port 9000
     python3 scripts/dashboard.py --open     # also opens browser automatically
-    python3 scripts/dashboard.py --project /path/to/repo  # filter + legacy sessions
+    python3 scripts/dashboard.py --project /path/to/repo  # one project only
 """
 
 from __future__ import annotations
@@ -25,7 +25,6 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent / "hooks")
 from _kon_paths import (  # noqa: E402
     iter_sessions_dirs,
     kon_data_dir,
-    legacy_sessions_dir,
     project_data_dir,
     resolve_project_path,
 )
@@ -364,13 +363,6 @@ def _session_file(session_id: str) -> pathlib.Path | None:
     return None
 
 
-def _is_legacy_sessions_dir(directory: pathlib.Path) -> bool:
-    """True for pre-per-repo layouts (flat global or in-repo .kon/sessions/)."""
-    if directory == kon_data_dir() / "sessions":
-        return True
-    return directory.parent.name == ".kon" and directory.name == "sessions"
-
-
 def _load_sessions() -> list[dict]:
     _SESSION_FILES.clear()
     sessions: list[dict] = []
@@ -379,7 +371,6 @@ def _load_sessions() -> list[dict]:
     for directory in _session_dirs():
         if not directory.exists():
             continue
-        is_legacy = _is_legacy_sessions_dir(directory)
         for path in sorted(directory.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True):
             try:
                 data = json.loads(path.read_text(encoding="utf-8"))
@@ -388,24 +379,17 @@ def _load_sessions() -> list[dict]:
             sid = data.get("id", path.stem)
             if sid in seen:
                 continue
-            project = data.get("project_path")
             if PROJECT_FILTER:
-                if is_legacy:
-                    if project and project != PROJECT_FILTER:
-                        continue
-                elif project and project != PROJECT_FILTER:
-                    # Also match via meta.json for per-repo dirs
-                    meta = directory.parent / "meta.json"
-                    meta_path = None
-                    if meta.is_file():
-                        try:
-                            meta_path = json.loads(meta.read_text(encoding="utf-8")).get(
-                                "project_path"
-                            )
-                        except (json.JSONDecodeError, OSError):
-                            pass
-                    if meta_path != PROJECT_FILTER and project != PROJECT_FILTER:
-                        continue
+                project = data.get("project_path")
+                meta_path = None
+                meta = directory.parent / "meta.json"
+                if meta.is_file():
+                    try:
+                        meta_path = json.loads(meta.read_text(encoding="utf-8")).get("project_path")
+                    except (json.JSONDecodeError, OSError):
+                        pass
+                if project != PROJECT_FILTER and meta_path != PROJECT_FILTER:
+                    continue
             seen.add(sid)
             _SESSION_FILES[sid] = path
             sessions.append(data)
@@ -421,7 +405,7 @@ def main() -> None:
         "--project",
         type=str,
         default=None,
-        help="Only show sessions for this project (also reads legacy .kon/sessions/)",
+        help="Only show sessions for this project",
     )
     parser.add_argument(
         "--dir",
@@ -440,9 +424,7 @@ def main() -> None:
     print(f"kon dashboard → {url}")
     print(f"Watching: {kon_data_dir() / 'projects'}/*/sessions")
     if PROJECT_FILTER:
-        print(f"Filter:   {PROJECT_FILTER}")
         print(f"Project:  {project_data_dir(PROJECT_FILTER)}")
-        print(f"Legacy:   {legacy_sessions_dir(PROJECT_FILTER)}")
     else:
         print(f"Data dir: {kon_data_dir()}")
     print("Ctrl+C to stop.\n")

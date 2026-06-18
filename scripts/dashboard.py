@@ -77,8 +77,10 @@ h1 small { color: #8b949e; font-size: 14px; font-weight: 400; margin-left: 10px;
 .badge.blocked     { background: #5a1a1a; color: #f85149; }
 .task  { flex: 1; min-width: 0; font-size: 15px; font-weight: 500; color: #e6edf3;
          overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.project { color: #484f58; font-size: 11px; flex-shrink: 0; max-width: 140px;
-           overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.project-badge { padding: 2px 9px; border-radius: 6px; font-size: 11px; font-weight: 600;
+                 flex-shrink: 0; max-width: 160px; overflow: hidden;
+                 text-overflow: ellipsis; white-space: nowrap;
+                 background: #21262d; border: 1px solid #388bfd44; color: #79c0ff; }
 .cmd   { color: #8b949e; font-size: 13px; flex-shrink: 0; }
 .when  { color: #484f58; font-size: 12px; flex-shrink: 0; white-space: nowrap; }
 .pipeline { display: flex; gap: 4px; align-items: center; flex-shrink: 0; }
@@ -157,7 +159,6 @@ h1 small { color: #8b949e; font-size: 14px; font-weight: 400; margin-left: 10px;
 </div>
 <script>
 const EM = {Azusa:'🎸',Jun:'📚',Mugi:'🍰',Yui:'🎶',Mio:'📝',Ritsu:'🥁',Sawako:'🧹',Nodoka:'📋'};
-const showProject = __SHOW_PROJECT__;
 const open_ids = new Set();
 let currentTab = 'all';
 let currentView = 'sessions';
@@ -192,6 +193,12 @@ function fmtProject(p) {
   if (!p) return '';
   const parts = p.split('/');
   return parts[parts.length - 1] || p;
+}
+
+function projectBadge(path) {
+  if (!path) return '';
+  const name = fmtProject(path);
+  return `<span class="project-badge" title="${path}">${name}</span>`;
 }
 
 function setTab(tab) {
@@ -232,16 +239,14 @@ function renderSession(s) {
       <span class="agent">${EM[e.agent]||''} ${e.agent}</span>
       <span class="summary">${e.summary}</span>
     </div>`).join('');
-  const projectLabel = showProject && s.project_path
-    ? `<span class="project" title="${s.project_path}">${fmtProject(s.project_path)}</span>`
-    : '';
+  const projectLabel = projectBadge(s.project_path);
   return `
     <div class="session${isPast?' past':''}">
       <div class="hdr" onclick="toggle('${s.id}')">
         <span class="chevron${isOpen?' open':''}">▶</span>
         <span class="badge ${s.status}">${s.status.replace('_',' ')}</span>
-        <span class="task" title="${s.task}">${s.task}</span>
         ${projectLabel}
+        <span class="task" title="${s.task}">${s.task}</span>
         <span class="cmd">${s.command}</span>
         <div class="pipeline">${dots}</div>
         <span class="when">${fmtWhen(s.started_at)}</span>
@@ -314,13 +319,11 @@ function setTodoTab(tab) {
 
 function renderTodo(t) {
   const isDone = t.status === 'done';
-  const projectLabel = showProject && t.project_path
-    ? `<span class="project" title="${t.project_path}">${fmtProject(t.project_path)}</span>`
-    : '';
+  const projectLabel = projectBadge(t.project_path);
   return `
     <div class="todo${isDone ? ' done' : ''}">
-      <div class="todo-text">${t.text}</div>
       ${projectLabel}
+      <div class="todo-text">${t.text}</div>
       <span class="todo-id" title="${t.id}">${t.id.slice(-12)}</span>
       <span class="todo-meta">${fmtWhen(t.created_at)}</span>
       <div class="todo-actions">
@@ -407,8 +410,7 @@ setInterval(refresh, 3000);
 class _Handler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         if self.path == "/":
-            show_project = "true" if PROJECT_FILTER is None else "false"
-            html = _HTML.replace("__SHOW_PROJECT__", show_project)
+            html = _HTML
             self._send(200, "text/html; charset=utf-8", html.encode())
         elif self.path == "/sessions":
             body = json.dumps(_load_sessions(), ensure_ascii=False).encode()

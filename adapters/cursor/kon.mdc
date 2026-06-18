@@ -13,6 +13,7 @@ User invokes a **slash command** (kon extension system commands):
 
 - `/kon:go <task>` — full pipeline (explore → plan → implement → review → verify)
 - `/kon:team <task>` — same, review + verify run in parallel
+- `/kon:design <task>` — explore → plan → multi-agent design debate → user confirms (no implementation)
 - `/kon:quick <task>` — skip explore/plan, lightweight review
 - `/kon:ask <question>` — read-only Q&A (Azusa explores, **no repo writes** — session still tracked)
 - `/kon:gc` or `/kon:gc <target>` — garbage collect (dead code, comments, docs)
@@ -32,7 +33,7 @@ For `/kon:ask`: **create session JSON first**, then read `~/Desktop/kon/commands
 1. **Session file (do this first, before anything else):**
    ```bash
    python3 ~/Desktop/kon/scripts/kon_session.py init --command "/kon:ask" --task "<question>"
-   # other commands: --command "/kon:go" | "/kon:team" | "/kon:quick" | "/kon:gc"
+   # other commands: --command "/kon:go" | "/kon:team" | "/kon:design" | "/kon:quick" | "/kon:gc"
    ```
    Save the printed session ID. After each agent step:
    ```bash
@@ -45,19 +46,21 @@ For `/kon:ask`: **create session JSON first**, then read `~/Desktop/kon/commands
 2. Read the matching workflow file:
    - `/kon:go` → `~/Desktop/kon/commands/go.md`
    - `/kon:team` → `~/Desktop/kon/commands/team.md`
+   - `/kon:design` → `~/Desktop/kon/commands/design.md` + `~/Desktop/kon/skills/design-debate/SKILL.md`
    - `/kon:quick` → `~/Desktop/kon/commands/quick.md`
    - `/kon:ask` → `~/Desktop/kon/commands/ask.md`
    - `/kon:gc` → `~/Desktop/kon/commands/gc.md`
    - `/kon:finish` → `~/Desktop/kon/commands/finish.md`
    - `/kon:summarize` → `~/Desktop/kon/commands/summarize.md`
 
-3. Read `~/Desktop/kon/skills/teammate-flow/SKILL.md` for orchestration rules — **skip for `/kon:ask`** (Azusa only).
+3. Read `~/Desktop/kon/skills/teammate-flow/SKILL.md` for orchestration rules — **skip for `/kon:ask`** (Azusa only). For `/kon:design`, also read `~/Desktop/kon/skills/design-debate/SKILL.md` (debate replaces implement/review steps).
 
 4. For each agent step, spawn a Task subagent. Pass the agent file as context in the prompt:
 
    | Step | Agent file |
    |------|-----------|
    | Explorer | `~/Desktop/kon/agents/Azusa.md` |
+   | Design challenger | `~/Desktop/kon/agents/Azusa-challenge.md` |
    | Planner | `~/Desktop/kon/agents/Mugi.md` |
    | Implementer | `~/Desktop/kon/agents/Yui.md` |
    | Reviewer | `~/Desktop/kon/agents/Mio.md` + `~/Desktop/kon/skills/strict-review/SKILL.md` |

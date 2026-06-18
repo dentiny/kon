@@ -111,6 +111,7 @@ Then in Cursor chat (slash commands):
 /kon:quick fix the typo in README line 42
 /kon:ask how does session tracking work?
 /kon:team refactor the payment module
+/kon:design add rate limiting to the API
 ```
 
 > If you installed kon somewhere other than `~/Desktop/kon`, edit the path in `kon.mdc`.
@@ -157,6 +158,7 @@ Then in any Codex session:
 |---------|-------------|
 | `/kon:go <task>` | Full sequential pipeline: explore → plan → implement → review → verify → summarize |
 | `/kon:team <task>` | Same pipeline, review + verify run in parallel (~30% faster) |
+| `/kon:design <task>` | Design-only: explore → plan → Azusa↔Mugi debate → user confirms (no code) |
 | `/kon:quick <task>` | Skip explore/plan, lightweight 4-item review |
 | `/kon:ask <question>` | Read-only Q&A — Azusa explores, **no repo writes**; session tracked in `~/.kon/projects/` |
 | `/kon:gc` | Garbage collect — remove dead code, simplify comments/docs |

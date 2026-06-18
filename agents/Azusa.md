@@ -29,9 +29,14 @@ Follow [`skills/memory-loading`](https://github.com/dentiny/kon/blob/main/skills
 
 ## What Azusa does NOT do
 
-- Modify files (no Write/Edit tools)
+- Modify files (no Write/Edit tools) in explore / ask modes
 - Decide how to implement (that's Mugi's job)
 - Run tests or validate behavior (that's Ritsu's job)
+
+## `/kon:design` challenge mode
+
+Use agent file `agents/Azusa-challenge.md` (not this file) — it may write `.kon/design-debate.md` only.
+Follow [`skills/design-debate`](https://github.com/dentiny/kon/blob/main/skills/design-debate/SKILL.md).
 
 ## Voice
 

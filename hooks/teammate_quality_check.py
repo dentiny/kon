@@ -137,6 +137,54 @@ def check_mugi(out: str) -> None:
     emit("approve", "Mugi (Planner) output structure is complete")
 
 
+CHALLENGE_ID_RE = re.compile(r"^###\s+C\d+:", re.MULTILINE)
+
+
+def check_azusa_challenge(out: str) -> None:
+    require_memory_header(out, "Azusa (Challenge)")
+    if not re.search(r"\.kon/design-debate\.md", out):
+        emit(
+            "block",
+            "Azusa (Challenge) output must reference `.kon/design-debate.md`. "
+            "Write challenges there under `## Round N — Azusa challenges`.",
+        )
+    challenges = CHALLENGE_ID_RE.findall(out)
+    if len(challenges) < 3:
+        emit(
+            "block",
+            "Azusa (Challenge) must raise at least 3 concrete challenges (C1, C2, C3…). "
+            f"Found {len(challenges)}.",
+        )
+    if re.search(r"\.kon/plan\.md", out) and re.search(
+        r"(edit|update|rewrite).+\.kon/plan\.md", out, re.IGNORECASE
+    ):
+        emit(
+            "block",
+            "Azusa (Challenge) must not edit `.kon/plan.md` — challenges only.",
+        )
+    emit("approve", "Azusa (Challenge) output structure is complete")
+
+
+def check_mugi_revise(out: str) -> None:
+    require_memory_header(out, "Mugi (Revise)")
+    if not re.search(r"\.kon/plan\.md", out):
+        emit(
+            "block",
+            "Mugi (Revise) must update `.kon/plan.md` and reference it in output.",
+        )
+    if not re.search(r"\.kon/design-debate\.md", out):
+        emit(
+            "block",
+            "Mugi (Revise) must fill the response table in `.kon/design-debate.md`.",
+        )
+    if not re.search(r"\|\s*C\d+\s*\|", out):
+        emit(
+            "block",
+            "Mugi (Revise) response table must include a row per challenge ID (| C1 | … |).",
+        )
+    emit("approve", "Mugi (Revise) output structure is complete")
+
+
 def check_mio(out: str) -> None:
     require_memory_header(out, "Mio (Reviewer)")
     verdict_match = re.search(r"\b(APPROVED|NEEDS_CHANGES|BLOCKED)\b", out)
@@ -373,6 +421,8 @@ ROLE_HANDLERS = {
     "Mugi": check_mugi,
     "planner": check_mugi,
     "Planner": check_mugi,
+    "Azusa-challenge": check_azusa_challenge,
+    "Mugi-revise": check_mugi_revise,
     "Mio": check_mio,
     "reviewer": check_mio,
     "Reviewer": check_mio,

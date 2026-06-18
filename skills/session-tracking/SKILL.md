@@ -105,6 +105,15 @@ Ask is read-only for the repo but still tracks a session:
 - After Azusa answers: `steps_completed: ["Azusa"]`, `status=waiting`, log entry with one-sentence summary of the answer topic
 - Do **not** auto-set `completed` — same lifecycle as other commands
 
+### `/kon:design` variant
+
+Design runs explore → plan → debate rounds → user confirm (no Yui/Mio/Ritsu):
+
+- On create: `command: "/kon:design"`, `steps_pending: ["Azusa", "Mugi", "User"]`
+- Log **each** agent spawn including repeat Azusa/Mugi debate passes (same agent name is OK — log carries round detail)
+- After Mugi revise: `steps_waiting: ["User"]`, `status=waiting`
+- Do **not** auto-set `completed` until user runs `/kon:finish` or approves and closes
+
 Write the file with `scripts/kon_session.py` (preferred) or a single `python3 -c` call:
 
 ```bash

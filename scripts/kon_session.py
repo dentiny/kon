@@ -50,8 +50,11 @@ def _normalize_command(command: str) -> str:
 
 
 def _default_pending(command: str) -> list[str]:
-    if _normalize_command(command) == "/kon:ask":
+    c = _normalize_command(command)
+    if c == "/kon:ask":
         return ["Azusa"]
+    if c == "/kon:design":
+        return ["Azusa", "Mugi", "User"]
     return []
 
 

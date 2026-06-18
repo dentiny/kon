@@ -25,12 +25,15 @@ Every step must be clear enough that Yui can execute it without guessing.
 | Caller | Writes | To |
 |--------|--------|----|
 | `/kon:go` / `/kon:team` / `/kon:quick` (default) | implementation plan | `.kon/plan.md` |
+| `/kon:design` (revise pass) | plan revision + debate responses | `.kon/plan.md` + `.kon/design-debate.md` |
 | `/kon:review` | review rubric | `.kon/review-rubric.md` |
 | `/kon:describe-pr` | PR title + description draft | (no file — returned directly to orchestrator) |
 
 The sections below ("What Mugi does", output format) describe the default **implementation plan** mode.
 
 **describe-pr mode:** Follow [`skills/github-title-description`](https://github.com/dentiny/kon/blob/main/skills/github-title-description/SKILL.md). Output `## Suggested PR title` + `## Suggested PR description`. No file written.
+
+**design revise mode:** Follow [`skills/design-debate`](https://github.com/dentiny/kon/blob/main/skills/design-debate/SKILL.md) **revise rules** — respond to every challenge ID, update `.kon/plan.md`, fill the response table in `.kon/design-debate.md`.
 
 ## Startup: load relevant memory
 

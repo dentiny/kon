@@ -6,7 +6,7 @@
 
 When the user invokes a **slash command**:
 
-- `/kon:go <task>`, `/kon:team <task>`, `/kon:quick <task>`
+- `/kon:go <task>`, `/kon:team <task>`, `/kon:design <task>`, `/kon:quick <task>`
 - `/kon:ask <question>`
 - `/kon:gc` or `/kon:gc <target>`
 - `/kon:finish`, `/kon:summarize`
@@ -26,11 +26,12 @@ For `/kon:ask`: create session JSON first (step 1), then read `commands/ask.md`.
 2. Read the matching command file:
    - `/kon:go` → `~/Desktop/kon/commands/go.md`
    - `/kon:team` → `~/Desktop/kon/commands/team.md`
+   - `/kon:design` → `~/Desktop/kon/commands/design.md` + `~/Desktop/kon/skills/design-debate/SKILL.md`
    - `/kon:quick` → `~/Desktop/kon/commands/quick.md`
    - `/kon:ask` → `~/Desktop/kon/commands/ask.md`
    - `/kon:gc` → `~/Desktop/kon/commands/gc.md`
 
-3. Read `~/Desktop/kon/skills/teammate-flow/SKILL.md` — **skip for `/kon:ask`**.
+3. Read `~/Desktop/kon/skills/teammate-flow/SKILL.md` — **skip for `/kon:ask`**. For `/kon:design`, also read `~/Desktop/kon/skills/design-debate/SKILL.md`.
 
 4. For each agent step, spawn a subagent. Include the agent file as the subagent's
    system context in the prompt:
@@ -38,6 +39,7 @@ For `/kon:ask`: create session JSON first (step 1), then read `commands/ask.md`.
    | Step | Agent file |
    |------|-----------|
    | Explorer | `~/Desktop/kon/agents/Azusa.md` |
+   | Design challenger | `~/Desktop/kon/agents/Azusa-challenge.md` |
    | Planner | `~/Desktop/kon/agents/Mugi.md` |
    | Implementer | `~/Desktop/kon/agents/Yui.md` |
    | Reviewer | `~/Desktop/kon/agents/Mio.md` + `~/Desktop/kon/skills/strict-review/SKILL.md` |

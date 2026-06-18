@@ -255,7 +255,7 @@ class _Handler(BaseHTTPRequestHandler):
 
     def do_PATCH(self) -> None:
         if self.path.startswith("/sessions/"):
-            session_id = self.path[len("/sessions/"):]
+            session_id = self.path[len("/sessions/") :]
             if not re.fullmatch(r"[\w\-]+", session_id):
                 self._send(400, "text/plain", b"invalid session id")
                 return
@@ -272,8 +272,7 @@ class _Handler(BaseHTTPRequestHandler):
                 return
             try:
                 data = json.loads(target.read_text(encoding="utf-8"))
-                data.update({k: v for k, v in updates.items()
-                             if k in ("status", "current_agent")})
+                data.update({k: v for k, v in updates.items() if k in ("status", "current_agent")})
                 target.write_text(json.dumps(data, ensure_ascii=False, indent=2))
                 self._send(200, "application/json", json.dumps({"ok": True}).encode())
             except (OSError, json.JSONDecodeError):

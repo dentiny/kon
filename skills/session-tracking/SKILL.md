@@ -56,11 +56,15 @@ in_progress  →  waiting  →  completed
 ```
 
 - `in_progress` — agents are actively running
-- `waiting` — agents finished OR plan approval required — session stays open until user acts
-- `completed` — user explicitly finished via `kon finish` or dashboard ✓ button
+- `waiting` — pipeline commands finished (`/kon:go`, `/kon:team`, …) — stays open until user acts
+- `completed` — user ran `/kon:finish` / dashboard ✓, **or** one-shot command finished (`/kon:ask`, `/kon:research`, `/kon:review`), **or** superseded by a newer session
 - `blocked` — retry limit hit, something needs human intervention
 
-**Never auto-set `completed`.** When all agents finish, set `status=waiting`.
+**Never auto-set `completed` for pipeline commands** (`/kon:go`, `/kon:team`, `/kon:quick`, `/kon:gc`, `/kon:design`). When their agents finish, set `status=waiting`.
+
+**Auto-complete one-shot commands** when the sole agent finishes: `/kon:ask`, `/kon:research`, `/kon:review` → set `status=completed` (via `complete-agent`).
+
+**Supersede on new run:** when `init` creates a session, any other `in_progress` or `waiting` session for the same `project_path` is auto-closed as `completed` with log `Superseded by new session <id>.` — at most one open pipeline session per project.
 
 ## Schema (full)
 
@@ -94,16 +98,42 @@ in_progress  →  waiting  →  completed
 | Agent needs human input | Move agent to `steps_waiting`, set `status=waiting` |
 | Human responds, agent resumes | Move agent back to `current_agent`, set `status=in_progress` |
 | Agent blocked / retry limit | Move agent to `steps_failed`, set `status=blocked` |
-| All agents finished | Set `status=waiting`, `current_agent=null` — **do not set `completed`** |
+| All agents finished (pipeline command) | Set `status=waiting`, `current_agent=null` |
+| All agents finished (`/kon:ask`, `/kon:research`, `/kon:review`) | Set `status=completed` |
+| `init` creates a new session | Supersede other open sessions for same project → `completed` |
 | `kon finish` or dashboard ✓ | Set `status=completed` |
+
+### `/kon:begin` variant
+
+Interactive session — stays open until `/kon:finish`:
+
+- On create: `command: "/kon:begin"`, `mode: "interactive"`, `steps_pending: []`, `status=in_progress`
+- Sub-turns: **never** call `init` — use `log-turn` and `complete-agent` on the same id
+- After each agent: `status` stays `in_progress` (begin never auto-completes)
+- Close: `/kon:finish` or dashboard ✓
+
+Check active begin session: `python3 scripts/kon_session.py active`
+
+### `/kon:research` variant
+
+Research is read-only for source code but writes `.kon/research.md`:
+
+- On create: `command: "/kon:research"`, `steps_pending: ["Jun"]`
+- After Jun answers: `steps_completed: ["Jun"]`, `status=completed` (via `complete-agent`), log one-sentence summary
+
+### `/kon:review` variant
+
+Review is read-only — no code changes:
+
+- On create: `command: "/kon:review"`, `steps_pending: ["Mio"]` (prepend `"Mugi"` when `--rubric`)
+- After Mio verdict: `steps_completed: ["Mio"]`, `status=completed` (via `complete-agent`), log verdict one-liner
 
 ### `/kon:ask` variant
 
 Ask is read-only for the repo but still tracks a session:
 
 - On create: `command: "/kon:ask"`, `steps_pending: ["Azusa"]`, other agent lists empty
-- After Azusa answers: `steps_completed: ["Azusa"]`, `status=waiting`, log entry with one-sentence summary of the answer topic
-- Do **not** auto-set `completed` — same lifecycle as other commands
+- After Azusa answers: `steps_completed: ["Azusa"]`, `status=completed` (via `complete-agent`), log entry with one-sentence summary of the answer topic
 
 ### `/kon:design` variant
 

@@ -15,7 +15,10 @@ Hand the task to the full team. From first look to final green, each member hand
 ## Flow
 
 Full flow follows [`skills/teammate-flow`](https://github.com/dentiny/kon/blob/main/skills/teammate-flow/SKILL.md) —
-🎸 Azusa explores → 🍰 Mugi writes plan → user confirms → 🎶 Yui implements → 📝 Mio reviews → 🥁 Ritsu verifies.
+optional **📚 Jun** (external docs, parallel with Azusa) → 🎸 Azusa explores → 🍰 Mugi writes plan →
+user confirms → 🎶 Yui implements → 📝 Mio reviews → 🥁 Ritsu verifies.
+
+When the task needs web/docs lookup, spawn Jun per [`skills/external-research`](https://github.com/dentiny/kon/blob/main/skills/external-research/SKILL.md).
 
 Review and verification run **sequentially** (Mio must pass before Ritsu runs).
 

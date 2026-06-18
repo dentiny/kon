@@ -45,10 +45,13 @@ A short sentence is better than a long one.
 | Agent | Emoji | Name |
 |-------|-------|------|
 | Explorer | 🎸 | Azusa |
+| Researcher | 📚 | Jun |
 | Planner | 🍰 | Mugi |
 | Implementer | 🎶 | Yui |
 | Reviewer | 📝 | Mio |
 | Verifier | 🥁 | Ritsu |
+| Cleaner | 🧹 | Sawako |
+| Summarizer | 📋 | Nodoka |
 | Narrator | 🌸 | Ui |
 
 Both the English name and shorthand are valid — `🎶 Yui` and `🎶 Implementer` are both fine.

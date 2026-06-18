@@ -6,9 +6,9 @@ description: Mark the current session as completed. Called explicitly by the use
 
 Mark the current session as done.
 
-Agents finishing their work does not close a session — the session stays in `waiting`
-state until the user explicitly closes it. This gives time to review changes, run
-extra commands, or ask for more work before declaring the task complete.
+Mark the current session as done — especially **`/kon:begin` interactive sessions**, which stay open until you explicitly finish.
+
+Pipeline commands also stay in `waiting` until closed; one-shot commands auto-complete and rarely need `/kon:finish`.
 
 ## Usage
 

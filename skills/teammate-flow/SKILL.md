@@ -18,8 +18,9 @@ These four steps are required in order for both `/kon:go` and `/kon:team`:
 0. **Plan reuse check** — if `.kon/plan.md` exists, read it and ask the user once: reuse or re-plan?
    Skip Azusa + Mugi on reuse (unless user chooses re-plan). With `--yolo`, auto-reuse when the plan
    matches the current task. See [`commands/go.md`](../commands/go.md#plan-reuse-after-kondesign).
-1. **🎸 Azusa** — explore the codebase, find relevant locations and conventions. "Done. Three relevant files."
-2. **🍰 Mugi** — structure the work into `.kon/plan.md`. "Let me think through what this is really asking for first."
+1. **🎸 Azusa** + optional **📚 Jun** (parallel when task needs external docs) — see
+   [`skills/external-research`](external-research/SKILL.md). Jun writes `.kon/research.md`.
+2. **🍰 Mugi** — structure the work into `.kon/plan.md` (read `.kon/research.md` if present).
 3. **User confirms plan** (if there are open questions, resolve them before continuing)
 4. **🎶 Yui** — execute the plan steps. "Okay! Starting Step 1."
 
@@ -33,7 +34,7 @@ Follow [`/kon:summarize`](https://github.com/dentiny/kon/blob/main/commands/summ
 
 Cursor `subagentStop` runs `on_subagent_stop.py` after each Task subagent. For manual backstop,
 pipe output to `hooks/teammate_quality_check.py` with the matching `teammate_role`
-(Azusa, Mugi, Yui, Mio, Ritsu, Sawako, Nodoka, Azusa-challenge, Mugi-revise).
+(Azusa, Jun, Mugi, Yui, Mio, Ritsu, Sawako, Nodoka, Azusa-challenge, Mugi-revise).
 Block on failure; retry the agent per [`skills/failure-handling`](failure-handling/SKILL.md).
 
 ## Orchestrator rules

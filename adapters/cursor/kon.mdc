@@ -11,11 +11,14 @@ alwaysApply: false
 
 User invokes a **slash command** (kon extension system commands):
 
+- `/kon:begin [goal]` — interactive session; plain chat routed without `/kon:` prefix until `/kon:finish`
 - `/kon:go <task>` — full pipeline (explore → plan → implement → review → verify)
 - `/kon:team <task>` — same, review + verify run in parallel
 - `/kon:design <task>` — explore → plan → multi-agent design debate → user confirms (no implementation)
 - `/kon:quick <task>` — skip explore/plan, lightweight review
-- `/kon:ask <question>` — read-only Q&A (Azusa explores, **no repo writes** — session still tracked)
+- `/kon:research <question>` — external lookup (📚 Jun, writes `.kon/research.md`)
+- `/kon:review` — code review only (📝 Mio on uncommitted/staged diff)
+- `/kon:ask <question>` — read-only Q&A (🎸 Azusa explores, **no repo writes** — session still tracked)
 - `/kon:gc` or `/kon:gc <target>` — garbage collect (dead code, comments, docs)
 - `/kon:finish` — mark current session completed
 - `/kon:summarize` — write session summary
@@ -24,9 +27,21 @@ Append `--yolo` for autonomous mode: `/kon:go --yolo <task>`.
 
 ## How to run
 
+### Interactive mode (`/kon:begin`)
+
+For `/kon:begin`: read `~/Desktop/kon/commands/begin.md` + `~/Desktop/kon/skills/interactive-session/SKILL.md`.
+Create one session; reuse its id for all plain-text follow-ups — **never `init` again** until `/kon:finish`.
+
+If the user message has **no** `/kon:` prefix and `kon_session.py active` prints an id → treat as interactive follow-up (read interactive-session, route intent).
+
 ### `/kon:ask` — read-only repo, session tracked
 
 For `/kon:ask`: **create session JSON first**, then read `~/Desktop/kon/commands/ask.md`. Spawn Azusa read-only only — no code edits, no `.kon/plan.md`, no mutating shell. Update session after Azusa. Do not read `teammate-flow`.
+
+### `/kon:research` / `/kon:review` — skip teammate-flow
+
+For `/kon:research`: read `commands/research.md`, spawn Jun only.
+For `/kon:review`: read `commands/review.md`, spawn Mio only (optional Mugi first with `--rubric`).
 
 ### All commands (including ask)
 
@@ -44,22 +59,26 @@ For `/kon:ask`: **create session JSON first**, then read `~/Desktop/kon/commands
 ### Workflow commands
 
 2. Read the matching workflow file:
+   - `/kon:begin` → `~/Desktop/kon/commands/begin.md` + `~/Desktop/kon/skills/interactive-session/SKILL.md`
    - `/kon:go` → `~/Desktop/kon/commands/go.md`
    - `/kon:team` → `~/Desktop/kon/commands/team.md`
    - `/kon:design` → `~/Desktop/kon/commands/design.md` + `~/Desktop/kon/skills/design-debate/SKILL.md`
    - `/kon:quick` → `~/Desktop/kon/commands/quick.md`
+   - `/kon:research` → `~/Desktop/kon/commands/research.md`
+   - `/kon:review` → `~/Desktop/kon/commands/review.md`
    - `/kon:ask` → `~/Desktop/kon/commands/ask.md`
    - `/kon:gc` → `~/Desktop/kon/commands/gc.md`
    - `/kon:finish` → `~/Desktop/kon/commands/finish.md`
    - `/kon:summarize` → `~/Desktop/kon/commands/summarize.md`
 
-3. Read `~/Desktop/kon/skills/teammate-flow/SKILL.md` for orchestration rules — **skip for `/kon:ask`** (Azusa only). For `/kon:design`, also read `~/Desktop/kon/skills/design-debate/SKILL.md` (debate replaces implement/review steps).
+3. Read `~/Desktop/kon/skills/teammate-flow/SKILL.md` for orchestration rules — **skip for `/kon:ask`, `/kon:research`, and `/kon:review`**. For `/kon:design`, also read `~/Desktop/kon/skills/design-debate/SKILL.md`. For external lookup in go/team/design, also read `~/Desktop/kon/skills/external-research/SKILL.md`.
 
 4. For each agent step, spawn a Task subagent. Pass the agent file as context in the prompt:
 
    | Step | Agent file |
    |------|-----------|
    | Explorer | `~/Desktop/kon/agents/Azusa.md` |
+   | Researcher | `~/Desktop/kon/agents/Jun.md` + `~/Desktop/kon/skills/external-research/SKILL.md` |
    | Design challenger | `~/Desktop/kon/agents/Azusa-challenge.md` |
    | Planner | `~/Desktop/kon/agents/Mugi.md` |
    | Implementer | `~/Desktop/kon/agents/Yui.md` |
@@ -73,6 +92,7 @@ For `/kon:ask`: **create session JSON first**, then read `~/Desktop/kon/commands
    | Agent | `teammate_role` |
    |-------|-----------------|
    | 🎸 Azusa | `Azusa` |
+   | 📚 Jun | `Jun` |
    | 🍰 Mugi | `Mugi` |
    | 🎶 Yui | `Yui` |
    | 📝 Mio | `Mio` |

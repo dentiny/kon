@@ -1,13 +1,14 @@
 # kon
 
 K-On! Ho-kago Tea Time driven multi-agent dev workflow.
-Five band members, five dev roles — explore, plan, implement, review, verify.
+HTT band members plus extended roles — explore, research, plan, implement, review, verify, cleanup, summarize.
 
 Each agent owns one step of the software development cycle:
 
 | SDLC Step | Agent | Role |
 |-----------|-------|------|
 | 1. Understand & investigate | 🎸 Azusa | Reads the codebase, finds relevant files and conventions |
+| 1b. External lookup (optional) | 📚 Jun | Searches docs/web, writes `.kon/research.md` |
 | 2. Planning | 🍰 Mugi | Writes a step-by-step plan with acceptance criteria |
 | 3. Implementation | 🎶 Yui | Executes the plan, drives forward |
 | 4. Code review | 📝 Mio | Strict 9-item checklist, default BLOCKED |
@@ -116,9 +117,12 @@ cp ~/Desktop/kon/adapters/cursor/kon.mdc /path/to/your/project/.cursor/rules/kon
 Then in Cursor chat (slash commands):
 
 ```
+/kon:begin
 /kon:go add email validation to auth.py
 /kon:quick fix the typo in README line 42
 /kon:ask how does session tracking work?
+/kon:research what Cursor hook events support followup_message?
+/kon:review
 /kon:team refactor the payment module
 /kon:design add rate limiting to the API
 ```
@@ -142,9 +146,12 @@ cat ~/Desktop/kon/adapters/codex/AGENTS.md >> /path/to/your/project/AGENTS.md
 Then in any Codex session:
 
 ```
+/kon:begin
 /kon:go add email validation to auth.py
 /kon:quick fix the typo in README line 42
 /kon:ask how does session tracking work?
+/kon:research what Cursor hook events support followup_message?
+/kon:review
 ```
 
 > `AGENTS.md` is a universal standard — the same file format also works in Cursor,
@@ -165,11 +172,14 @@ Then in any Codex session:
 
 | Command | What it does |
 |---------|-------------|
+| `/kon:begin [goal]` | Interactive session — plain chat routed by intent; `/kon:finish` to close |
 | `/kon:go <task>` | Full sequential pipeline: explore → plan → implement → review → verify → summarize |
 | `/kon:team <task>` | Same pipeline, review + verify run in parallel (~30% faster) |
 | `/kon:design <task>` | Design-only: explore → plan → Azusa↔Mugi debate → user confirms (no code) |
 | `/kon:quick <task>` | Skip explore/plan, lightweight 4-item review |
-| `/kon:ask <question>` | Read-only Q&A — Azusa explores, **no repo writes**; session tracked in `~/.kon/projects/` |
+| `/kon:research <question>` | External lookup — 📚 Jun searches docs/web, writes `.kon/research.md` |
+| `/kon:review` | Code review only — 📝 Mio strict-review on uncommitted/staged diff |
+| `/kon:ask <question>` | Read-only Q&A — 🎸 Azusa explores the repo, **no repo writes**; session tracked in `~/.kon/projects/` |
 | `/kon:gc` | Garbage collect — remove dead code, simplify comments/docs |
 | `/kon:summarize` | Write a session summary (auto-runs at end of every command) |
 | `/kon:finish` | Mark the current session as completed |
@@ -187,8 +197,11 @@ a decision with no default, or scope expansion required.
 
 ### Session lifecycle
 
-Sessions stay **open** after agents finish — they move to `waiting` (yellow) until you
-explicitly close them. This gives you time to review changes before declaring done.
+Pipeline commands (`/kon:go`, `/kon:team`, …) stay **open** after agents finish — they move to `waiting` (yellow) until you close them with **✓** or `/kon:finish`.
+
+**Interactive mode:** `/kon:begin` opens one session; follow-up messages need no `/kon:` prefix — the orchestrator routes by intent. Close with `/kon:finish`.
+
+One-shot commands (`/kon:ask`, `/kon:research`, `/kon:review`) auto-complete when done. Starting a new `/kon:begin` or pipeline command supersedes other open sessions.
 
 ```
 in_progress (blue) → waiting (yellow) → completed (green)

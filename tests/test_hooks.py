@@ -96,6 +96,28 @@ class TestTeammateQualityCheck:
         )
         assert result["decision"] == "approve"
 
+    def test_jun_with_sources(self) -> None:
+        output = (
+            "## Loaded memory entries\n(no relevant entries)\n\n"
+            "## Research summary\n- `.kon/research.md` — Cursor stop hook docs\n\n"
+            "## Sources\n- https://cursor.com/docs/hooks — hook events\n"
+        )
+        result = _run_hook(
+            "teammate_quality_check.py",
+            {"teammate_role": "Jun", "teammate_output": output},
+        )
+        assert result["decision"] == "approve"
+
+
+class TestOnSubagentStopRole:
+    def test_infers_jun(self) -> None:
+        role = _infer_role({"task": "Jun researcher agents/Jun.md", "summary": ""})
+        assert role == "Jun"
+
+    def test_jun_not_june(self) -> None:
+        role = _infer_role({"task": "Review schedule for June release", "summary": ""})
+        assert role is None
+
 
 class TestVerifyCompletion:
     def test_skips_aborted_stop(self) -> None:

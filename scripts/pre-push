@@ -1,0 +1,13 @@
+#!/bin/sh
+# Pre-push hook: fail if any Python file would be reformatted by ruff.
+# Setup: bash scripts/install_hooks.sh
+
+if ! command -v ruff >/dev/null 2>&1; then
+  echo "kon pre-push: ruff not found. Install: pip install -e '.[dev]'" >&2
+  exit 1
+fi
+
+if ! ruff format --check . 2>/dev/null; then
+  echo "Fix with: ruff format ." >&2
+  exit 1
+fi

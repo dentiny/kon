@@ -10,6 +10,7 @@ When the user invokes a **slash command**:
 - `/kon:go <task>`, `/kon:team <task>`, `/kon:design <task>`, `/kon:quick <task>`
 - `/kon:research <question>`
 - `/kon:review`
+- `/kon:todo <task>`
 - `/kon:ask <question>`
 - `/kon:gc` or `/kon:gc <target>`
 - `/kon:finish`, `/kon:summarize`
@@ -33,6 +34,8 @@ For `/kon:ask`: create session JSON first (step 1), then read `commands/ask.md`.
 For `/kon:research`: read `commands/research.md`, spawn Jun only.
 For `/kon:review`: read `commands/review.md`, spawn Mio only (optional Mugi first with `--rubric`).
 
+For `/kon:todo`: read `commands/todo.md`, run `scripts/kon_todo.py` directly — no agents, no session JSON.
+
 ### All commands
 
 1. **Session file (do this first)** — `python3 ~/Desktop/kon/scripts/kon_session.py init --command "/kon:go" --task "…"`. For ask: `--command "/kon:ask"`. See `adapters/cursor/kon.mdc` or `skills/session-tracking/SKILL.md`.
@@ -45,6 +48,7 @@ For `/kon:review`: read `commands/review.md`, spawn Mio only (optional Mugi firs
    - `/kon:quick` → `~/Desktop/kon/commands/quick.md`
    - `/kon:research` → `~/Desktop/kon/commands/research.md`
    - `/kon:review` → `~/Desktop/kon/commands/review.md`
+   - `/kon:todo` → `~/Desktop/kon/commands/todo.md`
    - `/kon:ask` → `~/Desktop/kon/commands/ask.md`
    - `/kon:gc` → `~/Desktop/kon/commands/gc.md`
 

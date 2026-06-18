@@ -40,15 +40,54 @@ Example: `20260617-203042-add-email-validation`
 }
 ```
 
+## Session lifecycle
+
+```
+in_progress  →  waiting  →  completed
+                    ↓
+                 blocked
+```
+
+- `in_progress` — agents are actively running
+- `waiting` — agents finished OR plan approval required — session stays open until user acts
+- `completed` — user explicitly finished via `kon finish` or dashboard ✓ button
+- `blocked` — retry limit hit, something needs human intervention
+
+**Never auto-set `completed`.** When all agents finish, set `status=waiting`.
+
+## Schema (full)
+
+```json
+{
+  "id": "...",
+  "task": "...",
+  "command": "kon go",
+  "started_at": "...",
+  "status": "in_progress | waiting | completed | blocked",
+  "current_agent": "Yui | null",
+  "steps_completed": ["Azusa", "Mugi"],
+  "steps_pending":   ["Mio", "Ritsu", "Nodoka"],
+  "steps_failed":    [],
+  "steps_waiting":   [],
+  "log": [...]
+}
+```
+
+`steps_failed` — agents that hit an unresolvable error.
+`steps_waiting` — agents paused waiting for human input (e.g., plan approval).
+
 ## When to write
 
-| Event | What to do |
-|-------|-----------|
-| Command starts | `mkdir -p .kon/sessions` then write file: `status=in_progress`, empty `steps_completed`, all agents in `steps_pending` |
-| About to spawn an agent | Update: move agent to `current_agent`, remove from `steps_pending`, add log entry `"starting..."` |
-| Agent completes | Update: move agent from `current_agent` → `steps_completed`, add log entry with one-line summary |
-| All agents done | Update: `status=completed`, `current_agent=null` |
-| Retry limit hit / blocked | Update: `status=blocked`, add log entry explaining what's stuck |
+| Event | Action |
+|-------|--------|
+| Command starts | Create file: `status=in_progress`, all agents in `steps_pending` |
+| Before spawning an agent | Move agent to `current_agent`, remove from `steps_pending` |
+| Agent completes normally | Move agent to `steps_completed`, add log entry |
+| Agent needs human input | Move agent to `steps_waiting`, set `status=waiting` |
+| Human responds, agent resumes | Move agent back to `current_agent`, set `status=in_progress` |
+| Agent blocked / retry limit | Move agent to `steps_failed`, set `status=blocked` |
+| All agents finished | Set `status=waiting`, `current_agent=null` — **do not set `completed`** |
+| `kon finish` or dashboard ✓ | Set `status=completed` |
 
 Write the file with a single `Bash` call using `python3 -c` or `tee`:
 

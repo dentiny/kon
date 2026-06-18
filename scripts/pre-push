@@ -2,12 +2,19 @@
 # Pre-push hook: fail if any Python file would be reformatted by ruff.
 # Setup: bash scripts/install_hooks.sh
 
-if ! command -v ruff >/dev/null 2>&1; then
-  echo "kon pre-push: ruff not found. Install: pip install -e '.[dev]'" >&2
+# Find ruff: prefer project venv, fall back to PATH
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+RUFF="$REPO_ROOT/.venv/bin/ruff"
+if [ ! -x "$RUFF" ]; then
+  RUFF="$(command -v ruff 2>/dev/null)"
+fi
+if [ -z "$RUFF" ]; then
+  echo "kon pre-push: ruff not found." >&2
+  echo "  Run: bash scripts/install_hooks.sh" >&2
   exit 1
 fi
 
-if ! ruff format --check . 2>/dev/null; then
+if ! "$RUFF" format --check . 2>/dev/null; then
   echo "Fix with: ruff format ." >&2
   exit 1
 fi

@@ -1,0 +1,71 @@
+---
+description: kon K-On! multi-agent dev workflow. Invoke with "kon go/team/quick: <task>" or "kon gc".
+alwaysApply: false
+---
+
+# kon Multi-Agent Workflow
+
+**Plugin root**: `~/Desktop/kon` — change this if you installed kon elsewhere.
+
+## Trigger
+
+User writes one of:
+- `kon go: <task>` — full pipeline (explore → plan → implement → review → verify)
+- `kon team: <task>` — same, review + verify run in parallel
+- `kon quick: <task>` — skip explore/plan, lightweight review
+- `kon gc` or `kon gc: <target>` — garbage collect (dead code, comments, docs)
+
+## How to run
+
+1. **Session file (do this first, before anything else):**
+   ```bash
+   mkdir -p .kon/sessions
+   python3 -c "
+   import json, pathlib, datetime, re
+   task = '<task description here>'
+   cmd  = 'kon quick'  # or go / team / gc
+   slug = re.sub(r'[^a-z0-9]+', '-', task.lower())[:40].strip('-')
+   sid  = datetime.datetime.utcnow().strftime('%Y%m%d-%H%M%S') + '-' + slug
+   data = {'id': sid, 'task': task, 'command': cmd,
+           'started_at': datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
+           'status': 'in_progress', 'current_agent': None,
+           'steps_completed': [], 'steps_pending': [], 'log': []}
+   pathlib.Path('.kon/sessions/' + sid + '.json').write_text(
+       json.dumps(data, indent=2, ensure_ascii=False))
+   print(sid)
+   "
+   ```
+   Save the printed session ID. Update this file after each agent step using the same path.
+
+2. Read the matching workflow file:
+   - `kon go` → `~/Desktop/kon/commands/go.md`
+   - `kon team` → `~/Desktop/kon/commands/team.md`
+   - `kon quick` → `~/Desktop/kon/commands/quick.md`
+   - `kon gc` → `~/Desktop/kon/commands/gc.md`
+
+2. Read `~/Desktop/kon/skills/teammate-flow/SKILL.md` for orchestration rules.
+
+3. For each agent step, spawn a Task subagent. Pass the agent file as context in the prompt:
+
+   | Step | Agent file |
+   |------|-----------|
+   | Explorer | `~/Desktop/kon/agents/Azusa.md` |
+   | Planner | `~/Desktop/kon/agents/Mugi.md` |
+   | Implementer | `~/Desktop/kon/agents/Yui.md` |
+   | Reviewer | `~/Desktop/kon/agents/Mio.md` + `~/Desktop/kon/skills/strict-review/SKILL.md` |
+   | Verifier | `~/Desktop/kon/agents/Ritsu.md` |
+   | Cleaner | `~/Desktop/kon/agents/Sawako.md` |
+
+4. After Mio and Ritsu complete, validate output quality:
+   ```bash
+   echo '{"teammate_role":"Mio","teammate_output":"<output>"}' \
+     | python3 ~/Desktop/kon/hooks/teammate_quality_check.py
+   ```
+
+5. Use `~/Desktop/kon/skills/narration/SKILL.md` for 🌸 Ui narration beats.
+
+6. Failure handling: `~/Desktop/kon/skills/failure-handling/SKILL.md`.
+
+## Hard rule
+
+**Never run `git commit` or `git push`.** Always present the commit message draft and wait for the user to run it.

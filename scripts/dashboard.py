@@ -1,0 +1,296 @@
+#!/usr/bin/env python3
+"""kon session dashboard.
+
+Serves a live dashboard of all kon agent sessions stored in .kon/sessions/.
+Sessions are auto-refreshed every 3 seconds. Click any session to expand its log.
+
+Usage:
+    python3 scripts/dashboard.py            # http://localhost:8080
+    python3 scripts/dashboard.py --port 9000
+    python3 scripts/dashboard.py --open     # also opens browser automatically
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import pathlib
+import re
+import webbrowser
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
+SESSIONS_DIR = pathlib.Path(".kon/sessions")  # overridden by --dir at runtime
+
+_HTML = """\
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>kon sessions</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+       background: #0d1117; color: #e6edf3; padding: 24px; min-height: 100vh; }
+h1   { font-size: 20px; margin-bottom: 16px; }
+h1 small { color: #8b949e; font-size: 13px; font-weight: 400; margin-left: 10px; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; }
+.tab { padding: 5px 14px; border-radius: 6px; font-size: 13px; cursor: pointer;
+       background: transparent; border: 1px solid #30363d; color: #8b949e;
+       transition: all .15s; }
+.tab:hover  { border-color: #58a6ff; color: #e6edf3; }
+.tab.active { background: #1f3a5f; border-color: #388bfd; color: #79c0ff; font-weight: 600; }
+.count { font-size: 11px; background: #21262d; padding: 1px 5px;
+         border-radius: 8px; margin-left: 4px; }
+.empty { color: #8b949e; padding: 16px 0; font-size: 14px; }
+.session { background: #161b22; border: 1px solid #30363d; border-radius: 8px;
+           margin-bottom: 10px; overflow: hidden; transition: opacity .2s; }
+.session.past { opacity: 0.6; }
+.session.past:hover { opacity: 1; }
+.hdr { padding: 13px 16px; display: flex; align-items: center; gap: 10px;
+       cursor: pointer; user-select: none; }
+.hdr:hover { background: #1c2128; }
+.chevron { color: #484f58; font-size: 10px; flex-shrink: 0;
+           transition: transform .15s; display: inline-block; }
+.chevron.open { transform: rotate(90deg); }
+.badge { padding: 2px 8px; border-radius: 10px; font-size: 11px;
+         font-weight: 600; flex-shrink: 0; }
+.in_progress { background: #1158a0; color: #79c0ff; }
+.completed   { background: #1a4f2a; color: #56d364; }
+.blocked     { background: #5a1a1a; color: #f85149; }
+.task  { flex: 1; font-size: 14px; font-weight: 500;
+         overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cmd   { color: #8b949e; font-size: 12px; flex-shrink: 0; }
+.when  { color: #484f58; font-size: 11px; flex-shrink: 0; }
+.pipeline { display: flex; gap: 4px; align-items: center; flex-shrink: 0; }
+.dot { width: 10px; height: 10px; border-radius: 50%; position: relative; cursor: default; }
+.dot:hover::after { content: attr(data-label);
+  position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+  background: #1c2128; border: 1px solid #30363d; padding: 3px 7px;
+  border-radius: 4px; font-size: 11px; white-space: nowrap;
+  color: #e6edf3; z-index: 10; pointer-events: none; }
+.done    { background: #238636; }
+.active  { background: #1f6feb; box-shadow: 0 0 0 3px #388bfd33; }
+.pending { background: #30363d; }
+.cur-agent { font-size: 13px; color: #8b949e; flex-shrink: 0; min-width: 70px; text-align: right; }
+.del-btn { background: none; border: none; cursor: pointer; color: #484f58;
+           font-size: 14px; padding: 2px 4px; border-radius: 4px; flex-shrink: 0;
+           line-height: 1; transition: color .15s; }
+.del-btn:hover { color: #f85149; }
+.log { border-top: 1px solid #21262d; display: none; max-height: 300px; overflow-y: auto; }
+.log.open { display: block; }
+.log-row { display: flex; gap: 10px; padding: 7px 16px; font-size: 12px;
+           border-bottom: 1px solid #21262d; }
+.log-row:last-child { border-bottom: none; }
+.ts      { color: #484f58; flex-shrink: 0; font-family: monospace; font-size: 11px; }
+.agent   { color: #e6edf3; flex-shrink: 0; width: 68px; }
+.summary { color: #8b949e; }
+</style>
+</head>
+<body>
+<h1>🎸 kon sessions <small id="ts"></small></h1>
+<div class="tabs">
+  <button class="tab active" onclick="setTab('all')"   id="tab-all">All</button>
+  <button class="tab"        onclick="setTab('active')" id="tab-active">Active</button>
+  <button class="tab"        onclick="setTab('past')"   id="tab-past">Past</button>
+</div>
+<div id="root"></div>
+<script>
+const EM = {Azusa:'🎸',Mugi:'🍰',Yui:'🎶',Mio:'📝',Ritsu:'🥁',Sawako:'🧹',Nodoka:'📋'};
+const open_ids = new Set();
+let currentTab = 'all';
+let allSessions = [];
+
+function fmtTime(iso) {
+  if (!iso) return '';
+  return new Date(iso).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+function fmtWhen(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const now = new Date();
+  const isToday = d.toDateString() === now.toDateString();
+  return isToday
+    ? d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})
+    : d.toLocaleDateString([], {month:'short',day:'numeric'}) + ' ' +
+      d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+}
+
+function setTab(tab) {
+  currentTab = tab;
+  ['all','active','past'].forEach(t => {
+    document.getElementById('tab-'+t).classList.toggle('active', t === tab);
+  });
+  render(allSessions);
+}
+
+function renderSession(s) {
+  const isPast  = s.status !== 'in_progress';
+  const done    = s.steps_completed || [];
+  const cur     = s.current_agent;
+  const pend    = s.steps_pending   || [];
+  const all     = [...done, ...(cur ? [cur] : []), ...pend];
+  const dots    = all.map(a => {
+    const cls = done.includes(a) ? 'done' : a === cur ? 'active' : 'pending';
+    return `<div class="dot ${cls}" data-label="${EM[a]||''} ${a}"></div>`;
+  }).join('');
+  const curLabel = cur ? `${EM[cur]||''} ${cur}` : (s.status==='completed' ? '✓ done' : s.status==='blocked' ? '✗ blocked' : '—');
+  const isOpen   = open_ids.has(s.id);
+  const logRows  = (s.log||[]).map(e =>
+    `<div class="log-row">
+      <span class="ts">${fmtTime(e.ts)}</span>
+      <span class="agent">${EM[e.agent]||''} ${e.agent}</span>
+      <span class="summary">${e.summary}</span>
+    </div>`).join('');
+  return `
+    <div class="session${isPast?' past':''}">
+      <div class="hdr" onclick="toggle('${s.id}')">
+        <span class="chevron${isOpen?' open':''}">▶</span>
+        <span class="badge ${s.status}">${s.status.replace('_',' ')}</span>
+        <span class="task" title="${s.task}">${s.task}</span>
+        <span class="cmd">${s.command}</span>
+        <div class="pipeline">${dots}</div>
+        <span class="when">${fmtWhen(s.started_at)}</span>
+        <span class="cur-agent">${curLabel}</span>
+        <button class="del-btn" onclick="deleteSession('${s.id}',${JSON.stringify(s.task)},event)" title="Delete session">🗑</button>
+      </div>
+      <div class="log${isOpen?' open':''}" id="log-${s.id}">
+        ${logRows || '<div class="log-row"><span class="summary" style="color:#484f58">No log entries yet.</span></div>'}
+      </div>
+    </div>`;
+}
+
+function render(sessions) {
+  const active = sessions.filter(s => s.status === 'in_progress');
+  const past   = sessions.filter(s => s.status !== 'in_progress');
+  document.getElementById('tab-all').innerHTML    = `All <span class="count">${sessions.length}</span>`;
+  document.getElementById('tab-active').innerHTML = `Active <span class="count">${active.length}</span>`;
+  document.getElementById('tab-past').innerHTML   = `Past <span class="count">${past.length}</span>`;
+  const filtered = currentTab === 'active' ? active : currentTab === 'past' ? past : sessions;
+  const label = currentTab === 'active' ? 'No active sessions.' : currentTab === 'past' ? 'No past sessions yet.' : 'No sessions yet — run a kon command to get started.';
+  document.getElementById('root').innerHTML = filtered.length
+    ? filtered.map(renderSession).join('')
+    : `<p class="empty">${label}</p>`;
+}
+
+function toggle(id) {
+  if (open_ids.has(id)) open_ids.delete(id); else open_ids.add(id);
+  document.getElementById('log-'+id).classList.toggle('open');
+  const hdr = document.getElementById('log-'+id).previousElementSibling;
+  hdr.querySelector('.chevron').classList.toggle('open');
+}
+
+async function deleteSession(id, task, event) {
+  event.stopPropagation();
+  if (!confirm(`Delete session?\n\n"${task}"\n\nThis removes the session file and its summary.`)) return;
+  try {
+    const r = await fetch('/sessions/' + id, {method: 'DELETE'});
+    if (r.ok) {
+      allSessions = allSessions.filter(s => s.id !== id);
+      open_ids.delete(id);
+      render(allSessions);
+    }
+  } catch (_) {}
+}
+
+async function refresh() {
+  try {
+    allSessions = await (await fetch('/sessions')).json();
+    document.getElementById('ts').textContent = 'refreshed ' + fmtTime(new Date().toISOString());
+    render(allSessions);
+  } catch (_) {}
+}
+
+refresh();
+setInterval(refresh, 3000);
+</script>
+</body>
+</html>
+"""
+
+
+class _Handler(BaseHTTPRequestHandler):
+    def do_GET(self) -> None:
+        if self.path == "/":
+            self._send(200, "text/html; charset=utf-8", _HTML.encode())
+        elif self.path == "/sessions":
+            body = json.dumps(_load_sessions(), ensure_ascii=False).encode()
+            self._send(200, "application/json", body)
+        else:
+            self._send(404, "text/plain", b"not found")
+
+    def do_DELETE(self) -> None:
+        if self.path.startswith("/sessions/"):
+            session_id = self.path[len("/sessions/"):]
+            if not re.fullmatch(r"[\w\-]+", session_id):
+                self._send(400, "text/plain", b"invalid session id")
+                return
+            target = SESSIONS_DIR / f"{session_id}.json"
+            summary = SESSIONS_DIR / f"{session_id}-summary.md"
+            deleted = []
+            for path in (target, summary):
+                if path.exists():
+                    try:
+                        path.unlink()
+                        deleted.append(path.name)
+                    except OSError:
+                        pass
+            if deleted:
+                self._send(200, "application/json",
+                           json.dumps({"deleted": deleted}).encode())
+            else:
+                self._send(404, "text/plain", b"session not found")
+        else:
+            self._send(404, "text/plain", b"not found")
+
+    def _send(self, status: int, ctype: str, body: bytes) -> None:
+        self.send_response(status)
+        self.send_header("Content-Type", ctype)
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", "no-cache")
+        self.end_headers()
+        self.wfile.write(body)
+
+    def log_message(self, *_: object) -> None:
+        pass  # suppress per-request noise
+
+
+def _load_sessions() -> list[dict]:
+    if not SESSIONS_DIR.exists():
+        return []
+    sessions = []
+    for path in sorted(SESSIONS_DIR.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True):
+        try:
+            sessions.append(json.loads(path.read_text(encoding="utf-8")))
+        except (json.JSONDecodeError, OSError):
+            pass
+    return sessions
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="kon session dashboard")
+    parser.add_argument("--port", type=int, default=9090, help="Port (default: 9090)")
+    parser.add_argument("--open", action="store_true", help="Open browser automatically")
+    parser.add_argument("--dir", type=str, default=None,
+                        help="Project directory to watch (default: current directory)")
+    args = parser.parse_args()
+
+    global SESSIONS_DIR
+    project_dir = pathlib.Path(args.dir).resolve() if args.dir else pathlib.Path.cwd()
+    SESSIONS_DIR = project_dir / ".kon" / "sessions"
+
+    url = f"http://localhost:{args.port}"
+    print(f"kon dashboard → {url}")
+    print(f"Watching: {SESSIONS_DIR}")
+    print("Ctrl+C to stop.\n")
+    if args.open:
+        webbrowser.open(url)
+
+    server = HTTPServer(("", args.port), _Handler)
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print("\nDashboard stopped.")
+
+
+if __name__ == "__main__":
+    main()

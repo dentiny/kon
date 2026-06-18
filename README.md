@@ -99,6 +99,7 @@ Then in Cursor chat:
 ```
 kon go: add email validation to auth.py
 kon quick: fix the typo in README line 42
+kon ask: how does session tracking work?
 kon team: refactor the payment module
 ```
 
@@ -111,7 +112,7 @@ cd /path/to/your/project
 claude --plugin-dir ~/Desktop/kon
 ```
 
-Then use `/kon:go`, `/kon:team`, `/kon:quick`.
+Then use `/kon:go`, `/kon:team`, `/kon:quick`, `/kon:ask`.
 
 ### Codex CLI
 
@@ -132,6 +133,7 @@ Then in any Codex session:
 ```
 kon go: add email validation to auth.py
 kon quick: fix the typo in README line 42
+kon ask: how does session tracking work?
 ```
 
 > `AGENTS.md` is a universal standard — the same file format also works in Cursor,
@@ -155,6 +157,7 @@ kon quick: fix the typo in README line 42
 | `kon go: <task>` | Full sequential pipeline: explore → plan → implement → review → verify → summarize |
 | `kon team: <task>` | Same pipeline, review + verify run in parallel (~30% faster) |
 | `kon quick: <task>` | Skip explore/plan, lightweight 4-item review |
+| `kon ask: <question>` | Read-only Q&A — Azusa explores, **zero writes** (no code, no session files) |
 | `kon gc` | Garbage collect — remove dead code, simplify comments/docs |
 | `kon summarize` | Write a session summary (auto-runs at end of every command) |
 | `kon finish` | Mark the current session as completed |

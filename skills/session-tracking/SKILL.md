@@ -6,7 +6,7 @@ description: This skill should be used by the kon orchestrator at the start of e
 # Session Tracking
 
 **Owner**: orchestrator
-**Consumers**: all `/kon:*` commands
+**Consumers**: all `/kon:*` commands **except `/kon:ask`** (ask mode is fully read-only — no session file)
 
 The orchestrator writes and updates a session file so `scripts/dashboard.py`
 can display live status and a clickable log of every run.

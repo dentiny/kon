@@ -1,5 +1,5 @@
 ---
-description: kon K-On! multi-agent dev workflow. Invoke with "kon go/team/quick: <task>" or "kon gc".
+description: kon K-On! multi-agent dev workflow. Invoke with "kon go/team/quick/ask: <task>" or "kon gc".
 alwaysApply: false
 ---
 
@@ -13,9 +13,16 @@ User writes one of:
 - `kon go: <task>` — full pipeline (explore → plan → implement → review → verify)
 - `kon team: <task>` — same, review + verify run in parallel
 - `kon quick: <task>` — skip explore/plan, lightweight review
+- `kon ask: <question>` — read-only Q&A (Azusa explores, **zero writes** — no code, no session files)
 - `kon gc` or `kon gc: <target>` — garbage collect (dead code, comments, docs)
 
 ## How to run
+
+### `kon ask` — read-only exception
+
+For `kon ask` only: **skip session tracking and all writes.** Read `~/Desktop/kon/commands/ask.md` and run Azusa read-only. Do not create `.kon/sessions/` files, do not run mutating shell commands, do not read `teammate-flow`.
+
+### All other commands
 
 1. **Session file (do this first, before anything else):**
    ```bash
@@ -23,7 +30,7 @@ User writes one of:
    python3 -c "
    import json, pathlib, datetime, re
    task = '<task description here>'
-   cmd  = 'kon quick'  # or go / team / gc
+   cmd  = 'kon quick'  # or go / team / gc — NOT ask
    slug = re.sub(r'[^a-z0-9]+', '-', task.lower())[:40].strip('-')
    sid  = datetime.datetime.utcnow().strftime('%Y%m%d-%H%M%S') + '-' + slug
    data = {'id': sid, 'task': task, 'command': cmd,
@@ -41,6 +48,7 @@ User writes one of:
    - `kon go` → `~/Desktop/kon/commands/go.md`
    - `kon team` → `~/Desktop/kon/commands/team.md`
    - `kon quick` → `~/Desktop/kon/commands/quick.md`
+   - `kon ask` → `~/Desktop/kon/commands/ask.md`
    - `kon gc` → `~/Desktop/kon/commands/gc.md`
 
 2. Read `~/Desktop/kon/skills/teammate-flow/SKILL.md` for orchestration rules.

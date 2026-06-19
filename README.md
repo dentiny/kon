@@ -45,27 +45,74 @@ Session history lives in `~/.kon/projects/<repo-name>/sessions/` (override with 
 | `KON_ROOT` | Plugin clone (agents, commands, hooks, scripts) | `~/.kon/config.json` → clone path → `~/Desktop/kon` |
 | `KON_DATA_DIR` | User data root (sessions, config) | `~/.kon` |
 
-After cloning kon, run the install script **once** from your clone — it writes `~/.kon/config.json` and copies path helpers:
+### New machine setup (Cursor)
+
+On each machine you use Cursor on, run **once** from your kon clone:
 
 ```bash
-bash $KON_ROOT/scripts/install_cursor_hooks.sh
+git clone <your-kon-repo-url> ~/kon    # or any path you prefer
+bash ~/kon/scripts/setup_cursor.sh
 ```
+
+This single script:
+
+1. Copies `adapters/cursor/kon.mdc` → `~/.cursor/rules/kon.mdc` (global rule — teaches `/kon:*` commands)
+2. Merges kon hooks into `~/.cursor/hooks.json` (session tracking, git guard, subagent quality check)
+3. Writes `~/.kon/config.json` with `kon_root` pointing at this clone
+
+Optional — rule for one project only (instead of or in addition to global):
+
+```bash
+bash ~/kon/scripts/setup_cursor.sh --project /path/to/your/repo
+```
+
+**Requirements:** Python 3.10+, Cursor with hooks support.
+
+**After moving or re-cloning kon**, re-run `setup_cursor.sh` — hook entries store absolute paths to this clone.
+
+### Updating kon (pull + re-run setup)
+
+kon splits into **live clone content** (agents, skills, hook `.py` logic) and **machine install** (Cursor rule + `hooks.json` entries). After `git pull`:
+
+| What changed | Action |
+|--------------|--------|
+| Agent / skill / command markdown | `git pull` only — read from `$KON_ROOT` at runtime |
+| Hook **script logic** (same filename) | `git pull` only — `hooks.json` already points at the file |
+| **New or removed** Cursor hook | `git pull` then `bash ~/kon/scripts/setup_cursor.sh` |
+| `adapters/cursor/kon.mdc` (commands, agent table) | `git pull` then `bash ~/kon/scripts/setup_cursor.sh` |
+| Moved kon clone to a new path | `bash ~/kon/scripts/setup_cursor.sh` |
+
+`setup_cursor.sh` is **safe to re-run** — it refreshes `kon.mdc`, rewrites `~/.kon/config.json`, replaces kon hook entries in `~/.cursor/hooks.json`, and removes deprecated kon hooks (e.g. old `verify_completion.py` stop hook).
+
+**Typical upgrade on any machine:**
+
+```bash
+cd ~/kon && git pull
+bash scripts/setup_cursor.sh
+```
+
+Codex-only users: `git pull` + re-append or merge `adapters/codex/AGENTS.md` into `~/.codex/AGENTS.md` if that file changed.
+
+**What does not sync across machines automatically:**
+
+| Stays on each machine | Sync yourself if needed |
+|-----------------------|-------------------------|
+| `~/.cursor/hooks.json`, `~/.cursor/rules/kon.mdc` | Re-run `setup_cursor.sh` |
+| `~/.kon/config.json` (kon_root path) | Re-run `setup_cursor.sh` |
+| `~/.kon/projects/<repo>/sessions/` (dashboard history) | Copy `~/.kon/` or set same `KON_DATA_DIR` |
+| `<project>/.kon/` (plans, todos, debug notes) | Normal git / project files |
 
 Resolve the root in shell or scripts:
 
 ```bash
 export KON_ROOT="$(python3 "$HOME/.kon/lib/_kon_paths.py" root)"
-# or
-export KON_ROOT="$(bash $KON_ROOT/scripts/resolve_kon_root.sh)"
+# or, from inside the clone:
+export KON_ROOT="$(bash ~/kon/scripts/resolve_kon_root.sh)"
 ```
 
-Override for a non-default location: `export KON_ROOT=/path/to/kon` (shell, Cursor user env, or CI).
+Override for a non-default clone location: `export KON_ROOT=/path/to/kon` (shell, Cursor user env, or CI).
 
-Install kon Cursor hooks once (session dir + git guard + subagent quality check):
-
-```bash
-bash $KON_ROOT/scripts/install_cursor_hooks.sh
-```
+Low-level install (hooks + config only, no rule copy): `bash $KON_ROOT/scripts/install_cursor_hooks.sh`
 
 This merges into `~/.cursor/hooks.json`:
 
@@ -127,6 +174,15 @@ Each harness needs only a thin adapter that defines:
 
 ### Cursor
 
+**New machine — one command:**
+
+```bash
+git clone <your-kon-repo-url> ~/kon
+bash ~/kon/scripts/setup_cursor.sh
+```
+
+Or step by step:
+
 Install the adapter as a global rule (applies to all your projects):
 
 ```bash
@@ -138,12 +194,10 @@ bash $KON_ROOT/scripts/install_cursor_hooks.sh   # writes ~/.kon/config.json + h
 Or as a project rule (applies only to one project):
 
 ```bash
-mkdir -p /path/to/your/project/.cursor/rules
-cp $KON_ROOT/adapters/cursor/kon.mdc /path/to/your/project/.cursor/rules/kon.mdc
-bash $KON_ROOT/scripts/install_cursor_hooks.sh
+bash $KON_ROOT/scripts/setup_cursor.sh --project /path/to/your/project
 ```
 
-Then in Cursor chat (slash commands):
+Re-run `setup_cursor.sh` after moving your kon clone (hooks use absolute paths).
 
 ```
 /kon:begin
@@ -157,7 +211,7 @@ Then in Cursor chat (slash commands):
 /kon:design add rate limiting to the API
 ```
 
-The Cursor rule resolves `$KON_ROOT` automatically (see **Path configuration** above). Re-run `install_cursor_hooks.sh` after moving your clone.
+The Cursor rule resolves `$KON_ROOT` automatically (see **Path configuration** above). Re-run `setup_cursor.sh` after moving your clone.
 
 ### Codex CLI
 

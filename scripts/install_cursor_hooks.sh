@@ -21,37 +21,38 @@ PY
 
 python3 - "${HOOKS_JSON}" "${KON_ROOT}" <<'PY'
 import json
+import re
 import sys
 from pathlib import Path
 
 hooks_path = Path(sys.argv[1])
 kon_root = Path(sys.argv[2]).resolve()
 
+# Canonical kon Cursor hooks (keep in sync with hooks/ and README).
+KON_HOOK_SCRIPTS = [
+    "ensure_project_dir.py",
+    "init_kon_session.py",
+    "log_begin_prompt.py",
+    "no_git_write.py",
+    "log_begin_response.py",
+    "on_subagent_stop.py",
+]
+
+# Removed hooks — stripped from ~/.cursor/hooks.json on every install/upgrade.
+DEPRECATED_HOOK_SCRIPTS = [
+    "verify_completion.py",
+]
+
+MANAGED = KON_HOOK_SCRIPTS + DEPRECATED_HOOK_SCRIPTS
+managed_res = [re.compile(rf"/hooks/{re.escape(name)}(?:\s|$)") for name in MANAGED]
+
 entries = [
-    (
-        "sessionStart",
-        {"command": f"python3 {kon_root}/hooks/ensure_project_dir.py"},
-    ),
-    (
-        "beforeSubmitPrompt",
-        {"command": f"python3 {kon_root}/hooks/init_kon_session.py"},
-    ),
-    (
-        "beforeSubmitPrompt",
-        {"command": f"python3 {kon_root}/hooks/log_begin_prompt.py"},
-    ),
-    (
-        "beforeShellExecution",
-        {"command": f"python3 {kon_root}/hooks/no_git_write.py"},
-    ),
-    (
-        "afterAgentResponse",
-        {"command": f"python3 {kon_root}/hooks/log_begin_response.py"},
-    ),
-    (
-        "subagentStop",
-        {"command": f"python3 {kon_root}/hooks/on_subagent_stop.py"},
-    ),
+    ("sessionStart", "ensure_project_dir.py"),
+    ("beforeSubmitPrompt", "init_kon_session.py"),
+    ("beforeSubmitPrompt", "log_begin_prompt.py"),
+    ("beforeShellExecution", "no_git_write.py"),
+    ("afterAgentResponse", "log_begin_response.py"),
+    ("subagentStop", "on_subagent_stop.py"),
 ]
 
 if hooks_path.is_file():
@@ -63,18 +64,30 @@ if data.get("version") != 1:
     data["version"] = 1
 
 hooks = data.setdefault("hooks", {})
-added = 0
-already = 0
+removed = 0
 
-for event, spec in entries:
-    bucket = hooks.setdefault(event, [])
-    command = spec["command"]
-    if any(h.get("command") == command for h in bucket):
-        already += 1
+for event, bucket in list(hooks.items()):
+    if not isinstance(bucket, list):
         continue
+    kept = []
+    for spec in bucket:
+        cmd = spec.get("command", "") if isinstance(spec, dict) else ""
+        if any(r.search(cmd) for r in managed_res):
+            removed += 1
+            continue
+        kept.append(spec)
+    hooks[event] = kept
+
+added = 0
+for event, script in entries:
+    bucket = hooks.setdefault(event, [])
+    spec = {"command": f"python3 {kon_root}/hooks/{script}"}
     bucket.append(spec)
     added += 1
 
 hooks_path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-print(f"Updated {hooks_path}: added {added} hook(s), {already} already present")
+print(
+    f"Updated {hooks_path}: installed {added} kon hook(s), "
+    f"removed {removed} stale/deprecated kon hook(s)"
+)
 PY

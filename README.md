@@ -1,7 +1,7 @@
 # kon
 
 K-On! Ho-kago Tea Time driven multi-agent dev workflow.
-HTT band members plus extended roles — explore, research, plan, implement, review, verify, cleanup, summarize.
+HTT band members plus extended roles — explore, research, plan, implement, cleanup, review, summarize.
 
 Each agent owns one step of the software development cycle:
 
@@ -61,7 +61,7 @@ export KON_ROOT="$(bash $KON_ROOT/scripts/resolve_kon_root.sh)"
 
 Override for a non-default location: `export KON_ROOT=/path/to/kon` (shell, Cursor user env, or CI).
 
-Install kon Cursor hooks once (session dir + git guard + subagent quality check + stop test backstop):
+Install kon Cursor hooks once (session dir + git guard + subagent quality check):
 
 ```bash
 bash $KON_ROOT/scripts/install_cursor_hooks.sh
@@ -89,7 +89,7 @@ Auto-refreshes every 3 seconds. Filter by **All / Active / Past** tabs.
 Append `--yolo` to any command to run fully autonomously:
 
 ```
-/kon:go --yolo add email validation to auth.py
+/kon:team --yolo add email validation to auth.py
 /kon:team --yolo refactor the payment module
 ```
 
@@ -177,7 +177,7 @@ Then in any Codex session:
 
 ```
 /kon:begin
-/kon:go add email validation to auth.py
+/kon:team add email validation to auth.py
 /kon:quick fix the typo in README line 42
 /kon:debug dashboard renderSession shows undefined for session dots
 /kon:ask how does session tracking work?
@@ -204,11 +204,10 @@ Then in any Codex session:
 | Command | What it does |
 |---------|-------------|
 | `/kon:begin [goal]` | Interactive session — plain chat routed by intent; `/kon:finish` to close |
-| `/kon:go <task>` | Full sequential pipeline: explore → plan → implement → review → verify → summarize |
-| `/kon:team <task>` | Same pipeline, review + verify run in parallel (~30% faster) |
+| `/kon:team <task>` | Full pipeline: explore → plan → milestone impl → cleanup → review → summarize |
 | `/kon:design <task>` | Design-only: explore → plan → Azusa↔Mugi debate → user confirms (no code) |
-| `/kon:quick <task>` | Skip explore/plan, lightweight 4-item review |
-| `/kon:debug <bug>` | Bug investigation — repro with runtime evidence, minimal fix, parallel review + verify |
+| `/kon:quick <task>` | Skip explore/plan, lightweight 3-item review |
+| `/kon:debug <bug>` | Bug investigation — root cause, fix proposals, user approves, then minimal fix |
 | `/kon:research <question>` | External lookup — 📚 Jun searches docs/web, writes `.kon/research.md` |
 | `/kon:review` | Code review only — 📝 Mio strict-review on uncommitted/staged diff |
 | `/kon:todo <task>` | Add a project todo — stored in `.kon/todos.json`; manage in dashboard **Todos** tab |
@@ -222,7 +221,7 @@ Then in any Codex session:
 Append `--yolo` to any command to run fully autonomously:
 
 ```
-/kon:go --yolo <task>
+/kon:team --yolo <task>
 ```
 
 Auto-accepts plan defaults, silently retries failures. Only stops for: retry limit hit,

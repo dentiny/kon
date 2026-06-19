@@ -35,7 +35,7 @@ If the user says no → run quick anyway. **Don't ask again.**
 1. **🎶 Yui** — implement directly (no Azusa explore, no Mugi plan).
    - Yui reads 1-2 surrounding files to pick up conventions, no broad exploration.
    - No plan file written.
-2. **📝 Mio** — lightweight review, 4-item subset only.
+2. **📝 Mio** — lightweight review, 3-item subset only.
 3. **Manual testing** — user runs tests themselves after Mio approves.
 4. **Orchestrator** — draft a commit message from the diff
    following [`skills/commit-message`](https://github.com/dentiny/kon/blob/main/skills/commit-message/SKILL.md) and attach to final summary.
@@ -84,16 +84,17 @@ Follow [`skills/session-tracking`](https://github.com/dentiny/kon/blob/main/skil
 - **Narration:** use 🌸 Ui for opening, closing, stuck-point beats. Follow [`skills/narration`](https://github.com/dentiny/kon/blob/main/skills/narration/SKILL.md).
 - **Model inheritance:** Do NOT pass `model` parameter when spawning subagents — let them inherit parent's model
 - **Cannot skip Mio** — quick cuts stage count (no Azusa / Mugi / automated tests), not the review itself
-- **Cannot shrink Mio's 4-item subset further** — these 4 are the hard floor
+- **Cannot shrink Mio's 3-item subset further** — these 3 are the hard floor
 - **Cannot relax must-fix standards because "user said quick-fix"** — the subset items are still full strict-review
 - **Do not self-implement / do not self-review** — call Yui and Mio via Task tool
 
 ## Comparison
 
-| Item | `/kon:quick` | `/kon:go` | `/kon:team` |
-|------|------------|-----------|-------------|
-| Azusa explore | ❌ skip | ✅ | ✅ |
-| Mugi plan | ❌ skip | ✅ | ✅ |
-| Yui implement | ✅ | ✅ | ✅ |
-| Mio review | ✅ lightweight (4 items) | ✅ full (9 items) | ✅ full (9 items) |
-| Testing | Manual | Manual | Manual |
+| Item | `/kon:quick` | `/kon:team` |
+|------|------------|-------------|
+| Azusa explore | ❌ skip | ✅ |
+| Mugi plan | ❌ skip | ✅ |
+| Yui implement | ✅ | ✅ per milestone |
+| Sawako cleanup | ❌ skip | ✅ per milestone |
+| Mio review | ✅ lightweight (3 items) | ✅ full (7 items) per milestone |
+| Testing | Manual | Manual |

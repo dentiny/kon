@@ -45,7 +45,7 @@ def test_supersede_closes_previous_waiting() -> None:
     tmp, project, env, sessions = _isolated_env()
     with tmp:
         sid1 = _run(
-            ["init", "--command", "/kon:go", "--task", "first"],
+            ["init", "--command", "/kon:team", "--task", "first"],
             env,
             project,
         )
@@ -57,7 +57,7 @@ def test_supersede_closes_previous_waiting() -> None:
         assert _load_session(sessions, sid1)["status"] == "waiting"
 
         sid2 = _run(
-            ["init", "--command", "/kon:go", "--task", "second"],
+            ["init", "--command", "/kon:team", "--task", "second"],
             env,
             project,
         )
@@ -230,7 +230,7 @@ def test_init_refuses_during_active_begin() -> None:
         )
         with pytest.raises(subprocess.CalledProcessError) as exc:
             _run(
-                ["init", "--command", "/kon:go", "--task", "should not create"],
+                ["init", "--command", "/kon:team", "--task", "should not create"],
                 env,
                 project,
             )
@@ -240,7 +240,7 @@ def test_init_refuses_during_active_begin() -> None:
     tmp, project, env, sessions = _isolated_env()
     with tmp:
         sid = _run(
-            ["init", "--command", "/kon:go", "--task", "patch usage"],
+            ["init", "--command", "/kon:team", "--task", "patch usage"],
             env,
             project,
         )
@@ -274,7 +274,7 @@ def test_patch_usage_replaces_without_double_counting() -> None:
     tmp, project, env, sessions = _isolated_env()
     with tmp:
         sid = _run(
-            ["init", "--command", "/kon:go", "--task", "patch usage"],
+            ["init", "--command", "/kon:team", "--task", "patch usage"],
             env,
             project,
         )
@@ -322,7 +322,7 @@ def test_patch_usage_accumulates_across_agents() -> None:
     tmp, project, env, sessions = _isolated_env()
     with tmp:
         sid = _run(
-            ["init", "--command", "/kon:go", "--task", "token tracking"],
+            ["init", "--command", "/kon:team", "--task", "token tracking"],
             env,
             project,
         )
@@ -357,7 +357,7 @@ def test_complete_agent_without_usage_omits_fields() -> None:
     tmp, project, env, sessions = _isolated_env()
     with tmp:
         sid = _run(
-            ["init", "--command", "/kon:go", "--task", "no usage"],
+            ["init", "--command", "/kon:team", "--task", "no usage"],
             env,
             project,
         )

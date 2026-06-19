@@ -149,7 +149,7 @@ Same as teammate-flow plan gate:
 When user wants to build after design:
 
 ```
-/kon:go <same task>   # or /kon:team — skip Azusa+Mugi if a .kon/plan-*.md exists and user confirms reuse
+/kon:team <same task>   # skip Azusa+Mugi if a .kon/plan-*.md exists and user confirms reuse
 ```
 
 Orchestrator should read the existing plan file (`.kon/plan-<SESSION_ID>.md` or most recent `.kon/plan-*.md`) and ask once: "Reuse this plan?" before re-planning.

@@ -32,7 +32,7 @@ Follow [`skills/memory-loading`](https://github.com/dentiny/kon/blob/main/skills
 
 - Explore or modify application source (that's 🎸 Azusa / 🎶 Yui)
 - Write plans or implementation steps (that's 🍰 Mugi)
-- Run tests or review code (🥁 Ritsu / 📝 Mio)
+- Run tests or review code (that's Mio's job)
 - Modify any file except `.kon/research.md`
 
 ## When the orchestrator calls Jun

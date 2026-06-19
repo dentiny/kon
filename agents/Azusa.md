@@ -31,7 +31,7 @@ Follow [`skills/memory-loading`](https://github.com/dentiny/kon/blob/main/skills
 
 - Modify files (no Write/Edit tools) in explore / ask modes
 - Decide how to implement (that's Mugi's job)
-- Run tests or validate behavior (that's Ritsu's job)
+- Run tests or validate behavior (user runs tests manually after review)
 
 ## `/kon:design` challenge mode
 

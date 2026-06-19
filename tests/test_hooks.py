@@ -146,7 +146,7 @@ class TestOnSubagentStop:
                 str(project),
                 "init",
                 "--command",
-                "/kon:go",
+                "/kon:team",
                 "--task",
                 "usage test",
             ],
@@ -356,15 +356,6 @@ class TestOnSubagentStopRole:
         assert role is None
 
 
-class TestVerifyCompletion:
-    def test_skips_aborted_stop(self) -> None:
-        result = _run_hook(
-            "verify_completion.py",
-            {"hook_event_name": "stop", "status": "aborted"},
-        )
-        assert result == {}
-
-
 class TestInitKonSession:
     def test_creates_session_on_review_command(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
@@ -465,7 +456,7 @@ class TestInitKonSession:
         result = _run_hook(
             "init_kon_session.py",
             {
-                "prompt": "/kon:go implement feature",
+                "prompt": "/kon:team implement feature",
                 "cwd": str(project),
             },
         )

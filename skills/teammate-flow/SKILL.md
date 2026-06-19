@@ -1,6 +1,6 @@
 ---
 name: teammate-flow
-description: This skill should be used when orchestrating the full kon teammate flow — Azusa explores, Mugi plans, Yui implements, Mio reviews, Ritsu validates. Applies to /kon:go and /kon:team (both sequential and parallel variants).
+description: This skill should be used when orchestrating the full kon teammate flow — Azusa explores, Mugi plans, Yui implements, Sawako cleans, Mio reviews. Applies to /kon:team.
 ---
 
 # Teammate Flow
@@ -84,7 +84,7 @@ Follow [`skills/narration`](https://github.com/dentiny/kon/blob/main/skills/narr
 
 ### Commit message draft
 
-After Ritsu passes (or `/kon:team` merges APPROVED + PASS), if there are uncommitted
+After all milestones are approved, if there are uncommitted
 changes from this session, draft a commit message from the diff following
 [`skills/commit-message`](https://github.com/dentiny/kon/blob/main/skills/commit-message/SKILL.md).
 

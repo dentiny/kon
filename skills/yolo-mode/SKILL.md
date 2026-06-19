@@ -19,7 +19,6 @@ that has a reasonable default or can be retried automatically.
 | Auto-accept decisions within the plan | Auto-accept all `[**default**]` decisions in Mugi's `## Decisions needed` |
 | Ask user when a plan step is ambiguous | Take the more conservative interpretation; log the choice; proceed |
 | Notify user when Mio blocks | Auto-send must-fix list back to Yui; retry silently |
-| Notify user when Ritsu fails | Auto-send failure back to Yui; retry silently |
 | Per-agent step summary to user | Suppress — only report at the end (or when stopping) |
 
 Auto-accepted decisions and auto-retries are recorded in the session log
@@ -31,7 +30,7 @@ Auto-accepted decisions and auto-retries are recorded in the session log
    for user approval before spawning Yui. This applies even in YOLO mode.
    YOLO only auto-accepts decisions *within* the approved plan, not the plan itself.
 
-2. **Retry limit reached** (2 consecutive same must-fix or same test ID) — the loop
+2. **Retry limit reached** (2 consecutive same must-fix) — the loop
    protection has fired; something structural needs human judgment. Stop, explain,
    ask for direction.
 
@@ -60,8 +59,8 @@ When the run completes, give the user a clear summary:
 - Azusa: <one line>
 - Mugi: <one line> (N decisions auto-accepted: <list defaults used>)
 - Yui: <one line>
+- Sawako: <one line>
 - Mio: <one line> (N must-fix items; resolved in M rounds)
-- Ritsu: <one line>
 
 ### Auto-accepted decisions
 1. <decision> → accepted default: <value>

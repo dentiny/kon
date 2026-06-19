@@ -1,6 +1,6 @@
 ---
 name: memory-propose-confirm
-description: This skill should be used by the kon orchestrator whenever a Mio or Yui output contains a ## Memory propose section. Handles the 6-step confirm flow, fence-tracking rules, and parallel-mode timing. Applies to /kon:go, /kon:quick, /kon:team, /kon:debug.
+description: This skill should be used by the kon orchestrator whenever a Mio or Yui output contains a ## Memory propose section. Handles the 6-step confirm flow and fence-tracking rules. Applies to /kon:quick, /kon:team, /kon:debug.
 ---
 
 # Memory Propose Confirm Flow
@@ -40,11 +40,6 @@ Confirm flow completes, then main flow resumes — command step structure does n
 
 Only detect `## Memory propose` **outside** code fences.
 Track triple-backtick count from the start of the output; when inside a fence (odd count), ignore any `## Memory propose` heading.
-
-## Parallel mode (team / debug)
-
-In `/kon:team` or `/kon:debug` parallel mode (Mio and Ritsu running simultaneously):
-if Mio's output contains `## Memory propose`, wait until **both** agents have returned before starting the confirm flow — do not interrupt Ritsu mid-run.
 
 ## Memory types
 

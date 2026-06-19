@@ -42,9 +42,9 @@ Begin sessions stay `in_progress` after each agent — only `/kon:finish` closes
 | Question about **our code** / "where is…" / "how does X work" | ask | 🎸 Azusa read-only |
 | **External** docs / API / "look up…" | research | 📚 Jun |
 | **Review** diff / "check my changes" | review | 📝 Mio |
-| **Bug** / failing test / regression / "X is broken" | debug | 🎸 Azusa → debug notes → 🎶 Yui → 📝 Mio ∥ 🥁 Ritsu |
+| **Bug** / failing test / regression / "X is broken" | debug | 🎸 Azusa → 🍰 Mugi → User → 🎶 Yui → 🧹 Sawako → 📝 Mio |
 | **Small** fix, typo, one file | quick | 🎶 Yui → 📝 Mio |
-| **Feature**, multi-file, unclear scope | go or team | full pipeline |
+| **Feature**, multi-file, unclear scope | team | full pipeline |
 | **Design** first, no code yet | design | Azusa → Mugi → debate |
 | **Todo** / "remind me to…" / add to list | todo | run `kon_todo.py add` (no agent) |
 | Greeting / meta / "what can you do" | orchestrator | no agent spawn — reply + `log-turn` User |

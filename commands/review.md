@@ -28,7 +28,7 @@ With an optional rubric (🍰 Mugi writes criteria first):
 ## Scope boundary
 
 - **Review only** — verdict + must-fix. Do not edit code.
-- **No unit tests** — Ritsu (verifier) does not run. Review is code analysis only.
+- **No unit tests** — automated testing does not run. Review is code analysis only.
 - If the user wants fixes, offer `/kon:quick` or `/kon:team` after Mio finishes.
 - Commit/staging cleanliness is not a checklist item — review the diff content only.
 
@@ -55,7 +55,7 @@ With an optional rubric (🍰 Mugi writes criteria first):
 
 | Item | `/kon:review` | `/kon:quick` | `/kon:team` |
 |------|---------------|--------------|-----------|
-| Mio review | ✅ full (or mode subset) | ✅ 4-item | ✅ full |
+| Mio review | ✅ full (or mode subset) | ✅ 3-item | ✅ full (7 items) per milestone |
 | Yui implement | ❌ | ✅ | ✅ |
 | Testing | ❌ | Manual | Manual |
 | Writes code | ❌ | ✅ | ✅ |

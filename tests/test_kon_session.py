@@ -369,3 +369,77 @@ def test_complete_agent_without_usage_omits_fields() -> None:
         data = _load_session(sessions, sid)
         assert "usage" not in data["log"][-1]
         assert "usage_totals" not in data
+
+
+def test_complete_agent_with_inline_usage() -> None:
+    tmp, project, env, sessions = _isolated_env()
+    with tmp:
+        sid = _run(
+            ["init", "--command", "/kon:team", "--task", "inline usage"],
+            env,
+            project,
+        )
+        _run(
+            [
+                "complete-agent",
+                "--id",
+                sid,
+                "--agent",
+                "Yui",
+                "--summary",
+                "milestone done",
+                "--input-tokens",
+                "500",
+                "--output-tokens",
+                "1500",
+            ],
+            env,
+            project,
+        )
+        data = _load_session(sessions, sid)
+        assert data["log"][0]["usage"]["total_tokens"] == 2000
+        assert data["usage_totals"]["total_tokens"] == 2000
+
+
+def test_complete_agent_dedupes_hook_logged_step() -> None:
+    tmp, project, env, sessions = _isolated_env()
+    with tmp:
+        sid = _run(
+            ["init", "--command", "/kon:team", "--task", "dedupe"],
+            env,
+            project,
+        )
+        _run(
+            [
+                "complete-agent",
+                "--id",
+                sid,
+                "--agent",
+                "Mugi",
+                "--summary",
+                "hook summary",
+                "--input-tokens",
+                "10",
+                "--output-tokens",
+                "20",
+            ],
+            env,
+            project,
+        )
+        _run(
+            [
+                "complete-agent",
+                "--id",
+                sid,
+                "--agent",
+                "Mugi",
+                "--summary",
+                "orchestrator summary with more detail",
+            ],
+            env,
+            project,
+        )
+        data = _load_session(sessions, sid)
+        assert len(data["log"]) == 1
+        assert "orchestrator" in data["log"][0]["summary"]
+        assert data["log"][0]["usage"]["total_tokens"] == 30

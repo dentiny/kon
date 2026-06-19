@@ -19,7 +19,11 @@ from _begin_log import (  # noqa: E402
     hook_log,
 )
 from _kon_paths import kon_root  # noqa: E402
-from _token_estimate import SOURCE as USAGE_SOURCE, estimate_tokens_from_transcript  # noqa: E402
+from _token_estimate import (  # noqa: E402
+    SOURCE as USAGE_SOURCE,
+    estimate_tokens_from_output_text,
+    estimate_tokens_from_transcript,
+)
 
 # Order matters — more specific roles first.
 _ROLE_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
@@ -75,11 +79,65 @@ def _session_agent_name(role: str) -> str:
     return _ROLE_TO_AGENT.get(role, role)
 
 
-def _usage_from_data(data: dict) -> dict | None:
+def _usage_from_data(data: dict, output: str) -> dict | None:
     transcript = data.get("agent_transcript_path")
     if isinstance(transcript, str) and transcript.strip():
-        return estimate_tokens_from_transcript(transcript.strip())
-    return None
+        usage = estimate_tokens_from_transcript(transcript.strip())
+        if usage:
+            return usage
+    return estimate_tokens_from_output_text(output)
+
+
+def _summary_from_output(output: str, agent: str) -> str:
+    summary = assistant_summary_from_text(output)
+    if summary:
+        return summary
+    summary = assistant_summary_from_text(output[:500])
+    return summary or f"{agent} finished"
+
+
+def _complete_open_session_from_hook(
+    project: str,
+    agent: str,
+    summary: str,
+    usage: dict | None,
+) -> None:
+    root = kon_root()
+    script = root / "scripts" / "kon_session.py"
+    if not script.is_file():
+        return
+    proc = subprocess.run(
+        [sys.executable, str(script), "--project", project, "open"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    sid = proc.stdout.strip()
+    if not sid:
+        return
+    cmd = [
+        sys.executable,
+        str(script),
+        "--project",
+        project,
+        "complete-agent",
+        "--id",
+        sid,
+        "--agent",
+        agent,
+        "--summary",
+        summary,
+    ]
+    if usage:
+        cmd += [
+            "--input-tokens",
+            str(int(usage["input_tokens"])),
+            "--output-tokens",
+            str(int(usage["output_tokens"])),
+            "--usage-source",
+            str(usage.get("source", USAGE_SOURCE)),
+        ]
+    subprocess.run(cmd, capture_output=True, text=True, check=False)
 
 
 def _quality_block_payload(role: str, output: str) -> dict | None:
@@ -103,50 +161,6 @@ def _quality_block_payload(role: str, output: str) -> dict | None:
         reason = str(payload.get("reason") or payload.get("systemMessage") or "blocked")
         return format_payload("block", reason, event="subagentStop")
     return None
-
-
-def _patch_open_session_usage(
-    project: str,
-    agent: str,
-    usage: dict | None,
-) -> None:
-    if not usage:
-        return
-    root = kon_root()
-    script = root / "scripts" / "kon_session.py"
-    if not script.is_file():
-        return
-    proc = subprocess.run(
-        [sys.executable, str(script), "--project", project, "open"],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    sid = proc.stdout.strip()
-    if not sid:
-        return
-    subprocess.run(
-        [
-            sys.executable,
-            str(script),
-            "--project",
-            project,
-            "patch-usage",
-            "--id",
-            sid,
-            "--agent",
-            agent,
-            "--input-tokens",
-            str(int(usage["input_tokens"])),
-            "--output-tokens",
-            str(int(usage["output_tokens"])),
-            "--usage-source",
-            str(usage.get("source", USAGE_SOURCE)),
-        ],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
 
 
 def _log_subagent_to_begin_session(project: str, agent: str, output: str) -> None:
@@ -187,8 +201,10 @@ def main() -> None:
 
     project = resolve_hook_cwd(data)
     agent = _session_agent_name(role)
+    usage = _usage_from_data(data, output)
+    summary = str(data.get("summary") or "").strip() or _summary_from_output(output, agent)
     _log_subagent_to_begin_session(project, agent, output)
-    _patch_open_session_usage(project, agent, _usage_from_data(data))
+    _complete_open_session_from_hook(project, agent, summary, usage)
     emit("approve", f"{role}: quality check passed")
 
 

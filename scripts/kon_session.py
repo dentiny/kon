@@ -220,9 +220,31 @@ def _recompute_usage_totals(data: dict) -> None:
         data.pop("usage_totals", None)
 
 
-def cmd_complete_agent(args: argparse.Namespace) -> None:
-    path, data = _load(args.id, args.project)
-    agent = args.agent
+def _build_usage(input_tokens: int, output_tokens: int, source: str | None) -> dict:
+    return {
+        "input_tokens": input_tokens,
+        "output_tokens": output_tokens,
+        "total_tokens": input_tokens + output_tokens,
+        "source": source or USAGE_SOURCE,
+    }
+
+
+def _last_log_index_for_agent(log: list, agent: str) -> int | None:
+    for i in range(len(log) - 1, -1, -1):
+        if log[i].get("agent") == agent:
+            return i
+    return None
+
+
+def _hook_already_logged_step(log: list, agent: str) -> bool:
+    """True when subagentStop hook just wrote this agent's log row (orchestrator dedupe)."""
+    if not log:
+        return False
+    last = log[-1]
+    return last.get("agent") == agent and last.get("usage") is not None
+
+
+def _apply_step_completion(data: dict, agent: str) -> None:
     completed = data.get("steps_completed") or []
     if agent not in completed:
         completed.append(agent)
@@ -236,15 +258,36 @@ def cmd_complete_agent(args: argparse.Namespace) -> None:
     failed = data.get("steps_failed") or []
     if not pending and not waiting and not failed:
         data["status"] = _terminal_status_when_agents_done(data.get("command", ""))
+
+
+def cmd_complete_agent(args: argparse.Namespace) -> None:
+    path, data = _load(args.id, args.project)
+    agent = args.agent
     log = data.get("log") or []
-    log.append(
-        {
-            "ts": _ts(),
-            "agent": agent,
-            "summary": args.summary,
-        }
-    )
+    usage = None
+    if args.input_tokens is not None or args.output_tokens is not None:
+        usage = _build_usage(
+            int(args.input_tokens or 0),
+            int(args.output_tokens or 0),
+            args.usage_source,
+        )
+
+    if _hook_already_logged_step(log, agent):
+        last = log[-1]
+        if args.summary:
+            last["summary"] = args.summary
+        data["log"] = log
+        _apply_step_completion(data, agent)
+        _save(path, data)
+        return
+
+    _apply_step_completion(data, agent)
+    entry: dict = {"ts": _ts(), "agent": agent, "summary": args.summary}
+    if usage:
+        entry["usage"] = usage
+    log.append(entry)
     data["log"] = log
+    _recompute_usage_totals(data)
     _save(path, data)
 
 
@@ -253,23 +296,29 @@ def cmd_patch_usage(args: argparse.Namespace) -> None:
     path, data = _load(args.id, args.project)
     agent = args.agent
     log = data.get("log") or []
+    usage = _build_usage(
+        int(args.input_tokens or 0),
+        int(args.output_tokens or 0),
+        args.usage_source,
+    )
 
-    target_idx = None
-    for i in range(len(log) - 1, -1, -1):
-        if log[i].get("agent") == agent:
-            target_idx = i
-            break
+    target_idx = _last_log_index_for_agent(log, agent)
     if target_idx is None:
+        if not getattr(args, "summary", None):
+            return
+        log.append(
+            {
+                "ts": _ts(),
+                "agent": agent,
+                "summary": args.summary,
+                "usage": usage,
+            }
+        )
+        data["log"] = log
+        _recompute_usage_totals(data)
+        _save(path, data)
         return
 
-    input_tokens = int(args.input_tokens or 0)
-    output_tokens = int(args.output_tokens or 0)
-    usage = {
-        "input_tokens": input_tokens,
-        "output_tokens": output_tokens,
-        "total_tokens": input_tokens + output_tokens,
-        "source": args.usage_source or USAGE_SOURCE,
-    }
     log[target_idx]["usage"] = usage
     data["log"] = log
     _recompute_usage_totals(data)
@@ -340,6 +389,9 @@ def main() -> None:
     done.add_argument("--id", required=True)
     done.add_argument("--agent", required=True)
     done.add_argument("--summary", required=True)
+    done.add_argument("--input-tokens", type=int, default=None)
+    done.add_argument("--output-tokens", type=int, default=None)
+    done.add_argument("--usage-source", default=None)
     done.set_defaults(func=cmd_complete_agent)
 
     patch_usage = sub.add_parser(
@@ -348,6 +400,7 @@ def main() -> None:
     )
     patch_usage.add_argument("--id", required=True)
     patch_usage.add_argument("--agent", required=True)
+    patch_usage.add_argument("--summary", default=None, help="Create log row if agent has none")
     patch_usage.add_argument("--input-tokens", type=int, default=None)
     patch_usage.add_argument("--output-tokens", type=int, default=None)
     patch_usage.add_argument("--usage-source", default=None)

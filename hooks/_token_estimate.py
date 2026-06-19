@@ -7,6 +7,7 @@ from pathlib import Path
 
 CHARS_PER_TOKEN = 4
 SOURCE = "transcript_estimate"
+OUTPUT_SOURCE = "output_estimate"
 
 
 def _content_text(content: object) -> str:
@@ -65,4 +66,18 @@ def estimate_tokens_from_transcript(path: str | Path) -> dict | None:
         "output_tokens": output_tokens,
         "total_tokens": input_tokens + output_tokens,
         "source": SOURCE,
+    }
+
+
+def estimate_tokens_from_output_text(text: str) -> dict | None:
+    """Fallback when transcript path is unavailable — count assistant output chars only."""
+    chars = len(text.strip())
+    if chars == 0:
+        return None
+    output_tokens = chars // CHARS_PER_TOKEN
+    return {
+        "input_tokens": 0,
+        "output_tokens": output_tokens,
+        "total_tokens": output_tokens,
+        "source": OUTPUT_SOURCE,
     }

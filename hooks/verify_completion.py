@@ -22,7 +22,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _hook_io import emit, resolve_hook_cwd, set_hook_event  # noqa: E402
-from _retry_log import record_and_count  # noqa: E402
+from _retry_log import record_and_count, retry_limit_warning  # noqa: E402
 
 TEST_TIMEOUT_SEC = 90
 GIT_TIMEOUT_SEC = 5
@@ -145,23 +145,12 @@ def read_known_failures(path: Path) -> set[str]:
     }
 
 
-def _retry_log_path(cwd: Path) -> Path:
-    log_dir = cwd / _RETRY_LOG_BASE
-    log_dir.mkdir(parents=True, exist_ok=True)
-    return log_dir / "test-failures.jsonl"
-
-
-def _record_and_count(log_path: Path, failures: set[str]) -> dict[str, int]:
-    return record_and_count(log_path, failures, "failures")
-
-
 def main() -> None:
     raw = sys.stdin.read()
     try:
         data = json.loads(raw) if raw.strip() else {}
     except json.JSONDecodeError:
         data = {}
-
     set_hook_event(data.get("hook_event_name"))
 
     status = str(data.get("status") or "completed")
@@ -186,7 +175,6 @@ def main() -> None:
 
     if cmd is None:
         emit("approve", "Ritsu (Verifier): no test setup detected — skipping (no-op)")
-        return
 
     known = read_known_failures(kon_dir / "known-test-failures")
     exit_code, output = run_command(cmd, cwd)
@@ -216,19 +204,15 @@ def main() -> None:
     new_failures = actual - known
 
     if new_failures:
-        counts = _record_and_count(_retry_log_path(cwd), new_failures)
+        log_dir = cwd / _RETRY_LOG_BASE
+        log_dir.mkdir(parents=True, exist_ok=True)
+        counts = record_and_count(log_dir / "test-failures.jsonl", new_failures, "failures")
         over_limit = {
             tid: c for tid, c in counts.items() if tid in new_failures and c >= RETRY_LIMIT
         }
         warning = ""
         if over_limit:
-            lines = "\n".join(f"  - {tid} ({c} times)" for tid, c in sorted(over_limit.items()))
-            warning = (
-                f"WARNING: RETRY LIMIT REACHED: the following tests have failed "
-                f">= {RETRY_LIMIT} consecutive times — consider stopping and asking the user:\n"
-                f"{lines}\n"
-                f"See skills/failure-handling for the infinite-loop protection rule.\n\n"
-            )
+            warning = retry_limit_warning(over_limit, RETRY_LIMIT, "", "tests have failed") + "\n\n"
         details = "\n".join(f"  - {f}" for f in sorted(new_failures))
         emit(
             "block",

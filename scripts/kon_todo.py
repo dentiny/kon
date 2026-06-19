@@ -182,18 +182,6 @@ def load_all_todos(project_filter: Path | str | None = None) -> list[dict[str, A
     return items
 
 
-def find_todo_across_projects(
-    item_id: str,
-    project_filter: Path | str | None = None,
-) -> tuple[str, dict[str, Any]] | None:
-    for item in load_all_todos(project_filter):
-        if item.get("id") == item_id:
-            project_path = item["project_path"]
-            raw = {k: v for k, v in item.items() if k != "project_path"}
-            return project_path, raw
-    return None
-
-
 def cmd_add(args: argparse.Namespace) -> None:
     item = add_todo(args.text, args.project)
     print(item["id"])

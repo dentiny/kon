@@ -3,14 +3,13 @@
 
 from __future__ import annotations
 
-import json
 import re
 import subprocess
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _hook_io import emit, resolve_hook_cwd, set_hook_event  # noqa: E402
+from _hook_io import emit, read_hook_stdin, resolve_hook_cwd, set_hook_event  # noqa: E402
 from _kon_paths import kon_root  # noqa: E402
 from teammate_quality_check import ROLE_HANDLERS  # noqa: E402
 
@@ -106,12 +105,7 @@ def _complete_open_session(project: str, agent: str, summary: str) -> None:
 
 
 def main() -> None:
-    raw = sys.stdin.read()
-    try:
-        data = json.loads(raw) if raw.strip() else {}
-    except json.JSONDecodeError:
-        emit("approve", "on_subagent_stop: invalid JSON input — skipping")
-
+    data = read_hook_stdin()
     set_hook_event(data.get("hook_event_name") or "subagentStop")
 
     status = str(data.get("status") or "completed")

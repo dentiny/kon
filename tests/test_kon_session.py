@@ -144,3 +144,63 @@ def test_log_turn_appends_without_closing_begin() -> None:
         assert data["status"] == "in_progress"
         assert len(data["log"]) == 1
         assert data["log"][0]["agent"] == "User"
+
+
+def test_begin_turns_added_per_user_log_turn() -> None:
+    tmp, project, env, sessions = _isolated_env()
+    with tmp:
+        sid = _run(
+            ["init", "--command", "/kon:begin", "--task", "interactive"],
+            env,
+            project,
+        )
+        assert _load_session(sessions, sid).get("turns") == []
+
+        _run(
+            ["log-turn", "--id", sid, "--agent", "User", "--summary", "how does auth work"],
+            env,
+            project,
+        )
+        data = _load_session(sessions, sid)
+        assert data["turns"] == [{"n": 1, "summary": "how does auth work"}]
+
+        _run(
+            ["log-turn", "--id", sid, "--agent", "User", "--summary", "what commands exist"],
+            env,
+            project,
+        )
+        data = _load_session(sessions, sid)
+        assert len(data["turns"]) == 2
+        assert data["turns"][1] == {"n": 2, "summary": "what commands exist"}
+
+
+def test_begin_turns_not_added_for_non_user_agents() -> None:
+    tmp, project, env, sessions = _isolated_env()
+    with tmp:
+        sid = _run(
+            ["init", "--command", "/kon:begin", "--task", "interactive"],
+            env,
+            project,
+        )
+        _run(
+            ["log-turn", "--id", sid, "--agent", "Azusa", "--summary", "explored codebase"],
+            env,
+            project,
+        )
+        data = _load_session(sessions, sid)
+        assert data["turns"] == []
+        assert len(data["log"]) == 1
+
+
+def test_begin_init_includes_empty_turns() -> None:
+    tmp, project, env, sessions = _isolated_env()
+    with tmp:
+        sid = _run(
+            ["init", "--command", "/kon:begin", "--task", "plan to start Q&A"],
+            env,
+            project,
+        )
+        data = _load_session(sessions, sid)
+        assert "turns" in data
+        assert data["turns"] == []
+        assert data["mode"] == "interactive"

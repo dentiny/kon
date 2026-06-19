@@ -21,7 +21,7 @@ Created automatically on Cursor session start via `ensure_project_dir` hook (cre
 **Auto-init:** when you send a `/kon:*` slash command, `beforeSubmitPrompt` → `init_kon_session.py` writes the session JSON under `~/.kon/projects/<repo>/sessions/` before the agent runs. Orchestrators should still call `init` if the hook is not installed; duplicate `init` is safe (supersedes prior open sessions).
 
 Session history lives **outside the project repo**. Project working files
-(`plan.md`, rubrics, retry logs) still go in `<project>/.kon/`.
+(`plan-<session-id>.md`, rubrics, retry logs) still go in `<project>/.kon/`.
 
 **Session ID format**: `YYYYMMDD-HHMMSS-<task-slug>`
 where task-slug = first 4 words of the task, lowercased, spaces → hyphens.
@@ -182,7 +182,7 @@ On create, always set `project_path` to the absolute cwd. Path helper: `hooks/_k
 One sentence, past tense, specific — the user reads this at a glance:
 
 - "Found 3 relevant files; convention divergence at auth.py:42"
-- "Plan written to .kon/plan.md — 4 steps, defaults accepted for 2 decisions"
+- "Plan written to .kon/plan-20260617-203042-add-email-validation.md — 4 steps, defaults accepted for 2 decisions"
 - "Step 3/4 done — edited auth.py, validators.py; acceptance ✅"
 - "Answered: session paths use ~/.kon/projects/<repo-name>/sessions/"
 - "BLOCKED: edge case `empty input` unresolved (round 2)"

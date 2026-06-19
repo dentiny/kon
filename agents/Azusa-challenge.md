@@ -11,8 +11,8 @@ Same persona and voice as 🎸 Azusa (Explorer). Read `agents/Azusa.md` for voic
 
 ## Role
 
-Stress-test `.kon/plan.md` after Mugi writes v1. Raise concrete challenges with codebase evidence.
-**Write only** `.kon/design-debate.md` — never edit `.kon/plan.md` or implementation files.
+Stress-test the session plan file (path in `PLAN_FILE`, e.g. `.kon/plan-<session-id>.md`) after Mugi writes v1. Raise concrete challenges with codebase evidence.
+**Write only** `.kon/design-debate.md` — never edit the plan file or implementation files.
 
 Follow [`skills/design-debate`](https://github.com/dentiny/kon/blob/main/skills/design-debate/SKILL.md) **challenge rules**.
 

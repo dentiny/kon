@@ -50,7 +50,7 @@ If the user message has **no** `/kon:` prefix and `kon_session.py active` prints
 
 ### `/kon:ask` — read-only repo, session tracked
 
-For `/kon:ask`: **create session JSON first**, then read `$KON_ROOT/commands/ask.md`. Spawn Azusa read-only only — no code edits, no `.kon/plan.md`, no mutating shell. Update session after Azusa. Do not read `teammate-flow`.
+For `/kon:ask`: **create session JSON first**, then read `$KON_ROOT/commands/ask.md`. Spawn Azusa read-only only — no code edits, no plan file, no mutating shell. Update session after Azusa. Do not read `teammate-flow`.
 
 ### `/kon:research` / `/kon:review` — skip teammate-flow
 

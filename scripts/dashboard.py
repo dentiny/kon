@@ -17,14 +17,14 @@ from __future__ import annotations
 
 import argparse
 import json
-import pathlib
 import re
 import shutil
 import sys
 import webbrowser
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from pathlib import Path
 
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent / "hooks"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "hooks"))
 from _kon_paths import (  # noqa: E402
     iter_sessions_dirs,
     kon_data_dir,
@@ -33,11 +33,11 @@ from _kon_paths import (  # noqa: E402
     resolve_project_path,
 )
 
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import kon_todo  # noqa: E402
 
 PROJECT_FILTER: str | None = None
-_SESSION_FILES: dict[str, pathlib.Path] = {}
+_SESSION_FILES: dict[str, Path] = {}
 
 _HTML = """\
 <!DOCTYPE html>
@@ -214,20 +214,31 @@ function setTab(tab) {
 function renderSession(s) {
   const isPast  = s.status === 'completed' || s.status === 'blocked';
   const cur     = s.current_agent;
-  const pend    = s.steps_pending   || [];
-  const failed  = s.steps_failed    || [];
-  const waiting = s.steps_waiting   || [];
-  const done    = s.steps_completed || [];
-  const all     = [...done, ...failed, ...waiting, ...(cur ? [cur] : []), ...pend];
-  const dots    = all.map(a => {
-    let cls;
-    if (done.includes(a))    cls = 'done';
-    else if (failed.includes(a))  cls = 'failed';
-    else if (waiting.includes(a)) cls = 'waiting';
-    else if (a === cur)      cls = (s.status === 'waiting' ? 'waiting' : 'active');
-    else                     cls = 'pending';
-    return `<div class="dot ${cls}" data-label="${EM[a]||''} ${a}"></div>`;
-  }).join('');
+  let dots;
+  if (s.command === '/kon:begin') {
+    const turns = s.turns || [];
+    dots = turns.map((t, i) => {
+      const isLast = i === turns.length - 1;
+      const cls = (isLast && cur) ? 'active' : 'done';
+      const label = `Q${t.n}: ${t.summary}`;
+      return `<div class="dot ${cls}" data-label="${label}"></div>`;
+    }).join('');
+  } else {
+    const pend    = s.steps_pending   || [];
+    const failed  = s.steps_failed    || [];
+    const waiting = s.steps_waiting   || [];
+    const done    = s.steps_completed || [];
+    const all     = [...done, ...failed, ...waiting, ...(cur ? [cur] : []), ...pend];
+    dots = all.map(a => {
+      let cls;
+      if (done.includes(a))    cls = 'done';
+      else if (failed.includes(a))  cls = 'failed';
+      else if (waiting.includes(a)) cls = 'waiting';
+      else if (a === cur)      cls = (s.status === 'waiting' ? 'waiting' : 'active');
+      else                     cls = 'pending';
+      return `<div class="dot ${cls}" data-label="${EM[a]||''} ${a}"></div>`;
+    }).join('');
+  }
   const curLabel = cur
     ? `${EM[cur]||''} ${cur}`
     : (s.status==='completed' ? '✓ done'
@@ -441,6 +452,16 @@ setInterval(refresh, 3000);
 """
 
 
+def _read_json_body(handler: BaseHTTPRequestHandler) -> dict | None:
+    """Read Content-Length bytes from handler.rfile; return parsed JSON or None on error."""
+    length = int(handler.headers.get("Content-Length", 0))
+    raw = handler.rfile.read(length) if length else b"{}"
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        return None
+
+
 class _Handler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         if self.path == "/":
@@ -464,11 +485,8 @@ class _Handler(BaseHTTPRequestHandler):
             if not re.fullmatch(r"[\w\-]+", todo_id):
                 self._send(400, "text/plain", b"invalid todo id")
                 return
-            length = int(self.headers.get("Content-Length", 0))
-            body = self.rfile.read(length) if length else b"{}"
-            try:
-                updates = json.loads(body)
-            except json.JSONDecodeError:
+            updates = _read_json_body(self)
+            if updates is None:
                 self._send(400, "text/plain", b"invalid JSON")
                 return
             project_path = updates.get("project_path")
@@ -489,11 +507,8 @@ class _Handler(BaseHTTPRequestHandler):
             if session_id is None or not re.fullmatch(r"[\w\-]+", session_id):
                 self._send(400, "text/plain", b"invalid session id")
                 return
-            length = int(self.headers.get("Content-Length", 0))
-            body = self.rfile.read(length) if length else b"{}"
-            try:
-                updates = json.loads(body)
-            except json.JSONDecodeError:
+            updates = _read_json_body(self)
+            if updates is None:
                 self._send(400, "text/plain", b"invalid JSON")
                 return
             target = _session_file(session_id)
@@ -516,11 +531,8 @@ class _Handler(BaseHTTPRequestHandler):
             if not re.fullmatch(r"[\w\-]+", todo_id):
                 self._send(400, "text/plain", b"invalid todo id")
                 return
-            length = int(self.headers.get("Content-Length", 0))
-            body = self.rfile.read(length) if length else b"{}"
-            try:
-                payload = json.loads(body)
-            except json.JSONDecodeError:
+            payload = _read_json_body(self)
+            if payload is None:
                 self._send(400, "text/plain", b"invalid JSON")
                 return
             project_path = payload.get("project_path")
@@ -575,13 +587,13 @@ def _path_id(path: str, prefix: str) -> str | None:
     return segment or None
 
 
-def _session_dirs() -> list[pathlib.Path]:
+def _session_dirs() -> list[Path]:
     if PROJECT_FILTER:
         return iter_sessions_dirs(PROJECT_FILTER)
     return iter_sessions_dirs()
 
 
-def _session_file(session_id: str) -> pathlib.Path | None:
+def _session_file(session_id: str) -> Path | None:
     if session_id in _SESSION_FILES:
         return _SESSION_FILES[session_id]
     for directory in _session_dirs():
@@ -591,12 +603,12 @@ def _session_file(session_id: str) -> pathlib.Path | None:
     return None
 
 
-def _session_related_paths(session_id: str, project_path: str | None = None) -> list[pathlib.Path]:
+def _session_related_paths(session_id: str, project_path: str | None = None) -> list[Path]:
     """All session artifacts to remove: json, summary, optional legacy copies, session dir."""
-    paths: list[pathlib.Path] = []
-    seen: set[pathlib.Path] = set()
+    paths: list[Path] = []
+    seen: set[Path] = set()
 
-    def add(path: pathlib.Path) -> None:
+    def add(path: Path) -> None:
         resolved = path.resolve()
         if resolved not in seen:
             seen.add(resolved)

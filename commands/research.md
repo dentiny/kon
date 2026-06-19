@@ -44,7 +44,7 @@ Examples:
 | WebSearch / WebFetch | ✅ |
 | Write `.kon/research.md` | ✅ |
 | Write / edit application source | ❌ |
-| Write `.kon/plan.md` | ❌ |
+| Write plan files | ❌ |
 | `git commit` / `git push` | ❌ |
 
 ## Comparison

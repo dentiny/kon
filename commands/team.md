@@ -23,7 +23,7 @@ Spawn Jun when external docs are needed — [`skills/external-research`](https:/
 ## Plan reuse (after `/kon:design`)
 
 Same rules as [`/kon:go`](https://github.com/dentiny/kon/blob/main/commands/go.md#plan-reuse-after-kondesign):
-if `.kon/plan.md` exists, ask once to reuse or re-plan; skip Azusa + Mugi on reuse.
+if a session-scoped plan file (`.kon/plan-<session-id>.md`) or a recent `.kon/plan-*.md` exists, ask once to reuse or re-plan; skip Azusa + Mugi on reuse.
 
 **Parallel (trigger both Tasks in one message):**
 

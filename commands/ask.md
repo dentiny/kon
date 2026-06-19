@@ -7,7 +7,7 @@ description: Read-only Q&A about the codebase. Azusa investigates and answers �
 For questions about the codebase — how something works, where logic lives, what a pattern means.
 Read-only exploration and a direct answer.
 
-**Zero repo writes.** Ask mode must not create or modify anything inside the project — not code, not `.kon/plan.md`, not memory, not git state. Read and answer only.
+**Zero repo writes.** Ask mode must not create or modify anything inside the project — not code, not plan files, not memory, not git state. Read and answer only.
 
 **Session tracking applies.** Create and update a session JSON under `~/.kon/projects/<repo-name>/sessions/` (see [`skills/session-tracking`](https://github.com/dentiny/kon/blob/main/skills/session-tracking/SKILL.md)) so the dashboard records every ask run. Use `command: "/kon:ask"`, `steps_pending: ["Azusa"]` on create; `complete-agent` auto-sets `status=completed`.
 
@@ -38,7 +38,7 @@ Examples:
 2. **🎸 Azusa** — investigate the question read-only.
    - Tools allowed: Read, Glob, Grep, Bash (read-only commands only — e.g. `git log`, `git diff`, `git show`, `ls`, `cat`; no writes).
    - **Forbidden tools:** Write, Edit, StrReplace, Delete, and any Bash that mutates disk or git state.
-   - No `.kon/plan.md` or other project artifacts written.
+   - No plan files or other project artifacts written.
 3. **Orchestrator** — update session: move Azusa to `steps_completed`, add log entry (`complete-agent` → `completed`).
 4. **Orchestrator** — present Azusa's answer to the user with code citations where helpful.
    - Do not re-implement or expand beyond what Azusa found unless the user asks a follow-up.
@@ -54,7 +54,7 @@ No Nodoka summarize. User may close the session with `kon finish` or the dashboa
 | Read-only git (`log`, `diff`, `show`, `status`) | ✅ |
 | Write / Edit / StrReplace / Delete any **project** file | ❌ |
 | Create or update session JSON (`~/.kon/projects/*/sessions/`) | ✅ |
-| Write `.kon/plan.md` or memory files in the repo | ❌ |
+| Write plan files or memory files in the repo | ❌ |
 | `git add`, `git commit`, `git push`, `git checkout`, `git reset` | ❌ |
 | `mkdir`, `touch`, `rm`, `mv`, `cp`, `tee`, redirect-to-file **in the repo** | ❌ |
 | `python3 -c` that writes **project or .kon/** files | ❌ |

@@ -88,7 +88,7 @@ def match_rule(cwd: str, rule: dict) -> tuple[bool, str]:
 def ensure_kon_ignored(cwd: str) -> None:
     """Make `.kon/` git-ignored locally without touching a tracked .gitignore.
 
-    kon writes project-local working artifacts (plan.md, review-rubric.md, retry logs) into
+    kon writes project-local working artifacts (plan-<session-id>.md, review-rubric.md, retry logs) into
     ``<project>/.kon/``; those must never be committed. Session history lives in
     ``~/.kon/projects/<repo-name>/`` outside the repo. We append the rule
     to the repo's `info/exclude` — resolved via `git rev-parse --git-path` so

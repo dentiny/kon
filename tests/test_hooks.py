@@ -188,6 +188,51 @@ class TestTeammateQualityCheck:
         )
         assert result["decision"] == "approve"
 
+    @pytest.mark.parametrize(
+        ("role", "output"),
+        [
+            pytest.param(
+                "Mugi",
+                (
+                    "## Loaded memory entries\n(no relevant entries)\n\n"
+                    "## Goal\nImplement session-scoped tracking.\n\n"
+                    "## Steps\n1. Do this\n2. Do that\n\n"
+                    "Written plan to `.kon/plan-abc123.md`."
+                ),
+                id="mugi_session_plan_file",
+            ),
+            pytest.param(
+                "Azusa-challenge",
+                (
+                    "## Loaded memory entries\n(no relevant entries)\n\n"
+                    "Reviewing `.kon/plan-abc123.md` for design challenges.\n\n"
+                    "### C1: First challenge\nDetails about C1.\n\n"
+                    "### C2: Second challenge\nDetails about C2.\n\n"
+                    "### C3: Third challenge\nDetails about C3.\n\n"
+                    "Written challenges to `.kon/design-debate.md`."
+                ),
+                id="azusa_challenge_session_plan_file",
+            ),
+            pytest.param(
+                "Mugi-revise",
+                (
+                    "## Loaded memory entries\n(no relevant entries)\n\n"
+                    "Updated `.kon/plan-some-id.md` with revisions addressing each challenge.\n\n"
+                    "Filled response table in `.kon/design-debate.md`.\n\n"
+                    "| C1 | First challenge | Accepted |\n"
+                    "| C2 | Second challenge | Revised |\n"
+                ),
+                id="mugi_revise_session_plan_file",
+            ),
+        ],
+    )
+    def test_session_plan_patterns_approve(self, role: str, output: str) -> None:
+        result = _run_hook(
+            "teammate_quality_check.py",
+            {"teammate_role": role, "teammate_output": output},
+        )
+        assert result["decision"] == "approve"
+
 
 class TestOnSubagentStopRole:
     def test_infers_jun(self) -> None:

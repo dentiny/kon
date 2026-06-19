@@ -15,7 +15,7 @@ Stops after plan approval — hand off to `/kon:go` or `/kon:team` when ready to
 ```
 /kon:design <task description>
 /kon:design --deep <task description>    # two debate rounds instead of one
-/kon:design --yolo <task description>    # auto-accept plan defaults after debate
+/kon:design --yolo <task description>    # suppress per-agent summaries, auto-retry failures
 ```
 
 ## Flow
@@ -27,8 +27,8 @@ optional 📚 Jun (external docs, parallel with Azusa — see skills/external-re
   → 🎸 Azusa challenge (.kon/design-debate-<session-id>.md)
   → 🍰 Mugi revise (plan v2 + response table)
   → [ --deep only: Azusa challenge R2 → Mugi revise R2 ]
-  → user confirms plan
-  → session waiting (optional: /kon:go to implement)
+  → STOP: orchestrator waits for user to approve plan
+  → session status=waiting (user must run /kon:go or /kon:team to implement)
 ```
 
 Debate protocol: [`skills/design-debate`](https://github.com/dentiny/kon/blob/main/skills/design-debate/SKILL.md).
@@ -54,6 +54,7 @@ When plan is ready for user review: set `steps_waiting: ["User"]`, `status=waiti
 - **Spawn Task subagents** for explore, plan, challenge, and revise — never play both sides yourself.
 - **Model inheritance:** Do NOT pass `model` parameter when spawning subagents — let them inherit parent's model
 - **No unit tests** — Ritsu (verifier) does not run in design phase. Tests run only in `/kon:go` or `/kon:team`.
+- **Design stops after debate** — After Mugi's final revision, present summary and STOP. Set `status=waiting`. Do NOT proceed to implementation. User must explicitly run `/kon:go` or `/kon:team` to implement.
 - After Azusa challenge and Mugi revise, run `teammate_quality_check.py` with roles `Azusa-challenge` and `Mugi-revise`.
 - Present the user a short summary: challenge count, accepted/rejected/deferred, open decisions.
 - Do **not** run `git commit` or `git push`.

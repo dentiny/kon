@@ -17,13 +17,20 @@ These four steps are required in order for both `/kon:go` and `/kon:team`:
 
 0. **Plan reuse check** — if `.kon/plan-<SESSION_ID>.md` exists (or the most recent `.kon/plan-*.md`
    for cross-session reuse after `/kon:design`), read it and ask the user once: reuse or re-plan?
-   Skip Azusa + Mugi on reuse (unless user chooses re-plan). With `--yolo`, auto-reuse when the plan
-   matches the current task. See [`commands/go.md`](../commands/go.md#plan-reuse-after-kondesign).
+   Skip Azusa + Mugi on reuse (unless user chooses re-plan).
+   See [`commands/go.md`](../commands/go.md#plan-reuse-after-kondesign).
 1. **🎸 Azusa** + optional **📚 Jun** (parallel when task needs external docs) — see
    [`skills/external-research`](external-research/SKILL.md). Jun writes `.kon/research.md`.
 2. **🍰 Mugi** — structure the work into `.kon/plan-<SESSION_ID>.md` (read `.kon/research.md` if present).
-3. **User confirms plan** (if there are open questions, resolve them before continuing)
+3. **User confirms plan (MANDATORY)** — After Mugi finishes:
+   - Orchestrator presents the plan summary to the user
+   - If `## Decisions needed` section exists, present each decision with its default
+   - **STOP and wait for explicit user approval** — do NOT spawn Yui automatically
+   - Only proceed to step 4 after user says "go", "approved", "proceed", or similar confirmation
+   - **This applies even in `--yolo` mode** — plan approval is always required
+   - Update session: set `steps_waiting: ["User"]`, `status=waiting` before waiting for input
 4. **🎶 Yui** — execute the plan steps. "Okay! Starting Step 1."
+   - **Only spawn Yui after receiving user confirmation in step 3**
 
 Step 5 onward is command-specific — `/kon:go` is sequential (📝 Mio then 🥁 Ritsu),
 `/kon:team` is parallel (📝 Mio and 🥁 Ritsu simultaneously).
@@ -50,6 +57,11 @@ Follow [`skills/narration`](https://github.com/dentiny/kon/blob/main/skills/narr
 
 - **The orchestrator does not implement.** Every agent is launched via the Task tool.
 - **Model inheritance:** Do NOT pass `model` parameter when spawning subagents — let them inherit parent's model
+- **CRITICAL: Never auto-proceed from Mugi to Yui** — after Mugi finishes, the orchestrator MUST:
+  1. Present the plan to the user
+  2. Set session `status=waiting` with `steps_waiting: ["User"]`
+  3. STOP and wait for explicit user confirmation (even in `--yolo` mode)
+  4. Only spawn Yui after user confirms
 - After each agent finishes, give the user one-line summary (not a full paste).
 - No skipping steps. Even for small tasks, every step runs.
 - At the end, give a final summary: which files changed, test result, any unresolved issues.

@@ -16,9 +16,11 @@ Mio reads the diff; Ritsu runs commands — they don't depend on each other, so 
 
 ## Flow
 
-Sequential segment (optional **📚 Jun** ∥ 🎸 Azusa → 🍰 Mugi → user confirm → 🎶 Yui) follows
+Sequential segment (optional **📚 Jun** ∥ 🎸 Azusa → 🍰 Mugi → **WAIT for user confirmation** → 🎶 Yui) follows
 [`skills/teammate-flow`](https://github.com/dentiny/kon/blob/main/skills/teammate-flow/SKILL.md).
 Spawn Jun when external docs are needed — [`skills/external-research`](https://github.com/dentiny/kon/blob/main/skills/external-research/SKILL.md).
+
+**After Mugi finishes:** orchestrator MUST stop and wait for explicit user approval before spawning Yui (even in `--yolo` mode).
 
 ## Plan reuse (after `/kon:design`)
 
@@ -33,6 +35,7 @@ if a session-scoped plan file (`.kon/plan-<session-id>.md`) or a recent `.kon/pl
 6. **Merge** — when both return, handle together.
 
 Orchestrator parallel rules:
+- **MANDATORY user confirmation:** After Mugi finishes, STOP and wait for user to approve the plan before spawning Yui (even in `--yolo` mode)
 - **Actually parallel:** fire both 📝 Mio and 🥁 Ritsu in a single message with two Task calls
 - **Not fake-parallel** (finishing Mio then calling Ritsu doesn't count)
 - **Model inheritance:** Do NOT pass `model` parameter when spawning subagents — let them inherit parent's model

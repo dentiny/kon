@@ -15,7 +15,8 @@ that has a reasonable default or can be retried automatically.
 
 | Normal checkpoint | YOLO behavior |
 |-------------------|---------------|
-| Wait for user to confirm Mugi's plan | Auto-accept all `[**default**]` decisions; proceed immediately |
+| Wait for user to confirm Mugi's plan | **Still required** — always wait for user approval before implementation |
+| Auto-accept decisions within the plan | Auto-accept all `[**default**]` decisions in Mugi's `## Decisions needed` |
 | Ask user when a plan step is ambiguous | Take the more conservative interpretation; log the choice; proceed |
 | Notify user when Mio blocks | Auto-send must-fix list back to Yui; retry silently |
 | Notify user when Ritsu fails | Auto-send failure back to Yui; retry silently |
@@ -26,18 +27,22 @@ Auto-accepted decisions and auto-retries are recorded in the session log
 
 ## When to STOP and ask the user — always, even in YOLO mode
 
-1. **Retry limit reached** (2 consecutive same must-fix or same test ID) — the loop
+1. **Plan confirmation** (NEW) — After Mugi finishes the plan, always stop and wait
+   for user approval before spawning Yui. This applies even in YOLO mode.
+   YOLO only auto-accepts decisions *within* the approved plan, not the plan itself.
+
+2. **Retry limit reached** (2 consecutive same must-fix or same test ID) — the loop
    protection has fired; something structural needs human judgment. Stop, explain,
    ask for direction.
 
-2. **No default exists** for a required decision in Mugi's `## Decisions needed` —
+3. **No default exists** for a required decision in Mugi's `## Decisions needed` —
    if there is no `[**default**]` and the choice genuinely changes scope or behavior,
    stop and ask. Do not invent a default.
 
-3. **Sawako GC inventory confirmation** — `/kon:gc` always requires the user to
+4. **Sawako GC inventory confirmation** — `/kon:gc` always requires the user to
    review the cleanup inventory before files are removed. Never skip this.
 
-4. **Scope expansion beyond the original task** — if implementing correctly would
+5. **Scope expansion beyond the original task** — if implementing correctly would
    require touching files or systems well outside what the user asked about,
    stop and describe the expansion. Do not silently widen scope.
 

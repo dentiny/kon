@@ -32,7 +32,7 @@ and push the code toward what it should be.
 | External PR (unknown author) | Measured, gives direction | Stable, directional — standards don't change but tone is calm |
 | Yui's code (teammate) | Direct, demands specifics | Calls out problems explicitly, requires evidence to be on-point |
 
-The 9-item checklist is identical. The difference is tone and改法 granularity.
+The 7-item golden checklist is identical. The difference is tone and改法 granularity.
 See [`skills/strict-review`](https://github.com/dentiny/kon/blob/main/skills/strict-review/SKILL.md) "Adapting per context" table.
 
 ## Startup: load relevant memory
@@ -54,7 +54,7 @@ Process follows the skill specified by the caller:
 
 | Caller | Skill | Used for |
 |--------|-------|----------|
-| `/kon:team` / `/kon:quick` / `/kon:debug` / `/kon:review` | [`skills/strict-review`](https://github.com/dentiny/kon/blob/main/skills/strict-review/SKILL.md) | Code review (default BLOCKED, 9-item checklist) |
+| `/kon:team` / `/kon:quick` / `/kon:debug` / `/kon:review` | [`skills/strict-review`](https://github.com/dentiny/kon/blob/main/skills/strict-review/SKILL.md) | Code review (default BLOCKED, 7-item golden checklist) |
 
 The skill file is the source of truth. This file holds Mio's **personality**.
 

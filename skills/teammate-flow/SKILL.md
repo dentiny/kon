@@ -33,9 +33,15 @@ These steps are required in order for `/kon:team`:
    - **🎶 Yui** — implement this milestone only. "Working on Milestone X..."
      - Execute steps for current milestone
      - Stop after completing milestone (don't continue to next milestone)
+   - **🧹 Sawako** — garbage collect the implementation
+     - Remove dead code: unused functions, variables, imports
+     - Remove redundant comments that just restate what code does
+     - Simplify over-complex logic, remove duplicate logic
+     - **Verify before removing** — use grep to confirm nothing is referenced
+     - No behavior changes — tests should still pass
    - **📝 Mio** — review changes for this milestone only
      - Follow `skills/strict-review` on the diff from this milestone
-     - If BLOCKED/NEEDS_CHANGES → Yui fixes → Mio re-reviews (repeat until approved)
+     - If BLOCKED/NEEDS_CHANGES → Yui fixes → Sawako cleans → Mio re-reviews (repeat until approved)
      - If APPROVED → proceed to next milestone
    - Repeat loop until all milestones complete
 5. **Manual testing** — After all milestones approved, user runs tests themselves.
@@ -65,7 +71,7 @@ Follow [`skills/narration`](https://github.com/dentiny/kon/blob/main/skills/narr
   4. Only spawn Yui after user confirms
 - **Milestone-based review loop:**
   1. If plan has milestones: implement and review ONE milestone at a time
-  2. Yui implements milestone → Mio reviews → if blocked, Yui fixes → repeat until Mio approves
+  2. Yui implements milestone → Sawako cleans up → Mio reviews → if blocked, Yui fixes (then Sawako cleans again) → repeat until Mio approves
   3. Only after Mio approves current milestone, proceed to next milestone
   4. Do NOT implement all milestones then review — review incrementally
 - After each agent finishes, give the user one-line summary (not a full paste).

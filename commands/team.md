@@ -1,5 +1,5 @@
 ---
-description: Full kon run — Azusa explores, Mugi writes a plan, Yui implements, Mio reviews. No automated testing.
+description: Full kon run — Azusa explores, Mugi writes a plan, Yui implements, Sawako cleans, Mio reviews. No automated testing.
 ---
 
 # /kon:team
@@ -16,14 +16,15 @@ Hand the task to the full team. From first look to code review, each member hand
 
 Full flow follows [`skills/teammate-flow`](https://github.com/dentiny/kon/blob/main/skills/teammate-flow/SKILL.md) —
 optional **📚 Jun** (external docs, parallel with Azusa) → 🎸 Azusa explores → 🍰 Mugi writes plan →
-**WAIT for user confirmation** → **milestone loop**: 🎶 Yui implements milestone → 📝 Mio reviews → if blocked, fix and re-review → if approved, next milestone.
+**WAIT for user confirmation** → **milestone loop**: 🎶 Yui implements milestone → 🧹 Sawako cleans up → 📝 Mio reviews → if blocked, fix and re-review → if approved, next milestone.
 
 When the task needs web/docs lookup, spawn Jun per [`skills/external-research`](https://github.com/dentiny/kon/blob/main/skills/external-research/SKILL.md).
 
 **Milestone-based review loop:**
 - After plan approval, Yui implements ONE milestone at a time
-- After each milestone, Mio reviews that milestone's changes only
-- If Mio blocks: Yui fixes → Mio re-reviews the same milestone
+- After each milestone implementation, Sawako removes dead code and redundant comments
+- Then Mio reviews that milestone's changes only
+- If Mio blocks: Yui fixes → Sawako cleans → Mio re-reviews the same milestone
 - If Mio approves: proceed to next milestone
 - Repeat until all milestones are complete
 - **Testing is manual** — after all milestones approved, user runs tests themselves
@@ -34,7 +35,8 @@ When the task needs web/docs lookup, spawn Jun per [`skills/external-research`](
 - **MANDATORY user confirmation:** After Mugi finishes, STOP and wait for user to approve the plan before spawning Yui (even in `--yolo` mode)
 - **Milestone-based implementation and review:**
   - Yui implements ONE milestone at a time
-  - Mio reviews each milestone's changes immediately after implementation
+  - Sawako cleans up dead code and redundant comments after implementation
+  - Mio reviews each milestone's changes after cleanup
   - Loop continues until all milestones are approved
   - Do NOT implement all milestones before review
 - Follow [`skills/teammate-flow`](https://github.com/dentiny/kon/blob/main/skills/teammate-flow/SKILL.md) for full execution rules

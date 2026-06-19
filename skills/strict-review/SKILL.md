@@ -1,6 +1,6 @@
 ---
 name: strict-review
-description: This skill should be used when performing code review on a diff (whether implemented by another agent or an external PR), enforcing a strict reviewer stance, applying a mandatory 9-item checklist, demanding evidence, and giving specific改法 instead of vague critique.
+description: This skill should be used when performing code review on a diff (whether implemented by another agent or an external PR), enforcing a strict reviewer stance, applying a mandatory 7-item golden checklist, demanding evidence, and giving specific改法 instead of vague critique.
 ---
 
 # Strict Review
@@ -24,25 +24,58 @@ These do **not** count as convincing:
 - **Existing repo content** (quotes, content, text) that appears in this diff needs a source — flag even if the line wasn't changed in this diff
 - **Commit / staging state** is not in review scope; `git status` cleanliness is not a checklist item — read `git diff HEAD` or `git diff --cached` for the actual changes
 
-## The 9-item mandatory checklist
+## The 7-item golden checklist
 
 Every review must walk through every item. Output explicitly marks `[x]` or `[ ]` per item.
 
-1. **Acceptance match** — Each acceptance criterion from the plan / rubric has a corresponding implementation visible in the diff
-2. **Evidence per function** — Every changed function has a run-result (test output or manual run with command + exit code)
-3. **Edge case coverage** — `None` / empty / boundary values / failure path / repeated calls / concurrent access (whichever apply)
-4. **Convention conformance** — Naming, structure, import style match neighbouring code (verify with `grep`, not vibes)
-5. **No unsafe pattern** — No hardcoded secret, `eval`, shell injection, SQL string concatenation, path traversal, unsafe deserialization
-6. **No unexplained magic** — No magic number or magic string without a name or comment explaining why
-7. **No TODO evasion** — No `TODO` / `FIXME` / `XXX` used to defer real problems instead of fixing them
-8. **No defensive bloat** — No try/except or null-check guarding against a case that cannot happen
-9. **No completeness theatre** — No dead code, unused branch, or stub added "to look complete" without being tested
+### 1. Simplest correct implementation
+The solution solves the problem without unnecessary complexity.
+- No over-engineering or premature abstractions
+- No defensive bloat (try/except or null-checks for impossible cases)
+- No unexplained magic numbers or strings
+- Direct, readable logic flow
+
+### 2. Requirement coverage
+Each acceptance criterion from the plan/rubric has a corresponding implementation visible in the diff.
+- All must-have features are present
+- Scope matches the task (no expansion, no omission)
+
+### 3. Correctness proven
+Changed logic produces correct output; verify with concrete evidence.
+- Every changed function has run-result (test output or manual run with command + exit code)
+- No functionality bugs in the implementation
+- Output matches expected behavior
+
+### 4. Edge cases handled
+Boundary conditions and failure paths are covered.
+- `None` / empty / boundary values handled
+- Failure paths (error cases, invalid input) addressed
+- Repeated calls / concurrent access (if applicable)
+
+### 5. No regression
+Existing functionality and performance are not degraded.
+- Features that worked before still work (verify with evidence)
+- Performance not worse than before (no O(n²) where O(n) existed)
+- No breaking changes to public interfaces without migration plan
+
+### 6. No performance issue
+No obvious inefficiencies introduced; improvement opportunities identified.
+- No repeated expensive operations in loops (DB calls, file I/O, API requests)
+- No unnecessary data copying or allocation
+- Flag severe issues as must-fix; note opportunities as nit
+
+### 7. Consistent, safe, and tested
+Code follows project conventions, avoids security risks, and has adequate test coverage.
+- **Conventions**: naming, structure, import style match neighboring code (verify with `grep`)
+- **Safety**: no hardcoded secrets, `eval`, shell injection, SQL concatenation, path traversal
+- **Testing**: core logic and edge cases have tests (hard-to-test code like UI/timing/external deps OK if documented)
+- **TODO discipline**: TODOs for future enhancements are fine; blocking if used to defer bugs/errors/required work (see "TODO comments" pattern below)
 
 If any item is `[ ]`, verdict stays at NEEDS_CHANGES or BLOCKED.
 
 ## Domain skill composition
 
-Base checklist (9 items above) applies to all reviews. Memory entry (`type: project`) `triggers` field can append domain checklist items:
+Base checklist (7 items above) applies to all reviews. Memory entry (`type: project`) `triggers` field can append domain checklist items:
 
 ```yaml
 triggers: [some-skill]
@@ -116,15 +149,13 @@ def validate_user(user_data):
 APPROVED | NEEDS_CHANGES | BLOCKED
 
 ## Checklist
-- [x] acceptance match
-- [ ] evidence per function — missing: function_X has no output
-- [x] edge case coverage
-- [ ] convention conformance — missing: import order doesn't match auth.py:1-10
-- [x] no unsafe pattern
-- [x] no unexplained magic
-- [x] no TODO evasion
-- [x] no defensive bloat
-- [x] no completeness theatre
+- [x] 1. simplest correct implementation
+- [x] 2. requirement coverage
+- [ ] 3. correctness proven — missing: function_X has no output
+- [x] 4. edge cases handled
+- [x] 5. no regression
+- [x] 6. no performance issue
+- [ ] 7. consistent, safe, and tested — convention: import order doesn't match auth.py:1-10
 
 ## Must-fix
 - `file.py:42` — <problem>
@@ -157,12 +188,36 @@ Walk through the previous round's must-fix and evidence-pending **one by one**.
 | Internal code (you own it) | Give specific改法 with exact code |
 | External PR (someone else's code) | Give direction + reason; exact code is the author's call |
 | Hotfix under deadline | Still run full checklist; document any deliberate skips in plan |
-| Test-only change | Skip items 5/7/8/9; keep 1/2/3/4/6 |
-| `/kon:review --mode=design-preview` | Run items 1 + 4 only; mark 2/3/5/6/7/8/9 as `[—]` with reason `skipped by mode=design-preview` |
-| `/kon:review --mode=compliance-only` | Run items 4/5/6/7/8; mark 1/2/3/9 as `[—]` with reason `skipped by mode=compliance-only` |
-| `/kon:quick` (quick mode) | Run items 1/4/5/7; mark 2/3/6/8/9 as `[—]` with reason `skipped by mode=quick` |
+| Test-only change | Skip item 6; keep all correctness and safety items |
+| `/kon:review --mode=design-preview` | Run items 1 + 2 only; mark rest as `[—]` with reason `skipped by mode=design-preview` |
+| `/kon:review --mode=compliance-only` | Run item 7 only; mark rest as `[—]` with reason `skipped by mode=compliance-only` |
+| `/kon:quick` (quick mode) | Run items 2/3/7; mark rest as `[—]` with reason `skipped by mode=quick` |
 
 ## Recurring must-fix patterns
+
+### TODO comments — case-by-case judgment
+
+TODO/FIXME/XXX comments are acceptable in the right context. Review each one individually:
+
+**✅ Acceptable TODOs (nit or approved):**
+- Future optimizations: `# TODO: Consider caching this lookup for better perf`
+- Nice-to-have features outside current scope: `# TODO: Add pagination when dataset grows`
+- Architectural improvements for later: `# TODO: Refactor to use strategy pattern`
+- Known technical debt with plan: `# TODO(#123): Migrate to new API after v2.0 release`
+
+**❌ TODO evasion (must-fix or BLOCKED):**
+- Deferring bug fixes: `# TODO: Handle the case where user_id is None` ← should be fixed now
+- Avoiding error handling: `# FIXME: This crashes on empty input` ← must handle now
+- Hiding known failures: `# XXX: Sometimes returns wrong result` ← investigate and fix
+- Postponing necessary validation: `# TODO: Validate email format` ← required for correctness
+
+**Judgment criteria:**
+1. **Is it a correctness issue?** → Must fix now, no TODO
+2. **Is it required by acceptance criteria?** → Must fix now, no TODO
+3. **Is it a known bug or failure path?** → Must fix now, no TODO
+4. **Is it a future enhancement or optimization?** → TODO is fine
+
+When blocking on TODO evasion, explain why it must be addressed now and give specific改法.
 
 ### Tests should default to parametrize — stacked asserts and near-duplicate test methods are must-fix
 

@@ -11,16 +11,16 @@ Each agent owns one step of the software development cycle:
 | 1b. External lookup (optional) | 📚 Jun | Searches docs/web, writes `.kon/research.md` |
 | 2. Planning | 🍰 Mugi | Writes a step-by-step plan with acceptance criteria and milestones |
 | 3. Implementation | 🎶 Yui | Executes the plan milestone-by-milestone, drives forward |
-| 4. Code review | 📝 Mio | Strict 9-item checklist per milestone, default BLOCKED |
-| 5. Manual testing | User | Runs tests after all milestones approved |
-| 6. Cleanup | 🧹 Sawako | Removes dead code, simplifies comments and docs, no behavior changes |
+| 4. Cleanup (per milestone) | 🧹 Sawako | Removes dead code, unused vars/imports, redundant comments after each milestone |
+| 5. Code review (per milestone) | 📝 Mio | Strict 7-item golden checklist per milestone, default BLOCKED |
+| 6. Manual testing | User | Runs tests after all milestones approved |
 | 7. Session debrief | 📋 Nodoka | Writes a complete session summary — what changed, decisions made, next steps |
 
 Narrated by 🌸 Ui.
 
-> **Note on milestone-based review:** After plan approval, Yui implements one milestone at a time,
-> and Mio reviews each milestone's changes before the next one begins. This keeps reviews
-> manageable and provides faster feedback.
+> **Note on milestone-based workflow:** After plan approval, for each milestone:
+> Yui implements → Sawako cleans up dead code/redundant comments → Mio reviews.
+> This keeps code clean and reviews manageable with faster feedback.
 
 ---
 

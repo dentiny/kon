@@ -1,12 +1,12 @@
 ---
-description: Lightweight task entry point. Orchestrator calls Yui directly for small changes, skips Azusa / Mugi, Yui finishes and runs lightweight Mio (4-item checklist subset).
+description: Lightweight task entry point. Orchestrator calls Yui directly for small changes, skips Azusa / Mugi, Yui finishes and runs lightweight Mio (3-item checklist subset).
 ---
 
 # /kon:quick
 
 For "just tweak this one thing" level tasks.
 Skip the Azusa exploration / Mugi plan overhead — orchestrator calls Yui directly,
-Yui makes the change, then Mio does a lightweight review (9 items → 4 items).
+Yui makes the change, then Mio does a lightweight review (7 items → 3 items).
 
 ## Usage
 
@@ -41,28 +41,26 @@ If the user says no → run quick anyway. **Don't ask again.**
    following [`skills/commit-message`](https://github.com/dentiny/kon/blob/main/skills/commit-message/SKILL.md) and attach to final summary.
    **Do not run `git commit` automatically.**
 
-## Mio's lightweight checklist (9 items → 4 items)
+## Mio's lightweight checklist (7 items → 3 items)
 
 | Item | Run? |
 |------|------|
-| 1. acceptance match | ✅ |
-| 2. evidence per function | ❌ skip |
-| 3. edge case coverage | ❌ skip |
-| 4. convention conformance | ✅ |
-| 5. no unsafe pattern | ✅ |
-| 6. no unexplained magic | ❌ skip |
-| 7. no TODO evasion | ✅ |
-| 8. no defensive bloat | ❌ skip |
-| 9. no completeness theatre | ❌ skip |
+| 1. simplest correct implementation | ❌ skip |
+| 2. requirement coverage | ✅ |
+| 3. correctness proven | ✅ |
+| 4. edge cases handled | ❌ skip |
+| 5. no regression | ❌ skip |
+| 6. no performance issue | ❌ skip |
+| 7. consistent, safe, and tested | ✅ |
 
-Items run: 1 / 4 / 5 / 7.
+Items run: 2 / 3 / 7.
 
 Orchestrator must explicitly pass `mode=quick` and the subset to Mio when launching.
 In Mio's checklist output, items in the subset use `[x]` / `[ ]` normally;
 items outside the subset use `[—]` with reason `skipped by mode=quick`.
 
-**Note on item 2 (evidence per function):** Skipped in quick mode because testing is manual.
-User verifies implementation works after Mio approves.
+**Note on item 3 (correctness proven):** Required in quick mode for basic correctness verification.
+User still manually runs full test suite after Mio approves.
 
 ## Failure handling
 

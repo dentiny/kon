@@ -1,5 +1,5 @@
 ---
-description: Lightweight task entry point. Orchestrator calls Yui directly for small changes, skips Azusa / Mugi, Yui finishes and runs lightweight Mio (4-item checklist subset). Stop hook backstops tests automatically.
+description: Lightweight task entry point. Orchestrator calls Yui directly for small changes, skips Azusa / Mugi, Yui finishes and runs lightweight Mio (4-item checklist subset).
 ---
 
 # /kon:quick
@@ -7,7 +7,6 @@ description: Lightweight task entry point. Orchestrator calls Yui directly for s
 For "just tweak this one thing" level tasks.
 Skip the Azusa exploration / Mugi plan overhead — orchestrator calls Yui directly,
 Yui makes the change, then Mio does a lightweight review (9 items → 4 items).
-Tests aren't explicitly called — the Stop hook backstops them automatically.
 
 ## Usage
 
@@ -47,7 +46,7 @@ If the user says no → run quick anyway. **Don't ask again.**
 | Item | Run? |
 |------|------|
 | 1. acceptance match | ✅ |
-| 2. evidence per function | ❌ skip (Stop hook backstops with tests) |
+| 2. evidence per function | ❌ skip |
 | 3. edge case coverage | ❌ skip |
 | 4. convention conformance | ✅ |
 | 5. no unsafe pattern | ✅ |

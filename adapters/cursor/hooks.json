@@ -28,12 +28,6 @@
       {
         "command": "python3 $KON_ROOT/hooks/log_begin_response.py"
       }
-    ],
-    "stop": [
-      {
-        "command": "python3 $KON_ROOT/hooks/verify_completion.py",
-        "loop_limit": 3
-      }
     ]
   }
 }

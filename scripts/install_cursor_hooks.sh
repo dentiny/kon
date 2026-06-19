@@ -37,8 +37,16 @@ entries = [
         {"command": f"python3 {kon_root}/hooks/init_kon_session.py"},
     ),
     (
+        "beforeSubmitPrompt",
+        {"command": f"python3 {kon_root}/hooks/log_begin_prompt.py"},
+    ),
+    (
         "beforeShellExecution",
         {"command": f"python3 {kon_root}/hooks/no_git_write.py"},
+    ),
+    (
+        "afterAgentResponse",
+        {"command": f"python3 {kon_root}/hooks/log_begin_response.py"},
     ),
     (
         "subagentStop",

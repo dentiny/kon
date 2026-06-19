@@ -9,6 +9,9 @@
     "beforeSubmitPrompt": [
       {
         "command": "python3 $KON_ROOT/hooks/init_kon_session.py"
+      },
+      {
+        "command": "python3 $KON_ROOT/hooks/log_begin_prompt.py"
       }
     ],
     "beforeShellExecution": [
@@ -19,6 +22,11 @@
     "subagentStop": [
       {
         "command": "python3 $KON_ROOT/hooks/on_subagent_stop.py"
+      }
+    ],
+    "afterAgentResponse": [
+      {
+        "command": "python3 $KON_ROOT/hooks/log_begin_response.py"
       }
     ],
     "stop": [

@@ -63,9 +63,15 @@ Use `log-turn --agent User` for the command, then run the workflow on that sessi
 
 ## Logging
 
-Every routed agent step → `complete-agent` on the **begin session id**.
+Hooks auto-record `/kon:begin` turns — no manual CLI needed for ordinary chat:
 
-User message paraphrase → `log-turn --agent User` before spawning agents.
+- `log_begin_prompt.py` (`beforeSubmitPrompt`) → User line from each message
+- `log_begin_response.py` (`afterAgentResponse`) → Assistant line from each reply
+- `on_subagent_stop.py` → named agent line when a Task subagent finishes
+
+Orchestrators may still call `complete-agent` for explicit pipeline steps; hooks dedupe identical back-to-back entries.
+
+User message paraphrase → optional `log-turn --agent User` (hook already logs the raw prompt).
 
 ## What not to do
 

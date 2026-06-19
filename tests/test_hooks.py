@@ -497,3 +497,91 @@ class TestInitKonSession:
         assert last.is_file()
         payload = json.loads(last.read_text(encoding="utf-8"))
         assert payload["project_path"] == str(project.resolve())
+
+
+class TestBeginAutoLog:
+    def _init_begin(self, project: Path, data_root: Path) -> str:
+        proc = subprocess.run(
+            [
+                sys.executable,
+                str(ROOT / "scripts" / "kon_session.py"),
+                "--project",
+                str(project),
+                "init",
+                "--command",
+                "/kon:begin",
+                "--task",
+                "interactive session",
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        return proc.stdout.strip()
+
+    def test_log_begin_prompt_records_plain_message(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        project = tmp_path / "repo"
+        project.mkdir()
+        data_root = tmp_path / "kon-data"
+        monkeypatch.setenv("KON_DATA_DIR", str(data_root))
+        monkeypatch.setenv("KON_ROOT", str(ROOT))
+        sid = self._init_begin(project, data_root)
+
+        result = _run_hook(
+            "log_begin_prompt.py",
+            {"prompt": "can you check the failing test?", "cwd": str(project)},
+        )
+        assert result == {"continue": True}
+
+        data = json.loads(
+            (data_root / "projects" / "repo" / "sessions" / f"{sid}.json").read_text()
+        )
+        last = data["log"][-1]
+        assert last["agent"] == "User"
+        assert last["summary"] == "can you check the failing test?"
+        assert "ts" in last
+        assert data["turns"] == [{"n": 1, "summary": "can you check the failing test?"}]
+
+    def test_log_begin_prompt_skips_without_begin_session(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        project = tmp_path / "repo"
+        project.mkdir()
+        data_root = tmp_path / "kon-data"
+        monkeypatch.setenv("KON_DATA_DIR", str(data_root))
+        monkeypatch.setenv("KON_ROOT", str(ROOT))
+
+        result = _run_hook(
+            "log_begin_prompt.py",
+            {"prompt": "plain chat", "cwd": str(project)},
+        )
+        assert result == {"continue": True}
+        sessions_dir = data_root / "projects" / "repo" / "sessions"
+        assert not sessions_dir.exists() or not list(sessions_dir.glob("*.json"))
+
+    def test_log_begin_response_records_assistant_reply(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        project = tmp_path / "repo"
+        project.mkdir()
+        data_root = tmp_path / "kon-data"
+        monkeypatch.setenv("KON_DATA_DIR", str(data_root))
+        monkeypatch.setenv("KON_ROOT", str(ROOT))
+        sid = self._init_begin(project, data_root)
+
+        result = _run_hook(
+            "log_begin_response.py",
+            {
+                "text": "The test fails because KUBECONFIG is unset in CI.\n\nNext steps: …",
+                "cwd": str(project),
+            },
+        )
+        assert result == {}
+
+        data = json.loads(
+            (data_root / "projects" / "repo" / "sessions" / f"{sid}.json").read_text()
+        )
+        assert data["log"][-1]["agent"] == "Assistant"
+        assert data["log"][-1]["summary"] == "The test fails because KUBECONFIG is unset in CI."

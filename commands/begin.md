@@ -76,4 +76,4 @@ Or click **✓** on the dashboard card. Same as closing any open session.
 - **Narration:** 🌸 Ui opening/closing per [`skills/narration`](../skills/narration/SKILL.md)
 - **Skip teammate-flow** for the begin command itself — read interactive-session for routing
 - **Always** run `active` before `init` — the hook may have already created the session
-- Each user message: `log-turn --agent User --summary "<paraphrase>"` — this auto-adds a turn dot to the dashboard bar
+- Hooks auto-log user prompts and assistant replies during begin — manual `log-turn` is optional

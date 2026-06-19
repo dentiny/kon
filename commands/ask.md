@@ -29,7 +29,7 @@ Examples:
 
 - **Questions only** — explain, locate, compare, trace. Do not implement.
 - If the user asks to *change* something, answer what you can read-only, then offer:
-  "Want me to make that change? Use `/kon:quick` for a small fix or `/kon:go` for the full pipeline."
+  "Want me to make that change? Use `/kon:quick` for a small fix, `/kon:debug` for a bug, or `/kon:go` for the full pipeline."
 - If the question is outside the repo (runtime state, secrets, external services), say what you cannot verify from the codebase alone and suggest [`/kon:research`](research.md).
 
 ## Flow

@@ -149,6 +149,7 @@ Then in Cursor chat (slash commands):
 /kon:begin
 /kon:go add email validation to auth.py
 /kon:quick fix the typo in README line 42
+/kon:debug dashboard renderSession shows undefined for session dots
 /kon:ask how does session tracking work?
 /kon:research what Cursor hook events support followup_message?
 /kon:review
@@ -179,6 +180,7 @@ Then in any Codex session:
 /kon:begin
 /kon:go add email validation to auth.py
 /kon:quick fix the typo in README line 42
+/kon:debug dashboard renderSession shows undefined for session dots
 /kon:ask how does session tracking work?
 /kon:research what Cursor hook events support followup_message?
 /kon:review
@@ -207,6 +209,7 @@ Then in any Codex session:
 | `/kon:team <task>` | Same pipeline, review + verify run in parallel (~30% faster) |
 | `/kon:design <task>` | Design-only: explore → plan → Azusa↔Mugi debate → user confirms (no code) |
 | `/kon:quick <task>` | Skip explore/plan, lightweight 4-item review |
+| `/kon:debug <bug>` | Bug investigation — repro with runtime evidence, minimal fix, parallel review + verify |
 | `/kon:research <question>` | External lookup — 📚 Jun searches docs/web, writes `.kon/research.md` |
 | `/kon:review` | Code review only — 📝 Mio strict-review on uncommitted/staged diff |
 | `/kon:todo <task>` | Add a project todo — stored in `.kon/todos.json`; manage in dashboard **Todos** tab |
@@ -228,7 +231,7 @@ a decision with no default, or scope expansion required.
 
 ### Session lifecycle
 
-Pipeline commands (`/kon:go`, `/kon:team`, …) stay **open** after agents finish — they move to `waiting` (yellow) until you close them with **✓** or `/kon:finish`.
+Pipeline commands (`/kon:go`, `/kon:team`, `/kon:debug`, …) stay **open** after agents finish — they move to `waiting` (yellow) until you close them with **✓** or `/kon:finish`.
 
 **Interactive mode:** `/kon:begin` opens one session; follow-up messages need no `/kon:` prefix — the orchestrator routes by intent. Close with `/kon:finish`.
 

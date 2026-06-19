@@ -29,6 +29,7 @@ User invokes a **slash command** (kon extension system commands):
 - `/kon:team <task>` — same, review + verify run in parallel
 - `/kon:design <task>` — explore → plan → multi-agent design debate → user confirms (no implementation)
 - `/kon:quick <task>` — skip explore/plan, lightweight review
+- `/kon:debug <bug>` — reproduce with runtime evidence, then minimal fix (Mio + Ritsu parallel)
 - `/kon:research <question>` — external lookup (📚 Jun, writes `.kon/research.md`)
 - `/kon:review` — code review only (📝 Mio on uncommitted/staged diff)
 - `/kon:todo <task>` — add a project todo (`.kon/todos.json`); manage in dashboard Todos tab
@@ -72,7 +73,7 @@ For `/kon:todo`: read `commands/todo.md`, run `scripts/kon_todo.py` directly —
    When `active` is empty:
    ```bash
    python3 $KON_ROOT/scripts/kon_session.py init --command "/kon:ask" --task "<question>"
-   # other commands: --command "/kon:go" | "/kon:team" | "/kon:design" | "/kon:quick" | "/kon:gc"
+   # other commands: --command "/kon:go" | "/kon:team" | "/kon:design" | "/kon:quick" | "/kon:debug" | "/kon:gc"
    ```
    Save the printed session ID. After each agent step:
    ```bash
@@ -88,6 +89,7 @@ For `/kon:todo`: read `commands/todo.md`, run `scripts/kon_todo.py` directly —
    - `/kon:team` → `$KON_ROOT/commands/team.md`
    - `/kon:design` → `$KON_ROOT/commands/design.md` + `$KON_ROOT/skills/design-debate/SKILL.md`
    - `/kon:quick` → `$KON_ROOT/commands/quick.md`
+   - `/kon:debug` → `$KON_ROOT/commands/debug.md`
    - `/kon:research` → `$KON_ROOT/commands/research.md`
    - `/kon:review` → `$KON_ROOT/commands/review.md`
    - `/kon:todo` → `$KON_ROOT/commands/todo.md`
@@ -96,7 +98,7 @@ For `/kon:todo`: read `commands/todo.md`, run `scripts/kon_todo.py` directly —
    - `/kon:finish` → `$KON_ROOT/commands/finish.md`
    - `/kon:summarize` → `$KON_ROOT/commands/summarize.md`
 
-3. Read `$KON_ROOT/skills/teammate-flow/SKILL.md` for orchestration rules — **skip for `/kon:ask`, `/kon:research`, and `/kon:review`**. For `/kon:design`, also read `$KON_ROOT/skills/design-debate/SKILL.md`. For external lookup in go/team/design, also read `$KON_ROOT/skills/external-research/SKILL.md`.
+3. Read `$KON_ROOT/skills/teammate-flow/SKILL.md` for orchestration rules — **skip for `/kon:ask`, `/kon:research`, and `/kon:review`**. For `/kon:debug`, follow `commands/debug.md` (no Mugi; Mio + Ritsu parallel like team). For `/kon:design`, also read `$KON_ROOT/skills/design-debate/SKILL.md`. For external lookup in go/team/design, also read `$KON_ROOT/skills/external-research/SKILL.md`.
 
 4. For each agent step, spawn a Task subagent. Pass the agent file as context in the prompt:
 

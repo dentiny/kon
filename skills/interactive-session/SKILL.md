@@ -42,6 +42,7 @@ Begin sessions stay `in_progress` after each agent — only `/kon:finish` closes
 | Question about **our code** / "where is…" / "how does X work" | ask | 🎸 Azusa read-only |
 | **External** docs / API / "look up…" | research | 📚 Jun |
 | **Review** diff / "check my changes" | review | 📝 Mio |
+| **Bug** / failing test / regression / "X is broken" | debug | 🎸 Azusa → debug notes → 🎶 Yui → 📝 Mio ∥ 🥁 Ritsu |
 | **Small** fix, typo, one file | quick | 🎶 Yui → 📝 Mio |
 | **Feature**, multi-file, unclear scope | go or team | full pipeline |
 | **Design** first, no code yet | design | Azusa → Mugi → debate |
@@ -52,7 +53,7 @@ When unsure between go and quick, ask once in prose — do not widget.
 
 ## YOLO
 
-If the begin session was started with `--yolo`, append `--yolo` to any routed pipeline (go/team/design/quick).
+If the begin session was started with `--yolo`, append `--yolo` to any routed pipeline (go/team/design/quick/debug).
 
 ## Explicit `/kon:*` during begin
 

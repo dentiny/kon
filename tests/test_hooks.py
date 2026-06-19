@@ -218,6 +218,99 @@ class TestOnSubagentStop:
         assert usage["total_tokens"] == usage["input_tokens"] + usage["output_tokens"]
         assert session["usage_totals"]["total_tokens"] == usage["total_tokens"]
 
+    def test_hook_records_usage_without_prior_complete_agent(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """subagentStop runs before orchestrator — hook must write log + usage itself."""
+        project = tmp_path / "repo"
+        project.mkdir()
+        data_root = tmp_path / "kon-data"
+        monkeypatch.setenv("KON_DATA_DIR", str(data_root))
+        monkeypatch.setenv("KON_ROOT", str(ROOT))
+
+        sid = subprocess.run(
+            [
+                sys.executable,
+                str(ROOT / "scripts" / "kon_session.py"),
+                "--project",
+                str(project),
+                "init",
+                "--command",
+                "/kon:team",
+                "--task",
+                "yui impl usage",
+            ],
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.strip()
+
+        yui_output = "🎶 Yui: Milestone 1 complete — changed auth.py, acceptance: ✅"
+        transcript = tmp_path / "yui.jsonl"
+        transcript.write_text(
+            json.dumps(
+                {
+                    "role": "user",
+                    "message": {"content": [{"type": "text", "text": "implement step 1"}]},
+                }
+            )
+            + "\n"
+            + json.dumps(
+                {
+                    "role": "assistant",
+                    "message": {"content": [{"type": "text", "text": yui_output}]},
+                }
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+
+        _run_hook(
+            "on_subagent_stop.py",
+            {
+                "hook_event_name": "subagentStop",
+                "status": "completed",
+                "cwd": str(project),
+                "task": "Yui implementer agents/Yui.md",
+                "summary": yui_output,
+                "agent_transcript_path": str(transcript),
+            },
+        )
+
+        session = json.loads(
+            (data_root / "projects" / "repo" / "sessions" / f"{sid}.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        assert session["log"][-1]["agent"] == "Yui"
+        assert session["log"][-1]["usage"]["total_tokens"] > 0
+        assert "Yui" in session["steps_completed"]
+
+        # Orchestrator complete-agent after hook should not duplicate log row
+        subprocess.run(
+            [
+                sys.executable,
+                str(ROOT / "scripts" / "kon_session.py"),
+                "--project",
+                str(project),
+                "complete-agent",
+                "--id",
+                sid,
+                "--agent",
+                "Yui",
+                "--summary",
+                "Milestone 1 complete — longer orchestrator summary",
+            ],
+            check=True,
+        )
+        session2 = json.loads(
+            (data_root / "projects" / "repo" / "sessions" / f"{sid}.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        assert len(session2["log"]) == 1
+        assert "orchestrator summary" in session2["log"][0]["summary"]
+
 
 class TestTeammateQualityCheck:
     def test_mio_approved(self) -> None:

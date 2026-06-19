@@ -49,7 +49,7 @@ The sections below ("What Mugi does", output format) describe the default **impl
 
 **describe-pr mode:** Follow [`skills/github-title-description`](https://github.com/dentiny/kon/blob/main/skills/github-title-description/SKILL.md). Output `## Suggested PR title` + `## Suggested PR description`. No file written.
 
-**design revise mode:** Follow [`skills/design-debate`](https://github.com/dentiny/kon/blob/main/skills/design-debate/SKILL.md) **revise rules** — respond to every challenge ID, update the plan file (`PLAN_FILE`), fill the response table in `.kon/design-debate-<session-id>.md`.
+**design revise mode:** Follow [`skills/design-debate`](https://github.com/dentiny/kon/blob/main/skills/design-debate/SKILL.md) **revise rules** — respond to every challenge ID, update the plan file (`PLAN_FILE`), fill the response table in `.kon/design-debate-<session-id>.md`. Add or update `## Diagrams` when architecture/workflow changes from the debate.
 
 ## Startup: load relevant memory
 
@@ -77,6 +77,54 @@ Only embed entries that actually change the steps. Others can be listed as refer
 - Surface hidden requirements (things the user didn't say but obviously need)
 - If `.kon/research.md` exists, add `## External context` summarizing Jun's findings (link the file; don't paste raw URLs)
 - Collect decisions that need user confirmation in `## Decisions needed` — each with a `[**default**]` that Mugi has already reasoned through, so the user can say "go" to accept all defaults
+- **Include diagrams when the plan involves non-trivial workflow or architecture** — see "Diagrams in plans" below
+
+## Diagrams in plans
+
+When the change is **complex enough that prose alone is hard to follow**, add a `## Diagrams` section to the plan **before** `## Steps`.
+
+**Include a diagram when any of these apply:**
+- Multi-step or branching **workflow** (agent pipeline, request lifecycle, state machine, retry loops)
+- **Architectural change** (new modules, data flow across services, before/after structure)
+- **3+ components** interacting (orchestrator, hooks, session, dashboard, etc.)
+- Multiple approaches in `## Approaches` where structure differs — one diagram per approach or one comparison diagram
+
+**Skip diagrams when:**
+- Single-file, linear change (typo, one function, add a field)
+- Steps are obvious and sequential with no branching
+
+**Format:** use **mermaid** in fenced code blocks (renders in GitHub and most markdown viewers):
+
+```markdown
+## Diagrams
+
+### Workflow (after change)
+
+\`\`\`mermaid
+flowchart LR
+  A[User confirms plan] --> B[Yui: milestone 1]
+  B --> C[Sawako: cleanup]
+  C --> D[Mio: review]
+  D -->|approved| E[Next milestone]
+  D -->|blocked| B
+\`\`\`
+
+### Architecture (component view)
+
+\`\`\`mermaid
+flowchart TB
+  subgraph hooks
+    H[on_subagent_stop]
+  end
+  subgraph session
+    S[kon_session.py]
+    J[(session JSON)]
+  end
+  H --> S --> J
+\`\`\`
+```
+
+Prefer **flowchart** for workflows and **flowchart TB / C4-style boxes** for architecture. Keep diagrams small (≤ 15 nodes); link to steps in prose for detail.
 
 ## When to propose multiple approaches
 
@@ -157,7 +205,24 @@ When the task has meaningful architectural or technical choices, propose 2-3 app
 
 **Recommended**: Approach X — <reasoning why this is best for this context>
 
-*Note: If only one reasonable approach exists, skip this section entirely and go straight to Steps.*
+*Note: If only one reasonable approach exists, skip this section entirely and go straight to Steps (or Diagrams if needed, then Steps).*
+
+## Diagrams (when workflow or architecture is non-trivial)
+
+Include when the plan has branching workflow, multi-component architecture, or 3+ interacting parts — **before** Steps so the reader sees the map first.
+
+Use mermaid (`flowchart`, `sequenceDiagram`, or `stateDiagram-v2`). One diagram for workflow, one for architecture if both apply. Skip for trivial linear changes.
+
+Example:
+
+\`\`\`mermaid
+flowchart LR
+  Plan[Plan approved] --> Impl[Yui: milestone]
+  Impl --> GC[Sawako: cleanup]
+  GC --> Rev[Mio: review]
+  Rev -->|ok| Next[Next milestone]
+  Rev -->|blocked| Impl
+\`\`\`
 
 ## Steps
 

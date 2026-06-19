@@ -6,6 +6,8 @@ description: Full kon run — Azusa explores, Mugi writes a plan, Yui implements
 
 Hand the task to the full team. From first look to code review, each member handles their part.
 
+**Shared principle (design → impl → review):** **First principles** and **simplicity** are the highest priority at every stage. Prefer the most straightforward solution that solves the actual problem.
+
 ## Usage
 
 ```

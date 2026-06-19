@@ -8,6 +8,15 @@ description: This skill should be used when performing code review on a diff (wh
 **Owner Agent**: Mio (Reviewer)
 **Consumers**: `/kon:team` (Mio reviews Yui's diff), `/kon:review` (Mio reviews external PR / branch)
 
+## Highest priority: first principles + simplicity
+
+**These two rank above everything else in review** — above conventions, pattern-matching, and "looks complete."
+
+1. **Think from first principles** — What problem does this change actually solve? Does every piece trace back to that problem, or is it inherited complexity / cargo-cult?
+2. **Simple, easy to understand, straightforward** — Can a new reader grasp the change in one pass? Prefer direct logic over indirection, layers, and clever abstractions.
+
+When trade-offs are close, **simplicity wins**. Block designs that add complexity without a first-principles justification.
+
 ## Core stance: default BLOCKED
 
 **Verdict starts at BLOCKED.** The implementer must convince you otherwise.
@@ -29,11 +38,12 @@ These do **not** count as convincing:
 Every review must walk through every item. Output explicitly marks `[x]` or `[ ]` per item.
 
 ### 1. Simplest correct implementation
-The solution solves the problem without unnecessary complexity.
+The solution solves the problem without unnecessary complexity — **first principles + readability are the bar**.
+- Start from the actual problem; reject layers that don't trace back to a requirement
 - No over-engineering or premature abstractions
 - No defensive bloat (try/except or null-checks for impossible cases)
 - No unexplained magic numbers or strings
-- Direct, readable logic flow
+- Direct, readable logic flow — a new reader should grasp it in one pass
 
 ### 2. Requirement coverage
 Each acceptance criterion from the plan/rubric has a corresponding implementation visible in the diff.

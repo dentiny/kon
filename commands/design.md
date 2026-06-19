@@ -10,6 +10,8 @@ and Mugi must respond point-by-point.
 
 Stops after plan approval — hand off to `/kon:team` when ready to implement.
 
+**Design principle (highest priority):** Plans must be **first-principles grounded** and **simple / straightforward**. Mugi and Azusa-challenge both optimize for this before debating finer trade-offs.
+
 ## Usage
 
 ```

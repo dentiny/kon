@@ -105,7 +105,7 @@ def test_debug_default_pending() -> None:
         )
         data = _load_session(sessions, sid)
         assert data["command"] == "/kon:debug"
-        assert data["steps_pending"] == ["Azusa", "Yui", "Mio", "Nodoka"]
+        assert data["steps_pending"] == ["Azusa", "Mugi", "User", "Yui", "Mio", "Nodoka"]
         assert data["status"] == "in_progress"
 
 

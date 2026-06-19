@@ -96,20 +96,16 @@ Orchestrator writes this after Azusa, before Mugi:
 ## Fix Proposals
 <Mugi fills this section — multiple approaches with trade-offs>
 
-### Approach 1: <name>
-**Changes**: ...
-**Pros**: ...
-**Cons**: ...
-**Risk**: Low/Medium/High
-
-### Approach 2: <name>
-**Changes**: ...
-**Pros**: ...
-**Cons**: ...
-**Risk**: Low/Medium/High
+| Aspect | Approach 1: <name> | Approach 2: <name> | Approach 3: <name> |
+|--------|-------------------|-------------------|-------------------|
+| **Changes** | <what needs to change> | <what needs to change> | <what needs to change> |
+| **Pros** | • <advantage 1><br>• <advantage 2> | • <advantage 1><br>• <advantage 2> | • <advantage 1><br>• <advantage 2> |
+| **Cons** | • <disadvantage 1><br>• <disadvantage 2> | • <disadvantage 1><br>• <disadvantage 2> | • <disadvantage 1><br>• <disadvantage 2> |
+| **Risk** | Low/Medium/High | Low/Medium/High | Low/Medium/High |
+| **Complexity** | Low/Medium/High | Low/Medium/High | Low/Medium/High |
 
 ### Recommended: Approach X
-**Reasoning**: ...
+**Reasoning**: <why this approach is best given the context, risk tolerance, and maintainability goals>
 
 ## Acceptance
 - [ ] `pytest path::test_name` passes

@@ -29,7 +29,7 @@ Behavior stays exactly the same after a gc pass.
 3. **🧹 Sawako** — execute the confirmed removals / simplifications.
    Every removal must be verified (no dynamic callers, no export references).
 
-4. **📝 Mio** — lightweight review (`mode=quick`, 4-item subset).
+4. **📝 Mio** — lightweight review (`mode=quick`, 3-item subset).
    Focus: nothing behavioral changed, no unsafe patterns introduced.
 
 5. **Manual testing** — User verifies tests still pass after cleanup.

@@ -4,7 +4,7 @@ description: Code review only — Mio runs strict-review on uncommitted or stage
 
 # /kon:review
 
-Review code changes without implementing. 📝 Mio applies the full 9-item checklist from
+Review code changes without implementing. 📝 Mio applies the full 7-item golden checklist from
 [`skills/strict-review`](../skills/strict-review/SKILL.md) on the current diff.
 
 **Default scope:** uncommitted changes (`git diff HEAD` + untracked files listed in summary).

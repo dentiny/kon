@@ -12,6 +12,8 @@ Stops after plan approval — hand off to `/kon:team` when ready to implement.
 
 **Design principle (highest priority):** Plans must be **first-principles grounded** and **simple / straightforward**. Mugi and Azusa-challenge both optimize for this before debating finer trade-offs.
 
+**Complex workflow or architecture?** Mugi's plan should include **mermaid diagrams** in a `## Diagrams` section — see `agents/Mugi.md`.
+
 **Unclear requirements?** Ask — put open items in `## Decisions needed` or stop and ask the user. Follow [`skills/ask-dont-guess`](../skills/ask-dont-guess/SKILL.md).
 
 ## Usage

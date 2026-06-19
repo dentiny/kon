@@ -5,20 +5,20 @@ description: This skill should be used when orchestrating the full kon teammate 
 
 # Teammate Flow
 
-**Consumers**: [`/kon:go`](https://github.com/dentiny/kon/blob/main/commands/go.md), [`/kon:team`](https://github.com/dentiny/kon/blob/main/commands/team.md).
+**Consumers**: [`/kon:team`](https://github.com/dentiny/kon/blob/main/commands/team.md).
 
 Teammate-flow defines the shared workflow skeleton for the five-person kon team —
-from exploration to implementation to review to verification.
+from exploration to implementation to review.
 Each agent owns their segment; the orchestrator strings them together.
 
-## Shared flow (Sequential segment)
+## Shared flow (Full pipeline)
 
-These four steps are required in order for both `/kon:go` and `/kon:team`:
+These steps are required in order for `/kon:team`:
 
 0. **Plan reuse check** — if `.kon/plan-<SESSION_ID>.md` exists (or the most recent `.kon/plan-*.md`
    for cross-session reuse after `/kon:design`), read it and ask the user once: reuse or re-plan?
    Skip Azusa + Mugi on reuse (unless user chooses re-plan).
-   See [`commands/go.md`](../commands/go.md#plan-reuse-after-kondesign).
+   See [`commands/team.md`](../commands/team.md#plan-reuse-after-kondesign).
 1. **🎸 Azusa** + optional **📚 Jun** (parallel when task needs external docs) — see
    [`skills/external-research`](external-research/SKILL.md). Jun writes `.kon/research.md`.
 2. **🍰 Mugi** — structure the work into `.kon/plan-<SESSION_ID>.md` (read `.kon/research.md` if present).
@@ -31,19 +31,14 @@ These four steps are required in order for both `/kon:go` and `/kon:team`:
    - Update session: set `steps_waiting: ["User"]`, `status=waiting` before waiting for input
 4. **🎶 Yui** — execute the plan steps. "Okay! Starting Step 1."
    - **Only spawn Yui after receiving user confirmation in step 3**
+5. **📝 Mio** — review the changes (follow `skills/strict-review`).
+6. **Manual testing** — After Mio approves, user runs tests themselves.
+   - User verifies the implementation works in their environment
 
-Step 5 onward is command-specific — `/kon:go` is sequential (📝 Mio then 🥁 Ritsu),
-`/kon:team` is parallel (📝 Mio and 🥁 Ritsu simultaneously).
-
-After Ritsu passes, always call **📋 Nodoka** as the final step to write the session summary.
+After review passes, always call **📋 Nodoka** as the final step to write the session summary.
 Follow [`/kon:summarize`](https://github.com/dentiny/kon/blob/main/commands/summarize.md).
 
 ### Quality checks
-
-Cursor `subagentStop` runs `on_subagent_stop.py` after each Task subagent. For manual backstop,
-pipe output to `hooks/teammate_quality_check.py` with the matching `teammate_role`
-(Azusa, Jun, Mugi, Yui, Mio, Ritsu, Sawako, Nodoka, Azusa-challenge, Mugi-revise).
-Block on failure; retry the agent per [`skills/failure-handling`](failure-handling/SKILL.md).
 
 ## Orchestrator rules
 
@@ -78,23 +73,6 @@ changes from this session, draft a commit message from the diff following
 
 **Do not run `git commit` automatically** — provide the text only, user decides.
 
-### `/kon:go` vs `/kon:team` — which to use
-
-Both have identical review strictness (🔵 Mio full 9 items + 🥁 Ritsu).
-The difference is only in step 5+:
-`/kon:go` is sequential (Mio first, then Ritsu); `/kon:team` is parallel (~30% wall-clock saving).
-
-**Prefer `/kon:team`** when:
-- Scope is clear (boundary defined, no need to discover-while-implementing)
-- Existing test coverage exists
-
-**Prefer `/kon:go`** when:
-- Scope is uncertain, need to discover-while-implementing
-- Impact surface is hard to define upfront (cross-subsystem, complex dependency graph)
-
-When in doubt, don't automatically fall back to go out of "caution" —
-team's parallelism does not sacrifice strictness.
-
 ## Failure handling
 
 See [`skills/failure-handling`](https://github.com/dentiny/kon/blob/main/skills/failure-handling/SKILL.md).
@@ -118,6 +96,7 @@ Confirm flow completes, then the main flow continues — the command step struct
 
 ## Hard rules
 
-- **Never skip 📝 Mio** and hand directly to 🥁 Ritsu
-- **Never treat "tests passed" as equivalent to "review passed"** — Mio blocking is Mio blocking regardless of test results
+- **Never skip 📝 Mio** — code review is mandatory
+- **Mio blocking is final** — if Mio blocks, send back to Yui for fixes
 - **Standards don't relax on round 3** — the checklist is the same from round 1 to round N
+- **No automated testing** — 🥁 Ritsu is not called. User runs tests manually after Mio approves.

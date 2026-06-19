@@ -29,7 +29,7 @@ With an optional rubric (🍰 Mugi writes criteria first):
 
 - **Review only** — verdict + must-fix. Do not edit code.
 - **No unit tests** — Ritsu (verifier) does not run. Review is code analysis only.
-- If the user wants fixes, offer `/kon:quick` or `/kon:go` after Mio finishes.
+- If the user wants fixes, offer `/kon:quick` or `/kon:team` after Mio finishes.
 - Commit/staging cleanliness is not a checklist item — review the diff content only.
 
 ## Flow
@@ -41,7 +41,7 @@ With an optional rubric (🍰 Mugi writes criteria first):
    - `git diff HEAD` (default) or `git diff --cached` (`--staged`)
    - List untracked files relevant to the task so Mio knows what to read
 4. **Orchestrator** — run quality check (`teammate_role: Mio`), update session (`complete-agent` → `completed`), present verdict.
-5. No Ritsu (unless user continues with `/kon:go`). No Nodoka unless `/kon:summarize`.
+5. No automated testing. No Nodoka unless `/kon:summarize`.
 
 ## Orchestrator rules
 
@@ -53,9 +53,9 @@ With an optional rubric (🍰 Mugi writes criteria first):
 
 ## Comparison
 
-| Item | `/kon:review` | `/kon:quick` | `/kon:go` |
+| Item | `/kon:review` | `/kon:quick` | `/kon:team` |
 |------|---------------|--------------|-----------|
 | Mio review | ✅ full (or mode subset) | ✅ 4-item | ✅ full |
 | Yui implement | ❌ | ✅ | ✅ |
-| Ritsu verify | ❌ | Stop hook | ✅ |
+| Testing | ❌ | Manual | Manual |
 | Writes code | ❌ | ✅ | ✅ |

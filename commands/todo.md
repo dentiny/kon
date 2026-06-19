@@ -84,7 +84,7 @@ With `--project /path/to/repo`, only that project's todos are shown.
 
 ## Comparison
 
-| Item | `/kon:todo` | `/kon:go` |
+| Item | `/kon:todo` | `/kon:team` |
 |------|-------------|-----------|
 | Writes code | ❌ | ✅ |
 | Artifact | `.kon/todos.json` | plan + code |

@@ -22,14 +22,14 @@ Examples:
 ```
 /kon:ask how does session tracking write session files?
 /kon:ask where is the Mio review checklist defined?
-/kon:ask what's the difference between kon go and kon team?
+/kon:ask what's the difference between kon team and kon quick?
 ```
 
 ## Scope boundary
 
 - **Questions only** — explain, locate, compare, trace. Do not implement.
 - If the user asks to *change* something, answer what you can read-only, then offer:
-  "Want me to make that change? Use `/kon:quick` for a small fix, `/kon:debug` for a bug, or `/kon:go` for the full pipeline."
+  "Want me to make that change? Use `/kon:quick` for a small fix, `/kon:debug` for a bug, or `/kon:team` for the full pipeline."
 - If the question is outside the repo (runtime state, secrets, external services), say what you cannot verify from the codebase alone and suggest [`/kon:research`](research.md).
 
 ## Flow
@@ -77,7 +77,7 @@ In addition to exploration notes, Azusa must end with a direct answer:
 (Direct response to the user's question — complete sentences, cite paths/lines where useful)
 
 ## If you want to change this
-(One line: suggest `/kon:quick`, `/kon:debug`, or `/kon:go` only when the question implies a change)
+(One line: suggest `/kon:quick`, `/kon:debug`, or `/kon:team` only when the question implies a change)
 ```
 
 ## Orchestrator rules
@@ -92,14 +92,14 @@ In addition to exploration notes, Azusa must end with a direct answer:
 
 ## Comparison
 
-| Item | `/kon:ask` | `/kon:quick` | `/kon:go` |
+| Item | `/kon:ask` | `/kon:quick` | `/kon:team` |
 |------|------------|--------------|-----------|
 | Purpose | Answer questions | Small code change | Full feature/fix |
 | Azusa explore | ✅ (read-only) | ❌ skip | ✅ |
 | Mugi plan | ❌ | ❌ | ✅ |
 | Yui implement | ❌ | ✅ | ✅ |
 | Mio review | ❌ | ✅ lightweight | ✅ full |
-| Ritsu verify | ❌ | ❌ (Stop hook) | ✅ |
+| Testing | ❌ | Manual | Manual |
 | File changes in repo | ❌ none | ✅ | ✅ |
 | Session tracking | ✅ | ✅ | ✅ |
 | Nodoka summarize | ❌ | ✅ | ✅ |

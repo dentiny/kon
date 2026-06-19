@@ -29,7 +29,7 @@ Use that path exactly. Fall back to `.kon/plan.md` only if no `PLAN_FILE` or `SE
 
 | Caller | Writes | To |
 |--------|--------|----|
-| `/kon:go` / `/kon:team` / `/kon:quick` (default) | implementation plan | `.kon/plan-<session-id>.md` |
+| `/kon:team` / `/kon:quick` (default) | implementation plan | `.kon/plan-<session-id>.md` |
 | `/kon:design` (revise pass) | plan revision + debate responses | `.kon/plan-<session-id>.md` + `.kon/design-debate-<session-id>.md` |
 | `/kon:review` | review rubric | `.kon/review-rubric.md` |
 | `/kon:describe-pr` | PR title + description draft | (no file — returned directly to orchestrator) |

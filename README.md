@@ -115,7 +115,7 @@ adapters/
 ```
 
 Each harness needs only a thin adapter that defines:
-1. How the user invokes a workflow (**slash commands**: `/kon:go`, `/kon:ask`, …)
+1. How the user invokes a workflow (**slash commands**: `/kon:team`, `/kon:ask`, …)
 2. How to pass agent file content to subagents
 3. How to invoke the hook scripts (optional)
 
@@ -147,14 +147,13 @@ Then in Cursor chat (slash commands):
 
 ```
 /kon:begin
-/kon:go add email validation to auth.py
+/kon:team add email validation to auth.py
 /kon:quick fix the typo in README line 42
 /kon:debug dashboard renderSession shows undefined for session dots
 /kon:ask how does session tracking work?
 /kon:research what Cursor hook events support followup_message?
 /kon:review
 /kon:todo add rate limiting to the API
-/kon:team refactor the payment module
 /kon:design add rate limiting to the API
 ```
 
@@ -231,7 +230,7 @@ a decision with no default, or scope expansion required.
 
 ### Session lifecycle
 
-Pipeline commands (`/kon:go`, `/kon:team`, `/kon:debug`, …) stay **open** after agents finish — they move to `waiting` (yellow) until you close them with **✓** or `/kon:finish`.
+Pipeline commands (`/kon:team`, `/kon:debug`, …) stay **open** after agents finish — they move to `waiting` (yellow) until you close them with **✓** or `/kon:finish`.
 
 **Interactive mode:** `/kon:begin` opens one session; follow-up messages need no `/kon:` prefix — the orchestrator routes by intent. Close with `/kon:finish`.
 

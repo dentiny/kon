@@ -26,8 +26,8 @@ Examples:
 ## Scope boundary
 
 - **Lookup only** — find, cite, summarize. Do not implement.
-- If the answer requires reading **our** code, say so and suggest `/kon:ask` or `/kon:go`.
-- If the user wants to **build** from the findings, offer `/kon:go` after Jun finishes.
+- If the answer requires reading **our** code, say so and suggest `/kon:ask` or `/kon:team`.
+- If the user wants to **build** from the findings, offer `/kon:team` after Jun finishes.
 
 ## Flow
 
@@ -49,7 +49,7 @@ Examples:
 
 ## Comparison
 
-| Item | `/kon:research` | `/kon:ask` | `/kon:go` |
+| Item | `/kon:research` | `/kon:ask` | `/kon:team` |
 |------|-----------------|------------|-----------|
 | Agent | 📚 Jun | 🎸 Azusa | full team |
 | Primary source | web / docs | repo | repo + optional Jun |

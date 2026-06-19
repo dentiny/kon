@@ -430,37 +430,6 @@ def check_yui(out: str) -> None:
     emit("approve", "Yui (Implementer) output contains file path references")
 
 
-def check_ritsu(out: str) -> None:
-    if not re.search(r"exit\s+[0-9]+", out):
-        emit(
-            "block",
-            "Ritsu (Verifier) reported no exit code. "
-            "Run the actual command and report exit code — PASS/FAIL based on vibes is not acceptable.",
-        )
-
-    verdict_match = re.search(r"\b(PASS|FAIL)\b", out)
-    if not verdict_match:
-        emit("block", "Ritsu (Verifier) gave no final verdict (PASS / FAIL).")
-        return
-    verdict = verdict_match.group(1)
-
-    hedge_patterns = [
-        r"should\s+work",
-        r"looks?\s+good",
-        r"probably\s+fine",
-        r"seems\s+ok",
-    ]
-    for pattern in hedge_patterns:
-        if re.search(pattern, out, re.IGNORECASE):
-            emit(
-                "block",
-                "Ritsu (Verifier) used hedging language ('should work' / 'looks good' etc.). "
-                "Only exit codes speak — run the command.",
-            )
-
-    emit("approve", f"Ritsu (Verifier) verification result is complete (verdict={verdict})")
-
-
 def check_sawako(out: str) -> None:
     _require_file_paths(
         out,
@@ -510,9 +479,6 @@ ROLE_HANDLERS = {
     "Mio": check_mio,
     "reviewer": check_mio,
     "Reviewer": check_mio,
-    "Ritsu": check_ritsu,
-    "verifier": check_ritsu,
-    "Verifier": check_ritsu,
     "Yui": check_yui,
     "implementer": check_yui,
     "Implementer": check_yui,

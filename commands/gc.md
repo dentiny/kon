@@ -1,5 +1,5 @@
 ---
-description: Garbage-collect the codebase — Sawako identifies dead code, redundant comments, and bloated docs, presents an inventory for user confirmation, then cleans up. Mio reviews, Ritsu verifies nothing broke.
+description: Garbage-collect the codebase — Sawako identifies dead code, redundant comments, and bloated docs, presents an inventory for user confirmation, then cleans up. Mio reviews.
 ---
 
 # /kon:gc
@@ -32,12 +32,13 @@ Behavior stays exactly the same after a gc pass.
 4. **📝 Mio** — lightweight review (`mode=quick`, 4-item subset).
    Focus: nothing behavioral changed, no unsafe patterns introduced.
 
-5. **🥁 Ritsu** — run tests. A clean gc pass must not break anything.
+5. **Manual testing** — User verifies tests still pass after cleanup.
 
 ## Invariant
 
 **No behavior changes.** If tests fail after a gc pass, Sawako went too far.
 The cleanup must be reverted to the last clean state and re-scoped.
+User runs tests manually after Mio approves to verify nothing broke.
 
 ## Failure handling
 
@@ -48,4 +49,4 @@ See [`skills/failure-handling`](https://github.com/dentiny/kon/blob/main/skills/
 - **Narration:** use 🌸 Ui for opening/closing beats. Follow [`skills/narration`](https://github.com/dentiny/kon/blob/main/skills/narration/SKILL.md).
 - **Always show the inventory first** — never let Sawako silently delete things
 - **User confirmation is required** before Sawako executes (no auto-proceed)
-- **Do not skip Ritsu** — a gc pass that silently breaks tests is worse than no gc at all
+- **Remind user to test** — a gc pass that silently breaks tests is worse than no gc at all

@@ -18,7 +18,7 @@ All paths below use `$KON_ROOT/...`.
 When the user invokes a **slash command**:
 
 - `/kon:begin [goal]`
-- `/kon:go <task>`, `/kon:team <task>`, `/kon:design <task>`, `/kon:quick <task>`
+- `/kon:go <task>`, `/kon:team <task>`, `/kon:design <task>`, `/kon:quick <task>`, `/kon:debug <bug>`
 - `/kon:research <question>`
 - `/kon:review`
 - `/kon:todo <task>`
@@ -57,13 +57,14 @@ For `/kon:todo`: read `commands/todo.md`, run `scripts/kon_todo.py` directly —
    - `/kon:team` → `$KON_ROOT/commands/team.md`
    - `/kon:design` → `$KON_ROOT/commands/design.md` + `$KON_ROOT/skills/design-debate/SKILL.md`
    - `/kon:quick` → `$KON_ROOT/commands/quick.md`
+   - `/kon:debug` → `$KON_ROOT/commands/debug.md`
    - `/kon:research` → `$KON_ROOT/commands/research.md`
    - `/kon:review` → `$KON_ROOT/commands/review.md`
    - `/kon:todo` → `$KON_ROOT/commands/todo.md`
    - `/kon:ask` → `$KON_ROOT/commands/ask.md`
    - `/kon:gc` → `$KON_ROOT/commands/gc.md`
 
-3. Read `$KON_ROOT/skills/teammate-flow/SKILL.md` — **skip for `/kon:ask`, `/kon:research`, and `/kon:review`**. For `/kon:design`, also read design-debate. For go/team/design external lookup, read `skills/external-research/SKILL.md`.
+3. Read `$KON_ROOT/skills/teammate-flow/SKILL.md` — **skip for `/kon:ask`, `/kon:research`, and `/kon:review`**. For `/kon:debug`, follow `commands/debug.md` (no Mugi; Mio + Ritsu parallel). For `/kon:design`, also read design-debate. For go/team/design external lookup, read `skills/external-research/SKILL.md`.
 
 4. For each agent step, spawn a subagent. Include the agent file as the subagent's
    system context in the prompt:

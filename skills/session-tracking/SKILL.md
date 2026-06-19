@@ -62,7 +62,7 @@ in_progress  →  waiting  →  completed
 - `completed` — user ran `/kon:finish` / dashboard ✓, **or** one-shot command finished (`/kon:ask`, `/kon:research`, `/kon:review`), **or** superseded by a newer session
 - `blocked` — retry limit hit, something needs human intervention
 
-**Never auto-set `completed` for pipeline commands** (`/kon:go`, `/kon:team`, `/kon:quick`, `/kon:gc`, `/kon:design`). When their agents finish, set `status=waiting`.
+**Never auto-set `completed` for pipeline commands** (`/kon:go`, `/kon:team`, `/kon:quick`, `/kon:debug`, `/kon:gc`, `/kon:design`). When their agents finish, set `status=waiting`.
 
 **Auto-complete one-shot commands** when the sole agent finishes: `/kon:ask`, `/kon:research`, `/kon:review` → set `status=completed` (via `complete-agent`).
 
@@ -136,6 +136,15 @@ Ask is read-only for the repo but still tracks a session:
 
 - On create: `command: "/kon:ask"`, `steps_pending: ["Azusa"]`, other agent lists empty
 - After Azusa answers: `steps_completed: ["Azusa"]`, `status=completed` (via `complete-agent`), log entry with one-sentence summary of the answer topic
+
+### `/kon:debug` variant
+
+Bug investigation — repro before fix, no Mugi plan:
+
+- On create: `command: "/kon:debug"`, `steps_pending: ["Azusa", "Yui", "Mio", "Ritsu", "Nodoka"]`
+- Orchestrator writes `.kon/debug-<session-id>.md` after Azusa, before Yui
+- Mio + Ritsu run in parallel (same merge rules as `/kon:team`)
+- After all agents: `status=waiting` (pipeline — not auto-completed)
 
 ### `/kon:design` variant
 

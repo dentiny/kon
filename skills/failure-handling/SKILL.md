@@ -1,13 +1,14 @@
 ---
 name: failure-handling
-description: This skill should be used when handling failures in go-class command flows — Mio blocking with NEEDS_CHANGES / BLOCKED, Ritsu test failures, and infinite-loop protection for repeated same must-fix or same test ID. Applies to /kon:go, /kon:quick, /kon:team.
+description: This skill should be used when handling failures in go-class command flows — Mio blocking with NEEDS_CHANGES / BLOCKED, Ritsu test failures, and infinite-loop protection for repeated same must-fix or same test ID. Applies to /kon:go, /kon:quick, /kon:team, /kon:debug.
 ---
 
 # Failure Handling
 
 **Consumers**: [`/kon:go`](https://github.com/dentiny/kon/blob/main/commands/go.md),
 [`/kon:quick`](https://github.com/dentiny/kon/blob/main/commands/quick.md),
-[`/kon:team`](https://github.com/dentiny/kon/blob/main/commands/team.md).
+[`/kon:team`](https://github.com/dentiny/kon/blob/main/commands/team.md),
+[`/kon:debug`](https://github.com/dentiny/kon/blob/main/commands/debug.md).
 
 ### Mio blocks (NEEDS_CHANGES / BLOCKED)
 

@@ -47,7 +47,7 @@ Process follows the skill specified by the caller:
 
 | Caller | Skill | Used for |
 |--------|-------|----------|
-| `/kon:go` / `/kon:team` / `/kon:quick` / `/kon:review` | [`skills/strict-review`](https://github.com/dentiny/kon/blob/main/skills/strict-review/SKILL.md) | Code review (default BLOCKED, 9-item checklist) |
+| `/kon:go` / `/kon:team` / `/kon:quick` / `/kon:debug` / `/kon:review` | [`skills/strict-review`](https://github.com/dentiny/kon/blob/main/skills/strict-review/SKILL.md) | Code review (default BLOCKED, 9-item checklist) |
 
 The skill file is the source of truth. This file holds Mio's **personality**.
 

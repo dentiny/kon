@@ -95,6 +95,20 @@ def test_active_begin() -> None:
         assert active == sid
 
 
+def test_debug_default_pending() -> None:
+    tmp, project, env, sessions = _isolated_env()
+    with tmp:
+        sid = _run(
+            ["init", "--command", "/kon:debug", "--task", "dashboard undefined dots"],
+            env,
+            project,
+        )
+        data = _load_session(sessions, sid)
+        assert data["command"] == "/kon:debug"
+        assert data["steps_pending"] == ["Azusa", "Yui", "Mio", "Ritsu", "Nodoka"]
+        assert data["status"] == "in_progress"
+
+
 @pytest.mark.parametrize(
     ("command", "agent", "task"),
     [

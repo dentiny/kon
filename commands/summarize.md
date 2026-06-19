@@ -5,7 +5,7 @@ description: Write a clean session summary. Called automatically at the end of e
 # /kon:summarize
 
 Have Nodoka write a complete session report for the current (or specified) session.
-Called automatically at the end of every `/kon:go`, `/kon:team`, `/kon:quick`, and `/kon:gc` run.
+Called automatically at the end of every `/kon:go`, `/kon:team`, `/kon:quick`, `/kon:debug`, and `/kon:gc` run.
 Can also be called manually to (re)summarize any session.
 
 ## Usage
@@ -25,6 +25,7 @@ Can also be called manually to (re)summarize any session.
 2. **📋 Nodoka** — read session artifacts and write the summary:
    - Reads the session JSON (agent log)
    - Reads `.kon/plan-<session-id>.md` if it exists (fall back to `.kon/plan.md`)
+   - Reads `.kon/debug-<session-id>.md` if it exists (debug sessions)
    - Reads `git diff HEAD` for the actual diff
    - Writes summary alongside the session JSON in `~/.kon/projects/<repo-name>/sessions/<id>-summary.md`
    - Updates `summary_path` field in the session JSON
@@ -33,7 +34,7 @@ Can also be called manually to (re)summarize any session.
 
 ## When called automatically
 
-Every `kon go`, `kon team`, `kon quick`, and `kon gc` run calls `/kon:summarize`
+Every `kon go`, `kon team`, `kon quick`, `kon debug`, and `kon gc` run calls `/kon:summarize`
 as its final step, after Ritsu passes. No additional user action needed.
 
 ## Orchestrator rules

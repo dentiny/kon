@@ -73,6 +73,8 @@ def _default_pending(command: str) -> list[str]:
         return []
     if c == "/kon:design":
         return ["Azusa", "Mugi", "User"]
+    if c == "/kon:debug":
+        return ["Azusa", "Yui", "Mio", "Ritsu", "Nodoka"]
     return []
 
 

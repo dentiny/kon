@@ -21,6 +21,7 @@ The summary goes into `~/.kon/projects/<repo-name>/sessions/<id>-summary.md` and
 
 - Session JSON under `~/.kon/projects/<repo-name>/sessions/<id>.json` — agent log from this session
 - `.kon/plan-<session-id>.md` — original plan for this session (fall back to `.kon/plan.md` if missing)
+- `.kon/debug-<session-id>.md` — debug notes for `/kon:debug` sessions
 - `git diff HEAD` or `git diff --staged` — actual changes made
 - Any notes from Mio's review or Ritsu's test output in the session log
 

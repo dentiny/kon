@@ -41,10 +41,7 @@ from _kon_paths import (  # noqa: E402
 
 _KON_CMD = re.compile(r"/kon:([\w-]+)(?:\s+(.*))?", re.DOTALL)
 _SKIP_COMMANDS = frozenset({"/kon:finish"})
-# Plain follow-ups during /kon:begin reuse the open session — do not init again.
-_IN_BEGIN_SKIP = frozenset(
-    {"/kon:ask", "/kon:research", "/kon:review", "/kon:go", "/kon:quick", "/kon:design"}
-)
+_BEGIN_COMMAND = "/kon:begin"
 _LOG_NAME = "init_kon_session"
 _CURSOR_DIR = (Path.home() / ".cursor").resolve()
 
@@ -272,7 +269,7 @@ def main() -> None:
             print(json.dumps({"continue": True}))
             return
 
-        if command in _IN_BEGIN_SKIP and _active_begin_id(workspace):
+        if command != _BEGIN_COMMAND and _active_begin_id(workspace):
             _log(f"command={command} workspace={workspace} reuse begin session")
             print(json.dumps({"continue": True}))
             return

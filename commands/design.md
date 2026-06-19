@@ -23,8 +23,8 @@ Stops after plan approval — hand off to `/kon:go` or `/kon:team` when ready to
 ```
 optional 📚 Jun (external docs, parallel with Azusa — see skills/external-research)
   → 🎸 Azusa explore
-  → 🍰 Mugi plan v1 (.kon/plan.md)
-  → 🎸 Azusa challenge (.kon/design-debate.md)
+  → 🍰 Mugi plan v1 (.kon/plan-<session-id>.md)
+  → 🎸 Azusa challenge (.kon/design-debate-<session-id>.md)
   → 🍰 Mugi revise (plan v2 + response table)
   → [ --deep only: Azusa challenge R2 → Mugi revise R2 ]
   → user confirms plan
@@ -61,11 +61,11 @@ When plan is ready for user review: set `steps_waiting: ["User"]`, `status=waiti
 | Step | Agent file | Extra context |
 |------|-----------|---------------|
 | Explore | `agents/Azusa.md` | — |
-| Plan v1 | `agents/Mugi.md` | — |
-| Challenge | `agents/Azusa-challenge.md` | `skills/design-debate/SKILL.md` |
-| Revise | `agents/Mugi.md` | `skills/design-debate/SKILL.md` — revise mode |
-| Challenge R2 | `agents/Azusa-challenge.md` | same (`--deep` only) |
-| Revise R2 | `agents/Mugi.md` | same (`--deep` only) |
+| Plan v1 | `agents/Mugi.md` | `PLAN_FILE: .kon/plan-<SESSION_ID>.md` |
+| Challenge | `agents/Azusa-challenge.md` | `skills/design-debate/SKILL.md` + `PLAN_FILE` |
+| Revise | `agents/Mugi.md` | `skills/design-debate/SKILL.md` — revise mode + `PLAN_FILE` |
+| Challenge R2 | `agents/Azusa-challenge.md` | same (`--deep` only) + `PLAN_FILE` |
+| Revise R2 | `agents/Mugi.md` | same (`--deep` only) + `PLAN_FILE` |
 
 ## Comparison
 
@@ -77,7 +77,7 @@ When plan is ready for user review: set `steps_waiting: ["User"]`, `status=waiti
 | Design debate | ✅ | ❌ | ❌ |
 | Yui implement | ❌ | ✅ | ❌ |
 | Mio / Ritsu | ❌ | ✅ | ❌ |
-| Artifacts | `.kon/plan.md`, `.kon/design-debate.md` | `.kon/plan.md` + code | none in repo |
+| Artifacts | `.kon/plan-<sid>.md`, `.kon/design-debate-<session-id>.md` | `.kon/plan-<sid>.md` + code | none in repo |
 
 ## After design
 
@@ -88,4 +88,4 @@ When the user approves the plan:
 /kon:team <task>     # parallel review + verify
 ```
 
-Orchestrator should offer to reuse `.kon/plan.md` instead of re-running Azusa + Mugi.
+Orchestrator should offer to reuse the existing plan file (`.kon/plan-<session-id>.md`) instead of re-running Azusa + Mugi.

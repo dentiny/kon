@@ -15,12 +15,13 @@ Each agent owns their segment; the orchestrator strings them together.
 
 These four steps are required in order for both `/kon:go` and `/kon:team`:
 
-0. **Plan reuse check** — if `.kon/plan.md` exists, read it and ask the user once: reuse or re-plan?
+0. **Plan reuse check** — if `.kon/plan-<SESSION_ID>.md` exists (or the most recent `.kon/plan-*.md`
+   for cross-session reuse after `/kon:design`), read it and ask the user once: reuse or re-plan?
    Skip Azusa + Mugi on reuse (unless user chooses re-plan). With `--yolo`, auto-reuse when the plan
    matches the current task. See [`commands/go.md`](../commands/go.md#plan-reuse-after-kondesign).
 1. **🎸 Azusa** + optional **📚 Jun** (parallel when task needs external docs) — see
    [`skills/external-research`](external-research/SKILL.md). Jun writes `.kon/research.md`.
-2. **🍰 Mugi** — structure the work into `.kon/plan.md` (read `.kon/research.md` if present).
+2. **🍰 Mugi** — structure the work into `.kon/plan-<SESSION_ID>.md` (read `.kon/research.md` if present).
 3. **User confirms plan** (if there are open questions, resolve them before continuing)
 4. **🎶 Yui** — execute the plan steps. "Okay! Starting Step 1."
 
@@ -51,6 +52,10 @@ Follow [`skills/narration`](https://github.com/dentiny/kon/blob/main/skills/narr
 - After each agent finishes, give the user one-line summary (not a full paste).
 - No skipping steps. Even for small tasks, every step runs.
 - At the end, give a final summary: which files changed, test result, any unresolved issues.
+- **Pass `PLAN_FILE` to every agent that reads or writes the plan** (Mugi, Yui, Nodoka,
+  Azusa-challenge). Include this line in the task prompt:
+  `PLAN_FILE: .kon/plan-<SESSION_ID>.md`
+  where `SESSION_ID` is the same ID used for session tracking.
 
 ### Commit message draft
 

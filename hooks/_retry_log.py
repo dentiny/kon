@@ -17,6 +17,20 @@ import json
 from pathlib import Path
 
 
+def retry_limit_warning(
+    over_limit: dict[str, int], limit: int, actor: str, items_description: str
+) -> str:
+    """Format a human-readable retry-limit warning string."""
+    lines = "\n".join(f"  - {k} ({c} times)" for k, c in sorted(over_limit.items()))
+    return (
+        f"WARNING: RETRY LIMIT REACHED{actor}: the following {items_description} "
+        f">= {limit} consecutive times — "
+        f"consider stopping and asking the user:\n"
+        f"{lines}\n"
+        f"See skills/failure-handling for the infinite-loop protection rule."
+    )
+
+
 def record_and_count(log_path: Path, keys: set[str], entry_key: str) -> dict[str, int]:
     """Append `keys` to the JSONL `log_path`; return total count per key.
 
@@ -38,7 +52,7 @@ def record_and_count(log_path: Path, keys: set[str], entry_key: str) -> dict[str
                         counts[k] = counts.get(k, 0) + 1
                 except json.JSONDecodeError:
                     pass  # corrupted line — skip, don't crash
-        ts = datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+        ts = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         new_entry = json.dumps({"ts": ts, entry_key: sorted(keys)}, ensure_ascii=False)
         with log_path.open("a", encoding="utf-8") as f:
             f.write(new_entry + "\n")

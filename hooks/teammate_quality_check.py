@@ -9,15 +9,14 @@ Blocks when output is non-compliant; fail-open on malformed input or unknown rol
 
 from __future__ import annotations
 
-import json
 import os
 import re
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _hook_io import emit  # noqa: E402
-from _retry_log import record_and_count  # noqa: E402
+from _hook_io import emit, read_hook_stdin  # noqa: E402
+from _retry_log import record_and_count, retry_limit_warning  # noqa: E402
 
 MIO_RETRY_LIMIT = 2
 _RETRY_LOG_BASE = Path(".kon")
@@ -53,14 +52,7 @@ _NEXT_HEADING_RE = re.compile(r"^##\s+", re.MULTILINE)
 
 
 def _extract_mio_must_fix_keys(out: str) -> set[str]:
-    """Extract must-fix keys from Mio output.
-
-    Strategy:
-    1. If a '## Must-fix' section exists, extract bullet items from that section only.
-    2. Otherwise, fall back to lines containing the 'must-fix' keyword.
-    For each item: backtick file path (with :line stripped) is the key;
-    if none, use normalized text (lowercase, whitespace collapsed, max 80 chars).
-    """
+    """Extract unique keys from Mio's must-fix items."""
     heading_match = _MUST_FIX_HEADING_RE.search(out)
     if heading_match:
         section_start = heading_match.end()
@@ -86,16 +78,6 @@ def _extract_mio_must_fix_keys(out: str) -> set[str]:
             if normalized:
                 keys.add(normalized)
     return keys
-
-
-def _mio_log_path(cwd: Path) -> Path:
-    log_dir = cwd / _RETRY_LOG_BASE
-    log_dir.mkdir(parents=True, exist_ok=True)
-    return log_dir / "mio-must-fix.jsonl"
-
-
-def _mio_record_and_count(log_path: Path, keys: set[str]) -> dict[str, int]:
-    return record_and_count(log_path, keys, "must_fix_keys")
 
 
 MEMORY_HEADER_RE = re.compile(r"##\s+Loaded memory entries", re.IGNORECASE)
@@ -165,11 +147,12 @@ def check_mugi(out: str) -> None:
         emit("approve", "Mugi (Planner) PR draft structure is complete")
 
     # plan / review mode: output written to .kon/ files
-    if not re.search(r"\.kon/(plan|review-rubric)\.md", out):
+    # Accept session-scoped plan files (.kon/plan-<sid>.md) as well as the legacy .kon/plan.md
+    if not re.search(r"\.kon/(plan(-[a-z0-9-]+)?|review-rubric)\.md", out):
         emit(
             "block",
             "Mugi (Planner) output does not reference "
-            ".kon/plan.md or .kon/review-rubric.md. "
+            ".kon/plan-<session-id>.md or .kon/review-rubric.md. "
             "Write the plan / rubric to that file and report it.",
         )
     if not re.search(
@@ -189,10 +172,10 @@ CHALLENGE_ID_RE = re.compile(r"^###\s+C\d+:", re.MULTILINE)
 
 def check_azusa_challenge(out: str) -> None:
     require_memory_header(out, "Azusa (Challenge)")
-    if not re.search(r"\.kon/design-debate\.md", out):
+    if not re.search(r"\.kon/design-debate(-[a-z0-9-]+)?\.md", out):
         emit(
             "block",
-            "Azusa (Challenge) output must reference `.kon/design-debate.md`. "
+            "Azusa (Challenge) output must reference `.kon/design-debate-<session-id>.md`. "
             "Write challenges there under `## Round N — Azusa challenges`.",
         )
     challenges = CHALLENGE_ID_RE.findall(out)
@@ -202,27 +185,27 @@ def check_azusa_challenge(out: str) -> None:
             "Azusa (Challenge) must raise at least 3 concrete challenges (C1, C2, C3…). "
             f"Found {len(challenges)}.",
         )
-    if re.search(r"\.kon/plan\.md", out) and re.search(
-        r"(edit|update|rewrite).+\.kon/plan\.md", out, re.IGNORECASE
+    if re.search(r"\.kon/plan(-[a-z0-9-]+)?\.md", out) and re.search(
+        r"(edit|update|rewrite).+\.kon/plan(-[a-z0-9-]+)?\.md", out, re.IGNORECASE
     ):
         emit(
             "block",
-            "Azusa (Challenge) must not edit `.kon/plan.md` — challenges only.",
+            "Azusa (Challenge) must not edit the plan file — challenges only.",
         )
     emit("approve", "Azusa (Challenge) output structure is complete")
 
 
 def check_mugi_revise(out: str) -> None:
     require_memory_header(out, "Mugi (Revise)")
-    if not re.search(r"\.kon/plan\.md", out):
+    if not re.search(r"\.kon/plan(-[a-z0-9-]+)?\.md", out):
         emit(
             "block",
-            "Mugi (Revise) must update `.kon/plan.md` and reference it in output.",
+            "Mugi (Revise) must update the plan file and reference it in output.",
         )
-    if not re.search(r"\.kon/design-debate\.md", out):
+    if not re.search(r"\.kon/design-debate(-[a-z0-9-]+)?\.md", out):
         emit(
             "block",
-            "Mugi (Revise) must fill the response table in `.kon/design-debate.md`.",
+            "Mugi (Revise) must fill the response table in `.kon/design-debate-<session-id>.md`.",
         )
     if not re.search(r"\|\s*C\d+\s*\|", out):
         emit(
@@ -312,17 +295,19 @@ def check_mio(out: str) -> None:
         cwd = Path(os.getcwd()).resolve()
         keys = _extract_mio_must_fix_keys(out)
         if keys:
-            counts = _mio_record_and_count(_mio_log_path(cwd), keys)
+            log_dir = cwd / _RETRY_LOG_BASE
+            log_dir.mkdir(parents=True, exist_ok=True)
+            counts = record_and_count(log_dir / "mio-must-fix.jsonl", keys, "must_fix_keys")
             over_limit = {k: c for k, c in counts.items() if k in keys and c >= MIO_RETRY_LIMIT}
             if over_limit:
-                lines = "\n".join(f"  - {k} ({c} times)" for k, c in sorted(over_limit.items()))
                 emit(
                     "block",
-                    f"WARNING: RETRY LIMIT REACHED (Mio): the following must-fix items "
-                    f"have been flagged >= {MIO_RETRY_LIMIT} consecutive times — "
-                    f"consider stopping and asking the user:\n"
-                    f"{lines}\n"
-                    f"See skills/failure-handling for the infinite-loop protection rule.",
+                    retry_limit_warning(
+                        over_limit,
+                        MIO_RETRY_LIMIT,
+                        " (Mio)",
+                        "must-fix items have been flagged",
+                    ),
                 )
 
     emit("approve", f"Mio (Reviewer) output is compliant (verdict={verdict})")
@@ -429,16 +414,19 @@ FILE_PATH_RE = re.compile(
 )
 
 
+def _require_file_paths(out: str, role: str, purpose: str) -> None:
+    if not FILE_PATH_RE.search(_URL_RE.sub("", out)):
+        emit("block", f"{role} output contains no file path references. {purpose}")
+
+
 def check_yui(out: str) -> None:
-    stripped = _URL_RE.sub("", out)
-    if not FILE_PATH_RE.search(stripped):
-        emit(
-            "block",
-            "Yui (Implementer) output contains no file path references. "
-            "The implementer must explicitly name which files were changed — "
-            "'done' without a file path is not enough. "
-            "Example: `hooks/teammate_quality_check.py`, `tests/test_auth.py`.",
-        )
+    _require_file_paths(
+        out,
+        "Yui (Implementer)",
+        "The implementer must explicitly name which files were changed — "
+        "'done' without a file path is not enough. "
+        "Example: `hooks/teammate_quality_check.py`, `tests/test_auth.py`.",
+    )
     emit("approve", "Yui (Implementer) output contains file path references")
 
 
@@ -474,13 +462,11 @@ def check_ritsu(out: str) -> None:
 
 
 def check_sawako(out: str) -> None:
-    stripped = _URL_RE.sub("", out)
-    if not FILE_PATH_RE.search(stripped):
-        emit(
-            "block",
-            "Sawako (Cleaner) output contains no file path references. "
-            "The cleanup report must explicitly name which files were changed.",
-        )
+    _require_file_paths(
+        out,
+        "Sawako (Cleaner)",
+        "The cleanup report must explicitly name which files were changed.",
+    )
     if not re.search(
         r"(no behavior|behavior unchanged|no functional|purely (removal|cleanup|simplification)|no logic (was )?changed)",
         out,
@@ -501,13 +487,11 @@ def check_nodoka(out: str) -> None:
             "Nodoka (Summarizer) output is missing required sections. "
             "The summary must include at least ## What was done and ## Changes.",
         )
-    stripped = _URL_RE.sub("", out)
-    if not FILE_PATH_RE.search(stripped):
-        emit(
-            "block",
-            "Nodoka (Summarizer) output contains no file path references. "
-            "The summary must list which files were changed.",
-        )
+    _require_file_paths(
+        out,
+        "Nodoka (Summarizer)",
+        "The summary must list which files were changed.",
+    )
     emit("approve", "Nodoka (Summarizer) output is compliant")
 
 
@@ -542,12 +526,7 @@ ROLE_HANDLERS = {
 
 
 def main() -> None:
-    raw = sys.stdin.read()
-    try:
-        data = json.loads(raw) if raw.strip() else {}
-    except json.JSONDecodeError:
-        emit("approve", "Input is not valid JSON — kon teammate check skipped")
-
+    data = read_hook_stdin()
     role = (data.get("teammate_role") or "").strip()
     output = data.get("teammate_output") or ""
 

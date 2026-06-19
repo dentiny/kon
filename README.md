@@ -35,7 +35,7 @@ python3 $KON_ROOT/scripts/dashboard.py --project /path/to/repo --open  # one pro
 **Sessions** tab — active/past agent runs. **Todos** tab — open items from `.kon/todos.json` (mark done, reopen, delete). Add todos with `/kon:todo <task>`.
 
 Session history lives in `~/.kon/projects/<repo-name>/sessions/` (override with `KON_DATA_DIR`). Project working files
-(`plan.md`, rubrics, todos) stay in `<project>/.kon/`.
+(`plan-<session-id>.md`, rubrics, todos) stay in `<project>/.kon/`.
 
 ### Path configuration
 

@@ -7,13 +7,12 @@ Agents must draft the message and ask the user to run it manually.
 
 from __future__ import annotations
 
-import json
 import shlex
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _hook_io import emit, set_hook_event  # noqa: E402
+from _hook_io import emit, read_hook_stdin, set_hook_event  # noqa: E402
 
 _BLOCKED_SUBCOMMANDS = frozenset({"commit", "push"})
 
@@ -112,12 +111,7 @@ def _shell_command(data: dict) -> str:
 
 
 def main() -> None:
-    raw = sys.stdin.read()
-    try:
-        data = json.loads(raw) if raw.strip() else {}
-    except json.JSONDecodeError:
-        emit("approve", "no_git_write: invalid JSON input — skipping")
-
+    data = read_hook_stdin()
     set_hook_event(data.get("hook_event_name"))
 
     command = _shell_command(data)

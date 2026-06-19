@@ -38,7 +38,7 @@ Run `kon_session.py active` to get the session id.
 
 ### `/kon:ask` — read-only repo, session tracked
 
-For `/kon:ask`: create session JSON first (step 1), then read `commands/ask.md`. Spawn Azusa read-only — no code edits, no `.kon/plan.md`, no mutating shell. Update session after Azusa. Skip teammate-flow / Mio–Ritsu validation.
+For `/kon:ask`: create session JSON first (step 1), then read `commands/ask.md`. Spawn Azusa read-only — no code edits, no plan file, no mutating shell. Update session after Azusa. Skip teammate-flow / Mio–Ritsu validation.
 
 ### `/kon:research` / `/kon:review` — skip teammate-flow
 

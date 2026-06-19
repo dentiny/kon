@@ -35,7 +35,7 @@ If the user says no → run quick anyway. **Don't ask again.**
 
 1. **🎶 Yui** — implement directly (no Azusa explore, no Mugi plan).
    - Yui reads 1-2 surrounding files to pick up conventions, no broad exploration.
-   - No `.kon/plan.md` written.
+   - No plan file written.
 2. **📝 Mio** — lightweight review, 4-item subset only.
 3. **Stop hook runs tests automatically** — no explicit Ritsu call.
 4. **Orchestrator** — after Stop hook green, draft a commit message from the diff

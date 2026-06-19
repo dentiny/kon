@@ -20,7 +20,7 @@ The summary goes into `~/.kon/projects/<repo-name>/sessions/<id>-summary.md` and
 ## What Nodoka reads
 
 - Session JSON under `~/.kon/projects/<repo-name>/sessions/<id>.json` — agent log from this session
-- `.kon/plan.md` — original plan (if it exists; project-local)
+- `.kon/plan-<session-id>.md` — original plan for this session (fall back to `.kon/plan.md` if missing)
 - `git diff HEAD` or `git diff --staged` — actual changes made
 - Any notes from Mio's review or Ritsu's test output in the session log
 

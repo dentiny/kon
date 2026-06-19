@@ -10,9 +10,9 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _hook_io import emit, resolve_hook_cwd, set_hook_event  # noqa: E402
+from _hook_io import emit, format_payload, read_hook_stdin, resolve_hook_cwd, set_hook_event  # noqa: E402
 from _kon_paths import kon_root  # noqa: E402
-from teammate_quality_check import ROLE_HANDLERS  # noqa: E402
+from _token_estimate import SOURCE as USAGE_SOURCE, estimate_tokens_from_transcript  # noqa: E402
 
 # Order matters — more specific roles first.
 _ROLE_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
@@ -70,7 +70,43 @@ def _session_agent_name(role: str) -> str:
     return _ROLE_TO_AGENT.get(role, role)
 
 
-def _complete_open_session(project: str, agent: str, summary: str) -> None:
+def _usage_from_data(data: dict) -> dict | None:
+    transcript = data.get("agent_transcript_path")
+    if isinstance(transcript, str) and transcript.strip():
+        return estimate_tokens_from_transcript(transcript.strip())
+    return None
+
+
+def _quality_block_payload(role: str, output: str) -> dict | None:
+    """Run quality check in a subprocess; return block payload or None if approved."""
+    script = Path(__file__).resolve().parent / "teammate_quality_check.py"
+    proc = subprocess.run(
+        [sys.executable, str(script)],
+        input=json.dumps({"teammate_role": role, "teammate_output": output}),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    out = proc.stdout.strip()
+    if not out:
+        return None
+    try:
+        payload = json.loads(out)
+    except json.JSONDecodeError:
+        return None
+    if payload.get("decision") == "block":
+        reason = str(payload.get("reason") or payload.get("systemMessage") or "blocked")
+        return format_payload("block", reason, event="subagentStop")
+    return None
+
+
+def _patch_open_session_usage(
+    project: str,
+    agent: str,
+    usage: dict | None,
+) -> None:
+    if not usage:
+        return
     root = kon_root()
     script = root / "scripts" / "kon_session.py"
     if not script.is_file():
@@ -84,20 +120,23 @@ def _complete_open_session(project: str, agent: str, summary: str) -> None:
     sid = proc.stdout.strip()
     if not sid:
         return
-    one_line = summary.strip().splitlines()[0][:500] if summary.strip() else f"{agent} finished."
     subprocess.run(
         [
             sys.executable,
             str(script),
             "--project",
             project,
-            "complete-agent",
+            "patch-usage",
             "--id",
             sid,
             "--agent",
             agent,
-            "--summary",
-            one_line,
+            "--input-tokens",
+            str(int(usage["input_tokens"])),
+            "--output-tokens",
+            str(int(usage["output_tokens"])),
+            "--usage-source",
+            str(usage.get("source", USAGE_SOURCE)),
         ],
         capture_output=True,
         text=True,
@@ -106,12 +145,7 @@ def _complete_open_session(project: str, agent: str, summary: str) -> None:
 
 
 def main() -> None:
-    raw = sys.stdin.read()
-    try:
-        data = json.loads(raw) if raw.strip() else {}
-    except json.JSONDecodeError:
-        emit("approve", "on_subagent_stop: invalid JSON input — skipping")
-
+    data = read_hook_stdin()
     set_hook_event(data.get("hook_event_name") or "subagentStop")
 
     status = str(data.get("status") or "completed")
@@ -126,15 +160,15 @@ def main() -> None:
     if not output.strip():
         emit("approve", f"{role}: empty subagent output — skipping quality check")
 
-    handler = ROLE_HANDLERS.get(role)
-    if handler is None:
-        emit("approve", f"{role}: no quality spec — passing by default")
-
-    handler(output)
+    block_payload = _quality_block_payload(role, output)
+    if block_payload:
+        sys.stdout.write(json.dumps(block_payload, ensure_ascii=False) + "\n")
+        sys.exit(0)
 
     project = resolve_hook_cwd(data)
     agent = _session_agent_name(role)
-    _complete_open_session(project, agent, output)
+    _patch_open_session_usage(project, agent, _usage_from_data(data))
+    emit("approve", f"{role}: quality check passed")
 
 
 if __name__ == "__main__":

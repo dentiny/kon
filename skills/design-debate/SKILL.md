@@ -15,14 +15,14 @@ Each round is a separate Task spawn with the agent file + this skill in context.
 | Phase | Agent | Mode | Writes |
 |-------|-------|------|--------|
 | Explore | 🎸 Azusa | default | nothing (report only) |
-| Plan v1 | 🍰 Mugi | default | `.kon/plan.md` |
-| Challenge | 🎸 Azusa | **challenge** | `.kon/design-debate.md` (challenges section) |
-| Revise | 🍰 Mugi | **revise** | `.kon/plan.md` + `.kon/design-debate.md` (responses) |
+| Plan v1 | 🍰 Mugi | default | `.kon/plan-<session-id>.md` |
+| Challenge | 🎸 Azusa | **challenge** | `.kon/design-debate-<session-id>.md` (challenges section) |
+| Revise | 🍰 Mugi | **revise** | `.kon/plan-<session-id>.md` + `.kon/design-debate-<session-id>.md` (responses) |
 | Confirm | user | — | — |
 
 ## Artifacts
 
-### `.kon/design-debate.md`
+### `.kon/design-debate-<session-id>.md`
 
 Created on first challenge round. Threaded log of argument:
 
@@ -47,10 +47,11 @@ Created on first challenge round. Threaded log of argument:
 ...
 ```
 
-### `.kon/plan.md`
+### `.kon/plan-<session-id>.md`
 
 Mugi writes v1 before debate. After each revise pass, update in place.
 Add `## Debate revisions` at the bottom listing what changed and why (one line per accepted challenge).
+The plan path is passed as `PLAN_FILE` in the agent task prompt.
 
 ## Round limits
 
@@ -66,17 +67,17 @@ Add `## Debate revisions` at the bottom listing what changed and why (one line p
 Spawn Azusa-challenge with:
 - `agents/Azusa-challenge.md`
 - this skill
-- prompt: read `.kon/plan.md` + exploration notes; **do not** rewrite the plan
+- prompt: read the plan file (pass `PLAN_FILE: .kon/plan-<SESSION_ID>.md`) + exploration notes; **do not** rewrite the plan
 
 Azusa MUST:
 - Find **3–7 concrete challenges** (not nitpicks): missing edge cases, convention mismatches, scope creep, untestable steps, hidden dependencies
 - Cite codebase evidence for each (`path:line` or observed convention)
 - Assign stable IDs: `C1`, `C2`, …
-- Write challenges to `.kon/design-debate.md` under `## Round N — Azusa challenges`
+- Write challenges to `.kon/design-debate-<session-id>.md` under `## Round N — Azusa challenges`
 - End with a one-line count: "N challenges raised."
 
 Azusa MUST NOT:
-- Edit `.kon/plan.md`
+- Edit the plan file (`PLAN_FILE`)
 - Propose implementation code
 - Play both sides ("Mugi might say…")
 
@@ -85,12 +86,12 @@ Azusa MUST NOT:
 Spawn Mugi with:
 - `agents/Mugi.md`
 - this skill
-- prompt: read `.kon/plan.md` + `.kon/design-debate.md` latest challenges
+- prompt: read the plan file (pass `PLAN_FILE: .kon/plan-<SESSION_ID>.md`) + `.kon/design-debate-<session-id>.md` latest challenges
 
 Mugi MUST:
 - Respond to **every** challenge ID in the response table
 - Verdict per row: `accepted` | `rejected` | `deferred` (deferred → move to `## Decisions needed`)
-- Update `.kon/plan.md` for all `accepted` items
+- Update the plan file (`PLAN_FILE`) for all `accepted` items
 - Append `## Debate revisions` summarizing accepted changes
 - Write the response table under `## Round N — Mugi responses`
 
@@ -148,10 +149,10 @@ Same as teammate-flow plan gate:
 When user wants to build after design:
 
 ```
-/kon:go <same task>   # or /kon:team — skip Azusa+Mugi if .kon/plan.md exists and user confirms reuse
+/kon:go <same task>   # or /kon:team — skip Azusa+Mugi if a .kon/plan-*.md exists and user confirms reuse
 ```
 
-Orchestrator should read existing `.kon/plan.md` and ask once: "Reuse this plan?" before re-planning.
+Orchestrator should read the existing plan file (`.kon/plan-<SESSION_ID>.md` or most recent `.kon/plan-*.md`) and ask once: "Reuse this plan?" before re-planning.
 
 ### YOLO (`--yolo`)
 

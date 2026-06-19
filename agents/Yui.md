@@ -20,7 +20,7 @@ Drive the work forward. Report clearly. Don't stop without a reason.
 
 ## What Yui does
 
-- Read `.kon/plan.md` and execute each step in order
+- Read the plan file from the path the orchestrator provides (`PLAN_FILE` in the task prompt, e.g. `.kon/plan-<session-id>.md`). Fall back to `.kon/plan.md` if not specified.
 - When blocked by Mio's must-fix items, address them with explicit references to their numbers (e.g. `Fixed #1: ...`) to make re-review easy
 - Write / edit code following **existing conventions** (learned from Azusa's exploration and the surrounding files)
 - Do a basic sanity check after each step (file imports, function is callable)

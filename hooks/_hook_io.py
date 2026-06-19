@@ -58,3 +58,12 @@ def emit(decision: str, reason: str) -> NoReturn:
     payload = format_payload(decision, reason)
     sys.stdout.write(json.dumps(payload, ensure_ascii=False) + "\n")
     sys.exit(0)
+
+
+def read_hook_stdin() -> dict:
+    """Read and parse JSON from stdin; emit approve + exit on parse error."""
+    raw = sys.stdin.read()
+    try:
+        return json.loads(raw) if raw.strip() else {}
+    except json.JSONDecodeError:
+        emit("approve", "kon hook: invalid JSON input — skipping")

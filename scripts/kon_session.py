@@ -8,10 +8,12 @@ import datetime
 import json
 import re
 import sys
+from collections.abc import Iterator
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "hooks"))
 from _kon_paths import ensure_sessions_dir, iter_sessions_dirs, resolve_project_path  # noqa: E402
+from _token_estimate import SOURCE as USAGE_SOURCE  # noqa: E402
 
 _BEGIN_COMMAND = "/kon:begin"
 
@@ -21,6 +23,11 @@ _EPHEMERAL_COMMANDS = frozenset({"/kon:ask", "/kon:research", "/kon:review"})
 
 def _utcnow() -> datetime.datetime:
     return datetime.datetime.now(datetime.timezone.utc)
+
+
+def _ts() -> str:
+    """Current UTC time as ISO-8601 string."""
+    return _utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def _slug(task: str) -> str:
@@ -69,31 +76,47 @@ def _default_pending(command: str) -> list[str]:
     return []
 
 
+def iter_session_files(
+    project: str | None,
+    *,
+    status: frozenset[str] | None = None,
+    command: str | None = None,
+    exclude_sid: str | None = None,
+) -> Iterator[tuple[Path, dict]]:
+    """Yield (path, data) for every valid session matching the filters."""
+    project_path = str(resolve_project_path(project))
+    for directory in iter_sessions_dirs(project):
+        for path in directory.glob("*.json"):
+            if exclude_sid and path.stem == exclude_sid:
+                continue
+            try:
+                data = json.loads(path.read_text(encoding="utf-8"))
+            except (json.JSONDecodeError, OSError):
+                continue
+            if data.get("project_path") != project_path:
+                continue
+            if status is not None and data.get("status") not in status:
+                continue
+            if command is not None and data.get("command") != command:
+                continue
+            yield path, data
+
+
 def _find_open_session(
     project: str | None,
     *,
     command: str | None = None,
 ) -> tuple[Path, dict] | None:
     """Most recent open session for this project (optionally filtered by command)."""
-    project_path = str(resolve_project_path(project))
     best: tuple[Path, dict] | None = None
     best_key = ""
-    for directory in iter_sessions_dirs(project):
-        for path in directory.glob("*.json"):
-            try:
-                data = json.loads(path.read_text(encoding="utf-8"))
-            except (json.JSONDecodeError, OSError):
-                continue
-            if command is not None and data.get("command") != command:
-                continue
-            if data.get("project_path") != project_path:
-                continue
-            if data.get("status") not in ("in_progress", "waiting"):
-                continue
-            key = data.get("started_at") or data.get("id") or ""
-            if key >= best_key:
-                best_key = key
-                best = (path, data)
+    for path, data in iter_session_files(
+        project, status=frozenset({"in_progress", "waiting"}), command=command
+    ):
+        key = data.get("started_at") or data.get("id") or ""
+        if key >= best_key:
+            best_key = key
+            best = (path, data)
     return best
 
 
@@ -112,44 +135,43 @@ def _terminal_status_when_agents_done(command: str) -> str:
 
 def _supersede_open_sessions(project: str | None, new_sid: str) -> None:
     """Close other in_progress/waiting sessions for this project when a new run starts."""
-    project_path = str(resolve_project_path(project))
-    ts = _utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
-    for directory in iter_sessions_dirs(project):
-        for path in directory.glob("*.json"):
-            if path.stem == new_sid:
-                continue
-            try:
-                data = json.loads(path.read_text(encoding="utf-8"))
-            except (json.JSONDecodeError, OSError):
-                continue
-            if data.get("project_path") != project_path:
-                continue
-            if data.get("status") not in ("in_progress", "waiting"):
-                continue
-            data["status"] = "completed"
-            data["current_agent"] = None
-            log = data.get("log") or []
-            log.append(
-                {
-                    "ts": ts,
-                    "agent": "System",
-                    "summary": f"Superseded by new session {new_sid}.",
-                }
-            )
-            data["log"] = log
-            _save(path, data)
+    ts = _ts()
+    for path, data in iter_session_files(
+        project,
+        status=frozenset({"in_progress", "waiting"}),
+        exclude_sid=new_sid,
+    ):
+        data["status"] = "completed"
+        data["current_agent"] = None
+        log = data.get("log") or []
+        log.append(
+            {
+                "ts": ts,
+                "agent": "System",
+                "summary": f"Superseded by new session {new_sid}.",
+            }
+        )
+        data["log"] = log
+        _save(path, data)
 
 
 def cmd_init(args: argparse.Namespace) -> None:
-    sid = _utcnow().strftime("%Y%m%d-%H%M%S") + "-" + _slug(args.task)
     command = _normalize_command(args.command)
+    active_begin = _find_active_begin(args.project)
+    if active_begin is not None and command != _BEGIN_COMMAND:
+        _, data = active_begin
+        raise SystemExit(
+            f"refusing init during active /kon:begin session {data['id']}: "
+            "reuse that id (`kon_session.py active`)"
+        )
+    sid = _utcnow().strftime("%Y%m%d-%H%M%S") + "-" + _slug(args.task)
     pending = args.pending if args.pending is not None else _default_pending(command)
     data = {
         "id": sid,
         "task": args.task,
         "command": command,
         "project_path": str(resolve_project_path(args.project)),
-        "started_at": _utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "started_at": _ts(),
         "status": "in_progress",
         "current_agent": None,
         "steps_completed": [],
@@ -160,6 +182,7 @@ def cmd_init(args: argparse.Namespace) -> None:
     }
     if command == _BEGIN_COMMAND:
         data["mode"] = "interactive"
+        data["turns"] = []
     path = ensure_sessions_dir(args.project) / f"{sid}.json"
     _save(path, data)
     _supersede_open_sessions(args.project, sid)
@@ -178,6 +201,23 @@ def cmd_start_agent(args: argparse.Namespace) -> None:
     _save(path, data)
 
 
+def _recompute_usage_totals(data: dict) -> None:
+    totals: dict[str, int | str] = {}
+    for entry in data.get("log") or []:
+        usage = entry.get("usage")
+        if not usage:
+            continue
+        for key in ("input_tokens", "output_tokens", "total_tokens"):
+            value = usage.get(key)
+            if value is not None:
+                totals[key] = int(totals.get(key, 0)) + int(value)
+    if totals:
+        totals["source"] = USAGE_SOURCE
+        data["usage_totals"] = totals
+    else:
+        data.pop("usage_totals", None)
+
+
 def cmd_complete_agent(args: argparse.Namespace) -> None:
     path, data = _load(args.id, args.project)
     agent = args.agent
@@ -190,7 +230,6 @@ def cmd_complete_agent(args: argparse.Namespace) -> None:
         pending.remove(agent)
     data["steps_pending"] = pending
     data["current_agent"] = None
-    pending = data.get("steps_pending") or []
     waiting = data.get("steps_waiting") or []
     failed = data.get("steps_failed") or []
     if not pending and not waiting and not failed:
@@ -198,7 +237,7 @@ def cmd_complete_agent(args: argparse.Namespace) -> None:
     log = data.get("log") or []
     log.append(
         {
-            "ts": _utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "ts": _ts(),
             "agent": agent,
             "summary": args.summary,
         }
@@ -207,12 +246,40 @@ def cmd_complete_agent(args: argparse.Namespace) -> None:
     _save(path, data)
 
 
+def cmd_patch_usage(args: argparse.Namespace) -> None:
+    """Attach estimated token usage to the latest log entry for an agent."""
+    path, data = _load(args.id, args.project)
+    agent = args.agent
+    log = data.get("log") or []
+
+    target_idx = None
+    for i in range(len(log) - 1, -1, -1):
+        if log[i].get("agent") == agent:
+            target_idx = i
+            break
+    if target_idx is None:
+        return
+
+    input_tokens = int(args.input_tokens or 0)
+    output_tokens = int(args.output_tokens or 0)
+    usage = {
+        "input_tokens": input_tokens,
+        "output_tokens": output_tokens,
+        "total_tokens": input_tokens + output_tokens,
+        "source": args.usage_source or USAGE_SOURCE,
+    }
+    log[target_idx]["usage"] = usage
+    data["log"] = log
+    _recompute_usage_totals(data)
+    _save(path, data)
+
+
 def cmd_log_turn(args: argparse.Namespace) -> None:
     path, data = _load(args.id, args.project)
     log = data.get("log") or []
     log.append(
         {
-            "ts": _utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "ts": _ts(),
             "agent": args.agent,
             "summary": args.summary,
         }
@@ -220,6 +287,10 @@ def cmd_log_turn(args: argparse.Namespace) -> None:
     data["log"] = log
     if data.get("command") == _BEGIN_COMMAND:
         data["status"] = "in_progress"
+        if args.agent == "User":
+            turns = data.get("turns") or []
+            turns.append({"n": len(turns) + 1, "summary": args.summary})
+            data["turns"] = turns
     _save(path, data)
 
 
@@ -268,6 +339,17 @@ def main() -> None:
     done.add_argument("--agent", required=True)
     done.add_argument("--summary", required=True)
     done.set_defaults(func=cmd_complete_agent)
+
+    patch_usage = sub.add_parser(
+        "patch-usage",
+        help="Attach token usage to the latest log entry for an agent",
+    )
+    patch_usage.add_argument("--id", required=True)
+    patch_usage.add_argument("--agent", required=True)
+    patch_usage.add_argument("--input-tokens", type=int, default=None)
+    patch_usage.add_argument("--output-tokens", type=int, default=None)
+    patch_usage.add_argument("--usage-source", default=None)
+    patch_usage.set_defaults(func=cmd_patch_usage)
 
     log_turn = sub.add_parser(
         "log-turn",

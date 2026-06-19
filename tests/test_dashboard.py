@@ -64,3 +64,9 @@ def test_delete_session_removes_json_and_summary() -> None:
         assert not legacy_json.exists()
         assert not legacy_summary.exists()
         assert len(deleted) >= 2
+
+
+def test_dashboard_html_includes_token_usage_ui() -> None:
+    assert "function fmtUsageBadge(" in dashboard._HTML
+    assert "tok (est.)" in dashboard._HTML
+    assert "usage-chip" in dashboard._HTML

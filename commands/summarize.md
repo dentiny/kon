@@ -24,7 +24,7 @@ Can also be called manually to (re)summarize any session.
 
 2. **📋 Nodoka** — read session artifacts and write the summary:
    - Reads the session JSON (agent log)
-   - Reads `.kon/plan.md` if it exists (project-local)
+   - Reads `.kon/plan-<session-id>.md` if it exists (fall back to `.kon/plan.md`)
    - Reads `git diff HEAD` for the actual diff
    - Writes summary alongside the session JSON in `~/.kon/projects/<repo-name>/sessions/<id>-summary.md`
    - Updates `summary_path` field in the session JSON

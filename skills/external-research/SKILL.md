@@ -44,7 +44,7 @@ Use when the user asks a lookup question without intending to implement yet.
 ## Handoff to Mugi
 
 When both ran: Mugi reads `.kon/research.md` (if present) alongside Azusa's exploration
-before writing `.kon/plan.md`. Add a `## External context` section in the plan summarizing
+before writing the plan file (`.kon/plan-<session-id>.md`). Add a `## External context` section in the plan summarizing
 Jun's recommendations — do not paste raw URLs; link to `.kon/research.md`.
 
 ## Orchestrator rules

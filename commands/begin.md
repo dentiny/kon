@@ -27,12 +27,21 @@ Or click **✓** on the dashboard card. Same as closing any open session.
 
 ## Flow
 
-1. **Orchestrator** — create session:
+1. **Orchestrator** — check for an existing begin session **before** calling `init`:
    ```bash
-   python3 $KON_ROOT/scripts/kon_session.py init \
-     --command "/kon:begin" --task "<goal or interactive session>"
+   python3 $KON_ROOT/scripts/kon_session.py active
+   # prints session id if one is already open, else empty
    ```
-   `steps_pending` is empty; `status=in_progress` until `/kon:finish`.
+   - If a session id is printed → **reuse it**. Do **not** call `init`. The `init_kon_session` hook
+     already created the session on `beforeSubmitPrompt`; a second `init` would supersede it.
+   - If empty → create one:
+     ```bash
+     python3 $KON_ROOT/scripts/kon_session.py init \
+       --command "/kon:begin" --task "<goal or interactive session>"
+     ```
+
+   `steps_pending` is empty; `mode=interactive`; `status=in_progress` until `/kon:finish`.
+   A `turns: []` list is also initialised — each User `log-turn` adds a dot to the dashboard bar.
 
 2. **Orchestrator** — confirm: "Interactive session started. Talk normally — `/kon:finish` when done."
 
@@ -41,7 +50,7 @@ Or click **✓** on the dashboard card. Same as closing any open session.
    - **Do not** call `init` again — reuse the active begin session id
    - Route intent → spawn agents → `log-turn` / `complete-agent` on **same** session id
 
-4. **Explicit `/kon:*` during begin** — still works (escape hatch). Prefer not to; `/kon:finish` always closes the begin session.
+4. **Explicit `/kon:*` during begin** — route on the same begin session id (`log-turn` + workflow). Only `/kon:finish` closes it. Never `init` while `active` prints an id.
 
 ## Session rules
 
@@ -66,4 +75,5 @@ Or click **✓** on the dashboard card. Same as closing any open session.
 
 - **Narration:** 🌸 Ui opening/closing per [`skills/narration`](../skills/narration/SKILL.md)
 - **Skip teammate-flow** for the begin command itself — read interactive-session for routing
-- Check active session: `python3 $KON_ROOT/scripts/kon_session.py active`
+- **Always** run `active` before `init` — the hook may have already created the session
+- Each user message: `log-turn --agent User --summary "<paraphrase>"` — this auto-adds a turn dot to the dashboard bar

@@ -61,5 +61,5 @@ Examples:
 To implement from findings:
 
 ```
-/kon:go <task>    # orchestrator may reuse .kon/research.md; Jun skipped if still valid
+/kon:team <task>    # orchestrator may reuse .kon/research.md; Jun skipped if still valid
 ```

@@ -28,7 +28,7 @@ optional 📚 Jun (external docs, parallel with Azusa — see skills/external-re
   → 🍰 Mugi revise (plan v2 + response table)
   → [ --deep only: Azusa challenge R2 → Mugi revise R2 ]
   → STOP: orchestrator waits for user to approve plan
-  → session status=waiting (user must run /kon:go or /kon:team to implement)
+  → session status=waiting (user must run /kon:team to implement)
 ```
 
 Debate protocol: [`skills/design-debate`](https://github.com/dentiny/kon/blob/main/skills/design-debate/SKILL.md).
@@ -50,10 +50,10 @@ When plan is ready for user review: set `steps_waiting: ["User"]`, `status=waiti
 
 ## Orchestrator rules
 
-- Read [`skills/teammate-flow`](https://github.com/dentiny/kon/blob/main/skills/teammate-flow/SKILL.md) for narration, session, and YOLO — but **only steps 1–3** (explore → plan → user confirm). Skip Yui/Mio/Ritsu/Nodoka unless user asks.
+- Read [`skills/teammate-flow`](https://github.com/dentiny/kon/blob/main/skills/teammate-flow/SKILL.md) for narration, session, and YOLO — but **only steps 1–3** (explore → plan → user confirm). Skip Yui/Sawako/Mio/Nodoka unless user asks.
 - **Spawn Task subagents** for explore, plan, challenge, and revise — never play both sides yourself.
 - **Model inheritance:** Do NOT pass `model` parameter when spawning subagents — let them inherit parent's model
-- **No unit tests** — Ritsu (verifier) does not run in design phase. Tests are manual in `/kon:team`.
+- **No unit tests** — automated testing does not run in design phase. Tests are manual in `/kon:team`.
 - **Design stops after debate** — After Mugi's final revision, present summary and STOP. Set `status=waiting`. Do NOT proceed to implementation. User must explicitly run `/kon:team` to implement.
 - After Azusa challenge and Mugi revise, run `teammate_quality_check.py` with roles `Azusa-challenge` and `Mugi-revise`.
 - Present the user a short summary: challenge count, accepted/rejected/deferred, open decisions.
@@ -89,7 +89,6 @@ When the user approves the plan:
 
 ```
 /kon:team <task>       # full team workflow
-/kon:go <task>         # alias for /kon:team
 ```
 
 Orchestrator should offer to reuse the existing plan file (`.kon/plan-<session-id>.md`) instead of re-running Azusa + Mugi.

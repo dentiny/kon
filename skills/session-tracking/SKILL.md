@@ -34,13 +34,13 @@ Example: `20260617-203042-add-email-validation`
 {
   "id": "20260617-203042-add-email-validation",
   "task": "add email validation to auth.py",
-  "command": "/kon:go",
+  "command": "/kon:team",
   "project_path": "/Users/you/projects/myapp",
   "started_at": "2026-06-17T20:30:42Z",
   "status": "in_progress",
   "current_agent": "Yui",
   "steps_completed": ["Azusa", "Mugi"],
-  "steps_pending": ["Mio", "Ritsu"],
+  "steps_pending": ["Sawako", "Mio", "Nodoka"],
   "log": [
     {"ts": "2026-06-17T20:30:43Z", "agent": "Azusa", "summary": "Found 3 relevant files in auth/"},
     {"ts": "2026-06-17T20:31:10Z", "agent": "Mugi",  "summary": "Plan written, 4 steps, 0 decisions needed"},
@@ -58,7 +58,7 @@ in_progress  →  waiting  →  completed
 ```
 
 - `in_progress` — agents are actively running
-- `waiting` — pipeline commands finished (`/kon:go`, `/kon:team`, …) — stays open until user acts
+- `waiting` — pipeline commands finished (`/kon:team`, …) — stays open until user acts
 - `completed` — user ran `/kon:finish` / dashboard ✓, **or** one-shot command finished (`/kon:ask`, `/kon:research`, `/kon:review`), **or** superseded by a newer session
 - `blocked` — retry limit hit, something needs human intervention
 
@@ -74,13 +74,13 @@ in_progress  →  waiting  →  completed
 {
   "id": "...",
   "task": "...",
-  "command": "/kon:go",
+  "command": "/kon:team",
   "project_path": "/absolute/path/to/project",
   "started_at": "...",
   "status": "in_progress | waiting | completed | blocked",
   "current_agent": "Yui | null",
   "steps_completed": ["Azusa", "Mugi"],
-  "steps_pending":   ["Mio", "Ritsu", "Nodoka"],
+  "steps_pending":   ["Sawako", "Mio", "Nodoka"],
   "steps_failed":    [],
   "steps_waiting":   [],
   "log": [...]
@@ -139,16 +139,15 @@ Ask is read-only for the repo but still tracks a session:
 
 ### `/kon:debug` variant
 
-Bug investigation — repro before fix, no Mugi plan:
+Bug investigation — repro before fix, Mugi proposes fix approaches:
 
-- On create: `command: "/kon:debug"`, `steps_pending: ["Azusa", "Yui", "Mio", "Ritsu", "Nodoka"]`
-- Orchestrator writes `.kon/debug-<session-id>.md` after Azusa, before Yui
-- Mio + Ritsu run in parallel (same merge rules as `/kon:team`)
+- On create: `command: "/kon:debug"`, `steps_pending: ["Azusa", "Mugi", "User", "Yui", "Sawako", "Mio", "Nodoka"]`
+- Orchestrator writes `.kon/debug-<session-id>.md` after Azusa, before Mugi
 - After all agents: `status=waiting` (pipeline — not auto-completed)
 
 ### `/kon:design` variant
 
-Design runs explore → plan → debate rounds → user confirm (no Yui/Mio/Ritsu):
+Design runs explore → plan → debate rounds → user confirm (no Yui/Mio/Sawako):
 
 - On create: `command: "/kon:design"`, `steps_pending: ["Azusa", "Mugi", "User"]`
 - Log **each** agent spawn including repeat Azusa/Mugi debate passes (same agent name is OK — log carries round detail)

@@ -23,7 +23,7 @@ The summary goes into `~/.kon/projects/<repo-name>/sessions/<id>-summary.md` and
 - `.kon/plan-<session-id>.md` — original plan for this session (fall back to `.kon/plan.md` if missing)
 - `.kon/debug-<session-id>.md` — debug notes for `/kon:debug` sessions
 - `git diff HEAD` or `git diff --staged` — actual changes made
-- Any notes from Mio's review or Ritsu's test output in the session log
+- Any notes from Mio's review in the session log
 
 ## What Nodoka writes
 
@@ -32,7 +32,7 @@ A structured session report at `~/.kon/projects/<repo-name>/sessions/<id>-summar
 ```markdown
 # Session summary: <task>
 
-**Command**: /kon:go / team / quick / gc
+**Command**: /kon:team / quick / gc / debug
 **Status**: completed / blocked
 **Date**: <ISO date>
 

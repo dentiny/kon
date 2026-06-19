@@ -1,5 +1,5 @@
 ---
-description: kon K-On! multi-agent dev workflow. Invoke with "/kon:go", "/kon:ask", etc.
+description: kon K-On! multi-agent dev workflow. Invoke with "/kon:team", "/kon:ask", etc.
 alwaysApply: false
 ---
 
@@ -25,11 +25,10 @@ All paths below use `$KON_ROOT/...`.
 User invokes a **slash command** (kon extension system commands):
 
 - `/kon:begin [goal]` — interactive session; plain chat routed without `/kon:` prefix until `/kon:finish`
-- `/kon:go <task>` — full pipeline (explore → plan → implement → review → verify)
-- `/kon:team <task>` — same, review + verify run in parallel
+- `/kon:team <task>` — full pipeline (explore → plan → milestone impl → cleanup → review)
 - `/kon:design <task>` — explore → plan → multi-agent design debate → user confirms (no implementation)
 - `/kon:quick <task>` — skip explore/plan, lightweight review
-- `/kon:debug <bug>` — reproduce with runtime evidence, then minimal fix (Mio + Ritsu parallel)
+- `/kon:debug <bug>` — investigate root cause, propose fixes, user approves, then minimal fix
 - `/kon:research <question>` — external lookup (📚 Jun, writes `.kon/research.md`)
 - `/kon:review` — code review only (📝 Mio on uncommitted/staged diff)
 - `/kon:todo <task>` — add a project todo (`.kon/todos.json`); manage in dashboard Todos tab
@@ -38,7 +37,7 @@ User invokes a **slash command** (kon extension system commands):
 - `/kon:finish` — mark current session completed
 - `/kon:summarize` — write session summary
 
-Append `--yolo` for autonomous mode: `/kon:go --yolo <task>`.
+Append `--yolo` for autonomous mode: `/kon:team --yolo <task>`.
 
 ## How to run
 
@@ -73,7 +72,7 @@ For `/kon:todo`: read `commands/todo.md`, run `scripts/kon_todo.py` directly —
    When `active` is empty:
    ```bash
    python3 $KON_ROOT/scripts/kon_session.py init --command "/kon:ask" --task "<question>"
-   # other commands: --command "/kon:go" | "/kon:team" | "/kon:design" | "/kon:quick" | "/kon:debug" | "/kon:gc"
+   # other commands: --command "/kon:team" | "/kon:design" | "/kon:quick" | "/kon:debug" | "/kon:gc"
    ```
    Save the printed session ID. After each agent step:
    ```bash
@@ -85,7 +84,6 @@ For `/kon:todo`: read `commands/todo.md`, run `scripts/kon_todo.py` directly —
 
 2. Read the matching workflow file:
    - `/kon:begin` → `$KON_ROOT/commands/begin.md` + `$KON_ROOT/skills/interactive-session/SKILL.md`
-   - `/kon:go` → `$KON_ROOT/commands/go.md`
    - `/kon:team` → `$KON_ROOT/commands/team.md`
    - `/kon:design` → `$KON_ROOT/commands/design.md` + `$KON_ROOT/skills/design-debate/SKILL.md`
    - `/kon:quick` → `$KON_ROOT/commands/quick.md`
@@ -98,7 +96,7 @@ For `/kon:todo`: read `commands/todo.md`, run `scripts/kon_todo.py` directly —
    - `/kon:finish` → `$KON_ROOT/commands/finish.md`
    - `/kon:summarize` → `$KON_ROOT/commands/summarize.md`
 
-3. Read `$KON_ROOT/skills/teammate-flow/SKILL.md` for orchestration rules — **skip for `/kon:ask`, `/kon:research`, and `/kon:review`**. For `/kon:debug`, follow `commands/debug.md` (no Mugi; Mio + Ritsu parallel like team). For `/kon:design`, also read `$KON_ROOT/skills/design-debate/SKILL.md`. For external lookup in go/team/design, also read `$KON_ROOT/skills/external-research/SKILL.md`.
+3. Read `$KON_ROOT/skills/teammate-flow/SKILL.md` for orchestration rules — **skip for `/kon:ask`, `/kon:research`, and `/kon:review`**. For `/kon:debug`, follow `commands/debug.md`. For `/kon:design`, also read `$KON_ROOT/skills/design-debate/SKILL.md`. For external lookup in team/design, also read `$KON_ROOT/skills/external-research/SKILL.md`.
 
 4. For each agent step, spawn a Task subagent. Pass the agent file as context in the prompt:
 
@@ -109,9 +107,8 @@ For `/kon:todo`: read `commands/todo.md`, run `scripts/kon_todo.py` directly —
    | Design challenger | `$KON_ROOT/agents/Azusa-challenge.md` |
    | Planner | `$KON_ROOT/agents/Mugi.md` |
    | Implementer | `$KON_ROOT/agents/Yui.md` |
-   | Reviewer | `$KON_ROOT/agents/Mio.md` + `$KON_ROOT/skills/strict-review/SKILL.md` |
-   | Verifier | `$KON_ROOT/agents/Ritsu.md` |
    | Cleaner | `$KON_ROOT/agents/Sawako.md` |
+   | Reviewer | `$KON_ROOT/agents/Mio.md` + `$KON_ROOT/skills/strict-review/SKILL.md` |
    | Summarizer | `$KON_ROOT/agents/Nodoka.md` |
 
 5. **Quality checks** — Cursor `subagentStop` auto-validates Task subagent output via `on_subagent_stop.py`. Manual backstop (pipe each agent's full output):
@@ -122,9 +119,8 @@ For `/kon:todo`: read `commands/todo.md`, run `scripts/kon_todo.py` directly —
    | 📚 Jun | `Jun` |
    | 🍰 Mugi | `Mugi` |
    | 🎶 Yui | `Yui` |
-   | 📝 Mio | `Mio` |
-   | 🥁 Ritsu | `Ritsu` |
    | 🧹 Sawako | `Sawako` |
+   | 📝 Mio | `Mio` |
    | 📋 Nodoka | `Nodoka` |
    | Design challenge | `Azusa-challenge` |
    | Design revise | `Mugi-revise` |
@@ -134,9 +130,9 @@ For `/kon:todo`: read `commands/todo.md`, run `scripts/kon_todo.py` directly —
      | python3 $KON_ROOT/hooks/teammate_quality_check.py
    ```
 
-   Block on `decision: block` (legacy pipe) or hook `followup_message`; retry the agent.
+   Block on `decision: block` or hook `followup_message`; retry the agent.
 
-6. After Ritsu passes, spawn **📋 Nodoka** — follow `$KON_ROOT/commands/summarize.md` (auto at end of go/team/quick/gc).
+6. After Mio approves all milestones, spawn **📋 Nodoka** — follow `$KON_ROOT/commands/summarize.md` (auto at end of team/quick/gc).
 
 7. Use `$KON_ROOT/skills/narration/SKILL.md` for 🌸 Ui narration beats.
 

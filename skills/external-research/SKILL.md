@@ -1,6 +1,6 @@
 ---
 name: external-research
-description: When to spawn 📚 Jun for external lookup — WebSearch/docs/APIs — vs 🎸 Azusa for codebase exploration. Used by /kon:research, /kon:go, /kon:team, and /kon:design.
+description: When to spawn 📚 Jun for external lookup — WebSearch/docs/APIs — vs 🎸 Azusa for codebase exploration. Used by /kon:research, /kon:team, and /kon:design.
 ---
 
 # External Research

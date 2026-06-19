@@ -52,13 +52,6 @@ entries = [
         "subagentStop",
         {"command": f"python3 {kon_root}/hooks/on_subagent_stop.py"},
     ),
-    (
-        "stop",
-        {
-            "command": f"python3 {kon_root}/hooks/verify_completion.py",
-            "loop_limit": 3,
-        },
-    ),
 ]
 
 if hooks_path.is_file():

@@ -54,10 +54,10 @@ def _save(path: Path, data: dict) -> None:
 
 
 def _normalize_command(command: str) -> str:
-    """Require slash form: /kon:go, /kon:ask, …"""
+    """Require slash form: /kon:team, /kon:ask, …"""
     c = command.strip()
     if not c.startswith("/kon:"):
-        raise SystemExit(f'command must be /kon:<name> (e.g. "/kon:go"), got: {command!r}')
+        raise SystemExit(f'command must be /kon:<name> (e.g. "/kon:team"), got: {command!r}')
     return c
 
 
@@ -326,7 +326,7 @@ def main() -> None:
     sub = parser.add_subparsers(dest="cmd", required=True)
 
     init = sub.add_parser("init", help="Create a new session JSON")
-    init.add_argument("--command", required=True, help='e.g. "/kon:ask", "/kon:go"')
+    init.add_argument("--command", required=True, help='e.g. "/kon:ask", "/kon:team"')
     init.add_argument("--task", required=True, help="Task or question text")
     init.add_argument("--pending", nargs="*", default=None, help="Override steps_pending")
     init.set_defaults(func=cmd_init)

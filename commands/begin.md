@@ -64,7 +64,7 @@ Or click **✓** on the dashboard card. Same as closing any open session.
 
 ## Comparison
 
-| Item | `/kon:begin` + plain chat | `/kon:go <task>` |
+| Item | `/kon:begin` + plain chat | `/kon:team <task>` |
 |------|-------------------------|------------------|
 | Session count | One open session | One shot per command |
 | User syntax | Natural language | Single task string |

@@ -50,7 +50,7 @@ Or click **✓** on the dashboard card. Same as closing any open session.
    - **Do not** call `init` again — reuse the active begin session id
    - Route intent → spawn agents → `log-turn` / `complete-agent` on **same** session id
 
-4. **Explicit `/kon:*` during begin** — still works (escape hatch). Prefer not to; `/kon:finish` always closes the begin session.
+4. **Explicit `/kon:*` during begin** — route on the same begin session id (`log-turn` + workflow). Only `/kon:finish` closes it. Never `init` while `active` prints an id.
 
 ## Session rules
 

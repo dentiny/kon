@@ -24,7 +24,7 @@ Stops after plan approval — hand off to `/kon:go` or `/kon:team` when ready to
 optional 📚 Jun (external docs, parallel with Azusa — see skills/external-research)
   → 🎸 Azusa explore
   → 🍰 Mugi plan v1 (.kon/plan-<session-id>.md)
-  → 🎸 Azusa challenge (.kon/design-debate.md)
+  → 🎸 Azusa challenge (.kon/design-debate-<session-id>.md)
   → 🍰 Mugi revise (plan v2 + response table)
   → [ --deep only: Azusa challenge R2 → Mugi revise R2 ]
   → user confirms plan
@@ -77,7 +77,7 @@ When plan is ready for user review: set `steps_waiting: ["User"]`, `status=waiti
 | Design debate | ✅ | ❌ | ❌ |
 | Yui implement | ❌ | ✅ | ❌ |
 | Mio / Ritsu | ❌ | ✅ | ❌ |
-| Artifacts | `.kon/plan-<sid>.md`, `.kon/design-debate.md` | `.kon/plan-<sid>.md` + code | none in repo |
+| Artifacts | `.kon/plan-<sid>.md`, `.kon/design-debate-<session-id>.md` | `.kon/plan-<sid>.md` + code | none in repo |
 
 ## After design
 

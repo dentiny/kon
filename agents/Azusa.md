@@ -35,7 +35,7 @@ Follow [`skills/memory-loading`](https://github.com/dentiny/kon/blob/main/skills
 
 ## `/kon:design` challenge mode
 
-Use agent file `agents/Azusa-challenge.md` (not this file) — it may write `.kon/design-debate.md` only.
+Use agent file `agents/Azusa-challenge.md` (not this file) — it may write `.kon/design-debate-<session-id>.md` only.
 Follow [`skills/design-debate`](https://github.com/dentiny/kon/blob/main/skills/design-debate/SKILL.md).
 
 ## Voice

@@ -110,11 +110,14 @@ h1 small { color: #8b949e; font-size: 14px; font-weight: 400; margin-left: 10px;
 .log { border-top: 1px solid #21262d; display: none; max-height: 300px; overflow-y: auto; }
 .log.open { display: block; }
 .log-row { display: flex; gap: 10px; padding: 7px 16px; font-size: 12px;
-           border-bottom: 1px solid #21262d; }
+           border-bottom: 1px solid #21262d; align-items: baseline; }
 .log-row:last-child { border-bottom: none; }
 .ts      { color: #484f58; flex-shrink: 0; font-family: monospace; font-size: 11px; }
 .agent   { color: #e6edf3; flex-shrink: 0; width: 68px; }
-.summary { color: #8b949e; }
+.summary { color: #8b949e; flex: 1; min-width: 0; }
+.usage-chip { color: #484f58; flex-shrink: 0; font-family: monospace; font-size: 11px;
+              white-space: nowrap; }
+.usage-chip.row { margin-left: auto; }
 .view-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
 .view-tab { padding: 6px 16px; border-radius: 8px; font-size: 14px; cursor: pointer;
             background: transparent; border: 1px solid #30363d; color: #8b949e; }
@@ -197,6 +200,19 @@ function fmtProject(p) {
   return parts[parts.length - 1] || p;
 }
 
+function fmtTok(n) {
+  if (n == null) return '';
+  if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+  if (n >= 1000) return (n / 1000).toFixed(1) + 'k';
+  return String(n);
+}
+
+function fmtUsageBadge(usage, cls, prefix, suffix) {
+  if (!usage || usage.total_tokens == null) return '';
+  const tip = `${prefix}in ${fmtTok(usage.input_tokens)} · out ${fmtTok(usage.output_tokens)} (estimated)`;
+  return `<span class="usage-chip ${cls}" title="${tip}">${prefix}${fmtTok(usage.total_tokens)}${suffix}</span>`;
+}
+
 function projectBadge(path) {
   if (!path) return '';
   const name = fmtProject(path);
@@ -251,6 +267,7 @@ function renderSession(s) {
       <span class="ts">${fmtTime(e.ts)}</span>
       <span class="agent">${EM[e.agent]||''} ${e.agent}</span>
       <span class="summary">${e.summary}</span>
+      ${fmtUsageBadge(e.usage, 'row', '', ' tok (est.)')}
     </div>`).join('');
   const projectLabel = projectBadge(s.project_path);
   return `
@@ -262,6 +279,7 @@ function renderSession(s) {
         <span class="task" title="${s.task}">${s.task}</span>
         <span class="cmd">${s.command}</span>
         <div class="pipeline">${dots}</div>
+        ${fmtUsageBadge(s.usage_totals, 'hdr', 'Σ ', ' tok')}
         <span class="when">${fmtWhen(s.started_at)}</span>
         <span class="cur-agent">${curLabel}</span>
         ${canClose ? `<button type="button" class="close-btn" title="Mark as done">✓</button>` : ''}

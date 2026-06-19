@@ -129,6 +129,95 @@ class TestOnSubagentStop:
         assert "followup_message" in result
         assert "verdict" in result["followup_message"].lower()
 
+    def test_forwards_usage_from_transcript(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        project = tmp_path / "repo"
+        project.mkdir()
+        data_root = tmp_path / "kon-data"
+        monkeypatch.setenv("KON_DATA_DIR", str(data_root))
+        monkeypatch.setenv("KON_ROOT", str(ROOT))
+
+        sid = subprocess.run(
+            [
+                sys.executable,
+                str(ROOT / "scripts" / "kon_session.py"),
+                "--project",
+                str(project),
+                "init",
+                "--command",
+                "/kon:go",
+                "--task",
+                "usage test",
+            ],
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.strip()
+
+        azusa_output = (
+            "## Loaded memory entries\n(no relevant entries)\n\n"
+            "Explored `scripts/kon_session.py` for session usage fields."
+        )
+        subprocess.run(
+            [
+                sys.executable,
+                str(ROOT / "scripts" / "kon_session.py"),
+                "--project",
+                str(project),
+                "complete-agent",
+                "--id",
+                sid,
+                "--agent",
+                "Azusa",
+                "--summary",
+                azusa_output.splitlines()[0],
+            ],
+            check=True,
+        )
+
+        transcript = tmp_path / "agent.jsonl"
+        transcript.write_text(
+            json.dumps(
+                {
+                    "role": "user",
+                    "message": {"content": [{"type": "text", "text": "x" * 40}]},
+                }
+            )
+            + "\n"
+            + json.dumps(
+                {
+                    "role": "assistant",
+                    "message": {"content": [{"type": "text", "text": azusa_output}]},
+                }
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+
+        _run_hook(
+            "on_subagent_stop.py",
+            {
+                "hook_event_name": "subagentStop",
+                "status": "completed",
+                "cwd": str(project),
+                "task": "Azusa explorer agents/Azusa.md",
+                "summary": azusa_output,
+                "agent_transcript_path": str(transcript),
+            },
+        )
+
+        session = json.loads(
+            (data_root / "projects" / "repo" / "sessions" / f"{sid}.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        usage = session["log"][-1]["usage"]
+        assert usage["input_tokens"] == 10
+        assert usage["output_tokens"] >= 20
+        assert usage["total_tokens"] == usage["input_tokens"] + usage["output_tokens"]
+        assert session["usage_totals"]["total_tokens"] == usage["total_tokens"]
+
 
 class TestTeammateQualityCheck:
     def test_mio_approved(self) -> None:
@@ -209,9 +298,32 @@ class TestTeammateQualityCheck:
                     "### C1: First challenge\nDetails about C1.\n\n"
                     "### C2: Second challenge\nDetails about C2.\n\n"
                     "### C3: Third challenge\nDetails about C3.\n\n"
-                    "Written challenges to `.kon/design-debate.md`."
+                    "Written challenges to `.kon/design-debate-abc123.md`."
                 ),
                 id="azusa_challenge_session_plan_file",
+            ),
+            pytest.param(
+                "Mugi-revise",
+                (
+                    "## Loaded memory entries\n(no relevant entries)\n\n"
+                    "Updated `.kon/plan-some-id.md` with revisions addressing each challenge.\n\n"
+                    "Filled response table in `.kon/design-debate-abc123.md`.\n\n"
+                    "| C1 | First challenge | Accepted |\n"
+                    "| C2 | Second challenge | Revised |\n"
+                ),
+                id="mugi_revise_session_plan_file",
+            ),
+            pytest.param(
+                "Azusa-challenge",
+                (
+                    "## Loaded memory entries\n(no relevant entries)\n\n"
+                    "Reviewing `.kon/plan-abc123.md` for design challenges.\n\n"
+                    "### C1: First challenge\nDetails about C1.\n\n"
+                    "### C2: Second challenge\nDetails about C2.\n\n"
+                    "### C3: Third challenge\nDetails about C3.\n\n"
+                    "Written challenges to `.kon/design-debate.md`."
+                ),
+                id="azusa_challenge_legacy_debate_file",
             ),
             pytest.param(
                 "Mugi-revise",
@@ -222,7 +334,7 @@ class TestTeammateQualityCheck:
                     "| C1 | First challenge | Accepted |\n"
                     "| C2 | Second challenge | Revised |\n"
                 ),
-                id="mugi_revise_session_plan_file",
+                id="mugi_revise_legacy_debate_file",
             ),
         ],
     )
@@ -325,6 +437,46 @@ class TestInitKonSession:
         session = json.loads(files[0].read_text(encoding="utf-8"))
         assert session["command"] == "/kon:review"
         assert session["project_path"] == str(project.resolve())
+
+    def test_skips_init_when_begin_session_open(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        project = tmp_path / "repo"
+        project.mkdir()
+        data_root = tmp_path / "kon-data"
+        monkeypatch.setenv("KON_DATA_DIR", str(data_root))
+        monkeypatch.setenv("KON_ROOT", str(ROOT))
+
+        subprocess.run(
+            [
+                sys.executable,
+                str(ROOT / "scripts" / "kon_session.py"),
+                "--project",
+                str(project),
+                "init",
+                "--command",
+                "/kon:begin",
+                "--task",
+                "interactive",
+            ],
+            check=True,
+        )
+
+        result = _run_hook(
+            "init_kon_session.py",
+            {
+                "prompt": "/kon:go implement feature",
+                "cwd": str(project),
+            },
+        )
+        assert result == {"continue": True}
+
+        sessions_dir = data_root / "projects" / "repo" / "sessions"
+        files = list(sessions_dir.glob("*.json"))
+        assert len(files) == 1
+        data = json.loads(files[0].read_text(encoding="utf-8"))
+        assert data["command"] == "/kon:begin"
+        assert data["status"] == "in_progress"
 
     def test_ensure_project_dir_writes_last_workspace(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch

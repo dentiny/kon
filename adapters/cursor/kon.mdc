@@ -62,6 +62,14 @@ For `/kon:todo`: read `commands/todo.md`, run `scripts/kon_todo.py` directly —
 ### All commands (including ask)
 
 1. **Session file (do this first, before anything else):**
+   **For all other commands** — first check for an open begin session:
+   ```bash
+   python3 $KON_ROOT/scripts/kon_session.py active
+   ```
+   If it prints an ID → **reuse that ID** for `log-turn` / `complete-agent`. **Do not call `init`**
+   (it refuses and would have superseded the begin session). Only `init` when `active` is empty.
+
+   When `active` is empty:
    ```bash
    python3 $KON_ROOT/scripts/kon_session.py init --command "/kon:ask" --task "<question>"
    # other commands: --command "/kon:go" | "/kon:team" | "/kon:design" | "/kon:quick" | "/kon:gc"

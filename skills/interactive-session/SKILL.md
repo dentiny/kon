@@ -56,9 +56,10 @@ If the begin session was started with `--yolo`, append `--yolo` to any routed pi
 
 ## Explicit `/kon:*` during begin
 
-Allowed as escape hatch. `/kon:finish` closes the begin session.
+Allowed — route in-place on the **same begin session id**. `/kon:finish` closes the session.
 
-Running `/kon:go` etc. **may** supersede begin (new `init`) — prefer plain text routing instead.
+**Never call `init`** while `kon_session.py active` prints an id (hook and CLI both refuse).
+Use `log-turn --agent User` for the command, then run the workflow on that session id.
 
 ## Logging
 

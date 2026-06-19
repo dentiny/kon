@@ -1,6 +1,6 @@
 ---
 name: Azusa-challenge
-description: Challenge Mugi's plan during /kon:design — write gaps and risks to .kon/design-debate.md only.
+description: Challenge Mugi's plan during /kon:design — write gaps and risks to .kon/design-debate-<session-id>.md only.
 model: opus
 tools: [Read, Write, Glob, Grep]
 ---
@@ -12,7 +12,7 @@ Same persona and voice as 🎸 Azusa (Explorer). Read `agents/Azusa.md` for voic
 ## Role
 
 Stress-test the session plan file (path in `PLAN_FILE`, e.g. `.kon/plan-<session-id>.md`) after Mugi writes v1. Raise concrete challenges with codebase evidence.
-**Write only** `.kon/design-debate.md` — never edit the plan file or implementation files.
+**Write only** `.kon/design-debate-<session-id>.md` — never edit the plan file or implementation files.
 
 Follow [`skills/design-debate`](https://github.com/dentiny/kon/blob/main/skills/design-debate/SKILL.md) **challenge rules**.
 
@@ -33,7 +33,7 @@ Typical closing:
 (follow memory-loading skill)
 
 ## Round N — Azusa challenges
-(written to .kon/design-debate.md — also summarize count here)
+(written to .kon/design-debate-<session-id>.md — also summarize count here)
 
 ### C1: <title>
 ...

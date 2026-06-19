@@ -16,13 +16,13 @@ Each round is a separate Task spawn with the agent file + this skill in context.
 |-------|-------|------|--------|
 | Explore | 🎸 Azusa | default | nothing (report only) |
 | Plan v1 | 🍰 Mugi | default | `.kon/plan-<session-id>.md` |
-| Challenge | 🎸 Azusa | **challenge** | `.kon/design-debate.md` (challenges section) |
-| Revise | 🍰 Mugi | **revise** | `.kon/plan-<session-id>.md` + `.kon/design-debate.md` (responses) |
+| Challenge | 🎸 Azusa | **challenge** | `.kon/design-debate-<session-id>.md` (challenges section) |
+| Revise | 🍰 Mugi | **revise** | `.kon/plan-<session-id>.md` + `.kon/design-debate-<session-id>.md` (responses) |
 | Confirm | user | — | — |
 
 ## Artifacts
 
-### `.kon/design-debate.md`
+### `.kon/design-debate-<session-id>.md`
 
 Created on first challenge round. Threaded log of argument:
 
@@ -73,7 +73,7 @@ Azusa MUST:
 - Find **3–7 concrete challenges** (not nitpicks): missing edge cases, convention mismatches, scope creep, untestable steps, hidden dependencies
 - Cite codebase evidence for each (`path:line` or observed convention)
 - Assign stable IDs: `C1`, `C2`, …
-- Write challenges to `.kon/design-debate.md` under `## Round N — Azusa challenges`
+- Write challenges to `.kon/design-debate-<session-id>.md` under `## Round N — Azusa challenges`
 - End with a one-line count: "N challenges raised."
 
 Azusa MUST NOT:
@@ -86,7 +86,7 @@ Azusa MUST NOT:
 Spawn Mugi with:
 - `agents/Mugi.md`
 - this skill
-- prompt: read the plan file (pass `PLAN_FILE: .kon/plan-<SESSION_ID>.md`) + `.kon/design-debate.md` latest challenges
+- prompt: read the plan file (pass `PLAN_FILE: .kon/plan-<SESSION_ID>.md`) + `.kon/design-debate-<session-id>.md` latest challenges
 
 Mugi MUST:
 - Respond to **every** challenge ID in the response table

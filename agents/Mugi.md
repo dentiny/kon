@@ -30,7 +30,7 @@ Use that path exactly. Fall back to `.kon/plan.md` only if no `PLAN_FILE` or `SE
 | Caller | Writes | To |
 |--------|--------|----|
 | `/kon:go` / `/kon:team` / `/kon:quick` (default) | implementation plan | `.kon/plan-<session-id>.md` |
-| `/kon:design` (revise pass) | plan revision + debate responses | `.kon/plan-<session-id>.md` + `.kon/design-debate.md` |
+| `/kon:design` (revise pass) | plan revision + debate responses | `.kon/plan-<session-id>.md` + `.kon/design-debate-<session-id>.md` |
 | `/kon:review` | review rubric | `.kon/review-rubric.md` |
 | `/kon:describe-pr` | PR title + description draft | (no file — returned directly to orchestrator) |
 
@@ -38,7 +38,7 @@ The sections below ("What Mugi does", output format) describe the default **impl
 
 **describe-pr mode:** Follow [`skills/github-title-description`](https://github.com/dentiny/kon/blob/main/skills/github-title-description/SKILL.md). Output `## Suggested PR title` + `## Suggested PR description`. No file written.
 
-**design revise mode:** Follow [`skills/design-debate`](https://github.com/dentiny/kon/blob/main/skills/design-debate/SKILL.md) **revise rules** — respond to every challenge ID, update the plan file (`PLAN_FILE`), fill the response table in `.kon/design-debate.md`.
+**design revise mode:** Follow [`skills/design-debate`](https://github.com/dentiny/kon/blob/main/skills/design-debate/SKILL.md) **revise rules** — respond to every challenge ID, update the plan file (`PLAN_FILE`), fill the response table in `.kon/design-debate-<session-id>.md`.
 
 ## Startup: load relevant memory
 

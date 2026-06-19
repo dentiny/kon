@@ -172,10 +172,10 @@ CHALLENGE_ID_RE = re.compile(r"^###\s+C\d+:", re.MULTILINE)
 
 def check_azusa_challenge(out: str) -> None:
     require_memory_header(out, "Azusa (Challenge)")
-    if not re.search(r"\.kon/design-debate\.md", out):
+    if not re.search(r"\.kon/design-debate(-[a-z0-9-]+)?\.md", out):
         emit(
             "block",
-            "Azusa (Challenge) output must reference `.kon/design-debate.md`. "
+            "Azusa (Challenge) output must reference `.kon/design-debate-<session-id>.md`. "
             "Write challenges there under `## Round N — Azusa challenges`.",
         )
     challenges = CHALLENGE_ID_RE.findall(out)
@@ -202,10 +202,10 @@ def check_mugi_revise(out: str) -> None:
             "block",
             "Mugi (Revise) must update the plan file and reference it in output.",
         )
-    if not re.search(r"\.kon/design-debate\.md", out):
+    if not re.search(r"\.kon/design-debate(-[a-z0-9-]+)?\.md", out):
         emit(
             "block",
-            "Mugi (Revise) must fill the response table in `.kon/design-debate.md`.",
+            "Mugi (Revise) must fill the response table in `.kon/design-debate-<session-id>.md`.",
         )
     if not re.search(r"\|\s*C\d+\s*\|", out):
         emit(

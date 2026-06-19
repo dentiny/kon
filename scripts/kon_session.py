@@ -13,6 +13,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "hooks"))
 from _kon_paths import ensure_sessions_dir, iter_sessions_dirs, resolve_project_path  # noqa: E402
+from _token_estimate import SOURCE as USAGE_SOURCE  # noqa: E402
 
 _BEGIN_COMMAND = "/kon:begin"
 
@@ -155,8 +156,15 @@ def _supersede_open_sessions(project: str | None, new_sid: str) -> None:
 
 
 def cmd_init(args: argparse.Namespace) -> None:
-    sid = _utcnow().strftime("%Y%m%d-%H%M%S") + "-" + _slug(args.task)
     command = _normalize_command(args.command)
+    active_begin = _find_active_begin(args.project)
+    if active_begin is not None and command != _BEGIN_COMMAND:
+        _, data = active_begin
+        raise SystemExit(
+            f"refusing init during active /kon:begin session {data['id']}: "
+            "reuse that id (`kon_session.py active`)"
+        )
+    sid = _utcnow().strftime("%Y%m%d-%H%M%S") + "-" + _slug(args.task)
     pending = args.pending if args.pending is not None else _default_pending(command)
     data = {
         "id": sid,
@@ -193,6 +201,23 @@ def cmd_start_agent(args: argparse.Namespace) -> None:
     _save(path, data)
 
 
+def _recompute_usage_totals(data: dict) -> None:
+    totals: dict[str, int | str] = {}
+    for entry in data.get("log") or []:
+        usage = entry.get("usage")
+        if not usage:
+            continue
+        for key in ("input_tokens", "output_tokens", "total_tokens"):
+            value = usage.get(key)
+            if value is not None:
+                totals[key] = int(totals.get(key, 0)) + int(value)
+    if totals:
+        totals["source"] = USAGE_SOURCE
+        data["usage_totals"] = totals
+    else:
+        data.pop("usage_totals", None)
+
+
 def cmd_complete_agent(args: argparse.Namespace) -> None:
     path, data = _load(args.id, args.project)
     agent = args.agent
@@ -218,6 +243,34 @@ def cmd_complete_agent(args: argparse.Namespace) -> None:
         }
     )
     data["log"] = log
+    _save(path, data)
+
+
+def cmd_patch_usage(args: argparse.Namespace) -> None:
+    """Attach estimated token usage to the latest log entry for an agent."""
+    path, data = _load(args.id, args.project)
+    agent = args.agent
+    log = data.get("log") or []
+
+    target_idx = None
+    for i in range(len(log) - 1, -1, -1):
+        if log[i].get("agent") == agent:
+            target_idx = i
+            break
+    if target_idx is None:
+        return
+
+    input_tokens = int(args.input_tokens or 0)
+    output_tokens = int(args.output_tokens or 0)
+    usage = {
+        "input_tokens": input_tokens,
+        "output_tokens": output_tokens,
+        "total_tokens": input_tokens + output_tokens,
+        "source": args.usage_source or USAGE_SOURCE,
+    }
+    log[target_idx]["usage"] = usage
+    data["log"] = log
+    _recompute_usage_totals(data)
     _save(path, data)
 
 
@@ -286,6 +339,17 @@ def main() -> None:
     done.add_argument("--agent", required=True)
     done.add_argument("--summary", required=True)
     done.set_defaults(func=cmd_complete_agent)
+
+    patch_usage = sub.add_parser(
+        "patch-usage",
+        help="Attach token usage to the latest log entry for an agent",
+    )
+    patch_usage.add_argument("--id", required=True)
+    patch_usage.add_argument("--agent", required=True)
+    patch_usage.add_argument("--input-tokens", type=int, default=None)
+    patch_usage.add_argument("--output-tokens", type=int, default=None)
+    patch_usage.add_argument("--usage-source", default=None)
+    patch_usage.set_defaults(func=cmd_patch_usage)
 
     log_turn = sub.add_parser(
         "log-turn",

@@ -204,3 +204,154 @@ def test_begin_init_includes_empty_turns() -> None:
         assert "turns" in data
         assert data["turns"] == []
         assert data["mode"] == "interactive"
+
+
+def test_init_refuses_during_active_begin() -> None:
+    tmp, project, env, sessions = _isolated_env()
+    with tmp:
+        begin_sid = _run(
+            ["init", "--command", "/kon:begin", "--task", "interactive"],
+            env,
+            project,
+        )
+        with pytest.raises(subprocess.CalledProcessError) as exc:
+            _run(
+                ["init", "--command", "/kon:go", "--task", "should not create"],
+                env,
+                project,
+            )
+        assert "refusing init" in exc.value.stderr
+        assert _load_session(sessions, begin_sid)["status"] == "in_progress"
+        assert len(list(sessions.glob("*.json"))) == 1
+    tmp, project, env, sessions = _isolated_env()
+    with tmp:
+        sid = _run(
+            ["init", "--command", "/kon:go", "--task", "patch usage"],
+            env,
+            project,
+        )
+        _run(
+            ["complete-agent", "--id", sid, "--agent", "Azusa", "--summary", "explored"],
+            env,
+            project,
+        )
+        _run(
+            [
+                "patch-usage",
+                "--id",
+                sid,
+                "--agent",
+                "Azusa",
+                "--input-tokens",
+                "100",
+                "--output-tokens",
+                "200",
+            ],
+            env,
+            project,
+        )
+        data = _load_session(sessions, sid)
+        assert len(data["log"]) == 1
+        assert data["log"][0]["usage"]["total_tokens"] == 300
+        assert data["usage_totals"]["total_tokens"] == 300
+
+
+def test_patch_usage_replaces_without_double_counting() -> None:
+    tmp, project, env, sessions = _isolated_env()
+    with tmp:
+        sid = _run(
+            ["init", "--command", "/kon:go", "--task", "patch usage"],
+            env,
+            project,
+        )
+        _run(
+            ["complete-agent", "--id", sid, "--agent", "Azusa", "--summary", "explored"],
+            env,
+            project,
+        )
+        _run(
+            [
+                "patch-usage",
+                "--id",
+                sid,
+                "--agent",
+                "Azusa",
+                "--input-tokens",
+                "10",
+                "--output-tokens",
+                "20",
+            ],
+            env,
+            project,
+        )
+        _run(
+            [
+                "patch-usage",
+                "--id",
+                sid,
+                "--agent",
+                "Azusa",
+                "--input-tokens",
+                "100",
+                "--output-tokens",
+                "200",
+            ],
+            env,
+            project,
+        )
+        data = _load_session(sessions, sid)
+        assert data["log"][0]["usage"]["total_tokens"] == 300
+        assert data["usage_totals"]["total_tokens"] == 300
+
+
+def test_patch_usage_accumulates_across_agents() -> None:
+    tmp, project, env, sessions = _isolated_env()
+    with tmp:
+        sid = _run(
+            ["init", "--command", "/kon:go", "--task", "token tracking"],
+            env,
+            project,
+        )
+        for agent, inp, out in [("Azusa", 100, 200), ("Mugi", 50, 150)]:
+            _run(
+                ["complete-agent", "--id", sid, "--agent", agent, "--summary", "done"],
+                env,
+                project,
+            )
+            _run(
+                [
+                    "patch-usage",
+                    "--id",
+                    sid,
+                    "--agent",
+                    agent,
+                    "--input-tokens",
+                    str(inp),
+                    "--output-tokens",
+                    str(out),
+                ],
+                env,
+                project,
+            )
+        totals = _load_session(sessions, sid)["usage_totals"]
+        assert totals["input_tokens"] == 150
+        assert totals["output_tokens"] == 350
+        assert totals["total_tokens"] == 500
+
+
+def test_complete_agent_without_usage_omits_fields() -> None:
+    tmp, project, env, sessions = _isolated_env()
+    with tmp:
+        sid = _run(
+            ["init", "--command", "/kon:go", "--task", "no usage"],
+            env,
+            project,
+        )
+        _run(
+            ["complete-agent", "--id", sid, "--agent", "Azusa", "--summary", "done"],
+            env,
+            project,
+        )
+        data = _load_session(sessions, sid)
+        assert "usage" not in data["log"][-1]
+        assert "usage_totals" not in data

@@ -7,6 +7,8 @@ description: Bug investigation pipeline — reproduce with runtime evidence befo
 Systematic bug investigation. Gather **runtime evidence** (repro, logs, exit codes),
 analyze root cause, propose **multiple fix approaches**, get user approval, then fix.
 
+**Unclear? Ask — don't guess.** Follow [`skills/ask-dont-guess`](../skills/ask-dont-guess/SKILL.md) at every debug stage.
+
 Use when something is **broken** (failing test, wrong output, crash, regression).
 For "how does X work?" use [`/kon:ask`](ask.md). For new features use [`/kon:team`](team.md).
 

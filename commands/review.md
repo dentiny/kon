@@ -9,6 +9,8 @@ Review code changes without implementing. 📝 Mio applies the full 7-item golde
 
 **Highest priority in every review:** first-principles grounding and simplicity — see checklist item 1 and the skill's opening section.
 
+**Unclear scope or intent?** Ask the user — do not assume or invent context. Follow [`skills/ask-dont-guess`](../skills/ask-dont-guess/SKILL.md).
+
 **Default scope:** uncommitted changes (`git diff HEAD` + untracked files listed in summary).
 Use flags to narrow scope.
 

@@ -8,6 +8,8 @@ For "just tweak this one thing" level tasks.
 Skip the Azusa exploration / Mugi plan overhead — orchestrator calls Yui directly,
 Yui makes the change, then Mio does a lightweight review (7 items → 3 items).
 
+**Unclear task?** Ask before implementing — follow [`skills/ask-dont-guess`](../skills/ask-dont-guess/SKILL.md).
+
 ## Usage
 
 ```

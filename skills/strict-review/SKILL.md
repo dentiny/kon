@@ -12,6 +12,8 @@ description: This skill should be used when performing code review on a diff (wh
 
 **These two rank above everything else in review** — above conventions, pattern-matching, and "looks complete."
 
+**Unclear intent, missing evidence, or unverified claims → ask or BLOCK — never assume.** See [`skills/ask-dont-guess`](../ask-dont-guess/SKILL.md).
+
 1. **Think from first principles** — What problem does this change actually solve? Does every piece trace back to that problem, or is it inherited complexity / cargo-cult?
 2. **Simple, easy to understand, straightforward** — Can a new reader grasp the change in one pass? Prefer direct logic over indirection, layers, and clever abstractions.
 

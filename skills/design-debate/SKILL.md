@@ -16,6 +16,8 @@ Design debate exists to stress-test plans **before** code is written. Both chall
 
 Azusa must challenge complexity that lacks first-principles justification. Mugi must revise toward simpler designs when challenges are valid.
 
+**Do not invent risks or requirements** to fill a debate round — if the plan is sound but you lack evidence, say so and ask. Follow [`skills/ask-dont-guess`](../ask-dont-guess/SKILL.md).
+
 Design debate is **real multi-agent argument**, not the orchestrator summarizing both sides.
 Each round is a separate Task spawn with the agent file + this skill in context.
 

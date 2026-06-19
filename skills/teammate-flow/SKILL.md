@@ -49,6 +49,7 @@ Follow [`skills/narration`](https://github.com/dentiny/kon/blob/main/skills/narr
 ### Execution rules
 
 - **The orchestrator does not implement.** Every agent is launched via the Task tool.
+- **Model inheritance:** Do NOT pass `model` parameter when spawning subagents — let them inherit parent's model
 - After each agent finishes, give the user one-line summary (not a full paste).
 - No skipping steps. Even for small tasks, every step runs.
 - At the end, give a final summary: which files changed, test result, any unresolved issues.

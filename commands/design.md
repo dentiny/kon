@@ -52,6 +52,8 @@ When plan is ready for user review: set `steps_waiting: ["User"]`, `status=waiti
 
 - Read [`skills/teammate-flow`](https://github.com/dentiny/kon/blob/main/skills/teammate-flow/SKILL.md) for narration, session, and YOLO — but **only steps 1–3** (explore → plan → user confirm). Skip Yui/Mio/Ritsu/Nodoka unless user asks.
 - **Spawn Task subagents** for explore, plan, challenge, and revise — never play both sides yourself.
+- **Model inheritance:** Do NOT pass `model` parameter when spawning subagents — let them inherit parent's model
+- **No unit tests** — Ritsu (verifier) does not run in design phase. Tests run only in `/kon:go` or `/kon:team`.
 - After Azusa challenge and Mugi revise, run `teammate_quality_check.py` with roles `Azusa-challenge` and `Mugi-revise`.
 - Present the user a short summary: challenge count, accepted/rejected/deferred, open decisions.
 - Do **not** run `git commit` or `git push`.

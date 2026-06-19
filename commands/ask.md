@@ -77,12 +77,13 @@ In addition to exploration notes, Azusa must end with a direct answer:
 (Direct response to the user's question — complete sentences, cite paths/lines where useful)
 
 ## If you want to change this
-(One line: suggest `/kon:quick` or `/kon:go` only when the question implies a change)
+(One line: suggest `/kon:quick`, `/kon:debug`, or `/kon:go` only when the question implies a change)
 ```
 
 ## Orchestrator rules
 
 - **Narration:** use 🌸 Ui for opening and closing beats. Follow [`skills/narration`](https://github.com/dentiny/kon/blob/main/skills/narration/SKILL.md).
+- **Model inheritance:** Do NOT pass `model` parameter when spawning Azusa — let subagent inherit parent's model
 - **Do not spawn Yui, Mugi, Mio, Ritsu, or Sawako** — ask mode is Azusa + answer only.
 - **Do not self-investigate instead of Azusa** — spawn Azusa via Task tool for the exploration pass.
 - **Do not draft commit messages** — there are no code changes.

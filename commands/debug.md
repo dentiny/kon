@@ -95,6 +95,7 @@ On create: `command: "/kon:debug"`, `steps_pending: ["Azusa", "Yui", "Mio", "Rit
 ## Orchestrator rules
 
 - **Narration:** use 🌸 Ui for opening, closing, stuck-point beats. Follow [`skills/narration`](https://github.com/dentiny/kon/blob/main/skills/narration/SKILL.md).
+- **Model inheritance:** Do NOT pass `model` parameter when spawning subagents — let them inherit parent's model
 - **The orchestrator does not implement or debug** — spawn agents via Task tool.
 - **Actually parallel** for Mio + Ritsu — two Task calls in one message.
 - Present Mio and Ritsu outputs **separately** — don't merge into one block.

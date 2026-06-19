@@ -45,7 +45,7 @@ def test_supersede_closes_previous_waiting() -> None:
     tmp, project, env, sessions = _isolated_env()
     with tmp:
         sid1 = _run(
-            ["init", "--command", "/kon:team", "--task", "first"],
+            ["init", "--command", "/kon:team", "--task", "first", "--pending", "Yui"],
             env,
             project,
         )
@@ -105,8 +105,29 @@ def test_debug_default_pending() -> None:
         )
         data = _load_session(sessions, sid)
         assert data["command"] == "/kon:debug"
-        assert data["steps_pending"] == ["Azusa", "Mugi", "User", "Yui", "Mio", "Nodoka"]
+        assert data["steps_pending"] == ["Azusa", "Mugi", "User", "Yui", "Sawako", "Mio", "Nodoka"]
         assert data["status"] == "in_progress"
+
+
+def test_team_default_pending() -> None:
+    tmp, project, env, sessions = _isolated_env()
+    with tmp:
+        sid = _run(
+            ["init", "--command", "/kon:team", "--task", "add email validation"],
+            env,
+            project,
+        )
+        data = _load_session(sessions, sid)
+        assert data["command"] == "/kon:team"
+        assert data["steps_pending"] == [
+            "Azusa",
+            "Mugi",
+            "User",
+            "Yui",
+            "Sawako",
+            "Mio",
+            "Nodoka",
+        ]
 
 
 @pytest.mark.parametrize(
@@ -443,3 +464,96 @@ def test_complete_agent_dedupes_hook_logged_step() -> None:
         assert len(data["log"]) == 1
         assert "orchestrator" in data["log"][0]["summary"]
         assert data["log"][0]["usage"]["total_tokens"] == 30
+
+
+def test_complete_agent_dedupes_hook_without_usage() -> None:
+    tmp, project, env, sessions = _isolated_env()
+    with tmp:
+        sid = _run(
+            ["init", "--command", "/kon:team", "--task", "dedupe no usage"],
+            env,
+            project,
+        )
+        _run(
+            ["complete-agent", "--id", sid, "--agent", "Yui", "--summary", "hook summary"],
+            env,
+            project,
+        )
+        _run(
+            [
+                "complete-agent",
+                "--id",
+                sid,
+                "--agent",
+                "Yui",
+                "--summary",
+                "orchestrator summary",
+            ],
+            env,
+            project,
+        )
+        data = _load_session(sessions, sid)
+        assert len(data["log"]) == 1
+        assert data["log"][0]["summary"] == "orchestrator summary"
+        assert "usage" not in data["log"][0]
+        assert data["steps_completed"] == ["Yui"]
+
+
+def test_complete_agent_dedupe_merges_usage() -> None:
+    tmp, project, env, sessions = _isolated_env()
+    with tmp:
+        sid = _run(
+            ["init", "--command", "/kon:team", "--task", "dedupe merge usage"],
+            env,
+            project,
+        )
+        _run(
+            ["complete-agent", "--id", sid, "--agent", "Mio", "--summary", "hook summary"],
+            env,
+            project,
+        )
+        _run(
+            [
+                "complete-agent",
+                "--id",
+                sid,
+                "--agent",
+                "Mio",
+                "--summary",
+                "orchestrator summary",
+                "--input-tokens",
+                "40",
+                "--output-tokens",
+                "60",
+            ],
+            env,
+            project,
+        )
+        data = _load_session(sessions, sid)
+        assert len(data["log"]) == 1
+        assert data["log"][0]["usage"]["total_tokens"] == 100
+        assert data["usage_totals"]["total_tokens"] == 100
+
+
+def test_repeat_agent_appends_steps_completed() -> None:
+    tmp, project, env, sessions = _isolated_env()
+    with tmp:
+        sid = _run(
+            ["init", "--command", "/kon:team", "--task", "milestone loop"],
+            env,
+            project,
+        )
+        for summary in ("milestone 1", "milestone 2"):
+            _run(
+                ["start-agent", "--id", sid, "--agent", "Yui"],
+                env,
+                project,
+            )
+            _run(
+                ["complete-agent", "--id", sid, "--agent", "Yui", "--summary", summary],
+                env,
+                project,
+            )
+        data = _load_session(sessions, sid)
+        assert data["steps_completed"] == ["Yui", "Yui"]
+        assert len(data["log"]) == 2

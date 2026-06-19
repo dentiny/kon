@@ -73,8 +73,10 @@ def _default_pending(command: str) -> list[str]:
         return []
     if c == "/kon:design":
         return ["Azusa", "Mugi", "User"]
+    if c == "/kon:team":
+        return ["Azusa", "Mugi", "User", "Yui", "Sawako", "Mio", "Nodoka"]
     if c == "/kon:debug":
-        return ["Azusa", "Mugi", "User", "Yui", "Mio", "Nodoka"]
+        return ["Azusa", "Mugi", "User", "Yui", "Sawako", "Mio", "Nodoka"]
     return []
 
 
@@ -236,18 +238,21 @@ def _last_log_index_for_agent(log: list, agent: str) -> int | None:
     return None
 
 
-def _hook_already_logged_step(log: list, agent: str) -> bool:
-    """True when subagentStop hook just wrote this agent's log row (orchestrator dedupe)."""
+def _hook_already_logged_step(log: list, agent: str, current_agent: str | None) -> bool:
+    """True when subagentStop hook just finished this agent (orchestrator dedupe).
+
+    A new milestone loop calls start-agent first, so current_agent is set again.
+    """
     if not log:
         return False
-    last = log[-1]
-    return last.get("agent") == agent and last.get("usage") is not None
+    if log[-1].get("agent") != agent:
+        return False
+    return current_agent is None
 
 
 def _apply_step_completion(data: dict, agent: str) -> None:
     completed = data.get("steps_completed") or []
-    if agent not in completed:
-        completed.append(agent)
+    completed.append(agent)
     data["steps_completed"] = completed
     pending = data.get("steps_pending") or []
     if agent in pending:
@@ -272,12 +277,14 @@ def cmd_complete_agent(args: argparse.Namespace) -> None:
             args.usage_source,
         )
 
-    if _hook_already_logged_step(log, agent):
+    if _hook_already_logged_step(log, agent, data.get("current_agent")):
         last = log[-1]
         if args.summary:
             last["summary"] = args.summary
+        if usage and not last.get("usage"):
+            last["usage"] = usage
         data["log"] = log
-        _apply_step_completion(data, agent)
+        _recompute_usage_totals(data)
         _save(path, data)
         return
 
@@ -292,7 +299,7 @@ def cmd_complete_agent(args: argparse.Namespace) -> None:
 
 
 def cmd_patch_usage(args: argparse.Namespace) -> None:
-    """Attach estimated token usage to the latest log entry for an agent."""
+    """Legacy/backfill: attach token usage to latest log row. Prefer complete-agent --input-tokens."""
     path, data = _load(args.id, args.project)
     agent = args.agent
     log = data.get("log") or []

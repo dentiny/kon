@@ -9,17 +9,18 @@ Each agent owns one step of the software development cycle:
 |-----------|-------|------|
 | 1. Understand & investigate | 🎸 Azusa | Reads the codebase, finds relevant files and conventions |
 | 1b. External lookup (optional) | 📚 Jun | Searches docs/web, writes `.kon/research.md` |
-| 2. Planning | 🍰 Mugi | Writes a step-by-step plan with acceptance criteria |
-| 3. Implementation | 🎶 Yui | Executes the plan, drives forward |
-| 4. Code review | 📝 Mio | Strict 9-item checklist, default BLOCKED |
-| 5. Testing | 🥁 Ritsu | Runs real tests, reports exit codes, no hedging |
+| 2. Planning | 🍰 Mugi | Writes a step-by-step plan with acceptance criteria and milestones |
+| 3. Implementation | 🎶 Yui | Executes the plan milestone-by-milestone, drives forward |
+| 4. Code review | 📝 Mio | Strict 9-item checklist per milestone, default BLOCKED |
+| 5. Manual testing | User | Runs tests after all milestones approved |
 | 6. Cleanup | 🧹 Sawako | Removes dead code, simplifies comments and docs, no behavior changes |
 | 7. Session debrief | 📋 Nodoka | Writes a complete session summary — what changed, decisions made, next steps |
 
 Narrated by 🌸 Ui.
 
-> **Note on ordering:** Review (Mio) runs before Testing (Ritsu) so structural problems
-> are caught before wasting a full test run. Use `/kon:team` to run them in parallel.
+> **Note on milestone-based review:** After plan approval, Yui implements one milestone at a time,
+> and Mio reviews each milestone's changes before the next one begins. This keeps reviews
+> manageable and provides faster feedback.
 
 ---
 

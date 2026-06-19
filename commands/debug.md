@@ -52,7 +52,9 @@ Examples:
    - Implement the user-approved approach only
    - Smallest diff that addresses the root cause
    - No drive-by refactors or scope expansion
-6. **📝 Mio** — full 9-item strict-review (same as `/kon:team`)
+   - If fix has multiple logical parts: implement incrementally, get review per part
+6. **📝 Mio** — review the fix (full 9-item strict-review, same as `/kon:team`)
+   - For multi-part fixes: review each part after implementation before next part
 7. **Manual testing** — After Mio approves, user verifies the fix works
 8. **📋 Nodoka** — session summary (auto via [`/kon:summarize`](summarize.md)).
 

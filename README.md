@@ -76,7 +76,6 @@ This merges into `~/.cursor/hooks.json`:
 | `afterAgentResponse` | `log_begin_response.py` | auto-log orchestrator replies into an open `/kon:begin` session |
 | `beforeShellExecution` | `no_git_write.py` | block `git commit` / `git push` |
 | `subagentStop` | `on_subagent_stop.py` | validate Task subagent output; auto-log agent steps into `/kon:begin` sessions |
-| `stop` | `verify_completion.py` | run tests when there are uncommitted changes |
 
 Each session card shows: status badge, task, project name (when viewing all), agent pipeline dots (🟢 done / 🔵 running / 🟡 waiting / 🔴 failed / ⚫ pending), timestamp, and current agent.
 **Click** to expand the step-by-step log. **✓** to close a session. **🗑** to delete it.

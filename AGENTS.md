@@ -45,7 +45,7 @@ live in [`skills/narration`](skills/narration/SKILL.md).
 
 - **`hooks/`** = machine enforcement. Code-driven checks agents cannot bypass.
   Examples: 🍰 Mugi hasn't written a plan path → `teammate_quality_check.py` blocks;
-  task declared complete without running tests → `verify_completion.py` blocks.
+  quality checks via `on_subagent_stop.py`.
 - **`skills/`** = shared knowledge. Prompt-driven shared narrative / convention / workflow.
   Referenced by commands / agents via markdown links.
   Examples: [`skills/strict-review`](skills/strict-review/SKILL.md),

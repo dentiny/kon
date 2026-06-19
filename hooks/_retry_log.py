@@ -1,7 +1,7 @@
 """Shared JSONL retry-log helper used by kon hooks.
 
 Both `teammate_quality_check.py` (Mio must-fix counts) and
-`verify_completion.py` (Stop hook test-failure counts) need the same logic:
+`teammate_quality_check.py` (Mio must-fix retry tracking) needs to record and count
 append a timestamped entry to a JSONL file, then return how many times each
 key has been recorded across history. This module is the single source of
 truth for that shape.

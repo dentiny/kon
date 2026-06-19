@@ -6,7 +6,7 @@ description: This skill should be used by the kon orchestrator whenever a Mio or
 # Memory Propose Confirm Flow
 
 **Owner**: orchestrator
-**Consumers**: [`/kon:go`](https://github.com/dentiny/kon/blob/main/commands/go.md), [`/kon:quick`](https://github.com/dentiny/kon/blob/main/commands/quick.md), [`/kon:team`](https://github.com/dentiny/kon/blob/main/commands/team.md), [`/kon:debug`](https://github.com/dentiny/kon/blob/main/commands/debug.md)
+**Consumers**: [`/kon:team`](https://github.com/dentiny/kon/blob/main/commands/team.md), [`/kon:quick`](https://github.com/dentiny/kon/blob/main/commands/quick.md), [`/kon:debug`](https://github.com/dentiny/kon/blob/main/commands/debug.md)
 
 ## Trigger condition
 

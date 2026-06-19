@@ -5,7 +5,7 @@ description: This skill should be used when handling failures in go-class comman
 
 # Failure Handling
 
-**Consumers**: [`/kon:go`](https://github.com/dentiny/kon/blob/main/commands/go.md),
+**Consumers**: [`/kon:team`](https://github.com/dentiny/kon/blob/main/commands/team.md),
 [`/kon:quick`](https://github.com/dentiny/kon/blob/main/commands/quick.md),
 [`/kon:team`](https://github.com/dentiny/kon/blob/main/commands/team.md),
 [`/kon:debug`](https://github.com/dentiny/kon/blob/main/commands/debug.md).

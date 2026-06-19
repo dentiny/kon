@@ -18,7 +18,7 @@ All paths below use `$KON_ROOT/...`.
 When the user invokes a **slash command**:
 
 - `/kon:begin [goal]`
-- `/kon:go <task>`, `/kon:team <task>`, `/kon:design <task>`, `/kon:quick <task>`, `/kon:debug <bug>`
+- `/kon:team <task>`, `/kon:design <task>`, `/kon:quick <task>`, `/kon:debug <bug>`
 - `/kon:research <question>`
 - `/kon:review`
 - `/kon:todo <task>`
@@ -26,7 +26,7 @@ When the user invokes a **slash command**:
 - `/kon:gc` or `/kon:gc <target>`
 - `/kon:finish`, `/kon:summarize`
 
-YOLO: `/kon:go --yolo <task>`.
+YOLO: `/kon:team --yolo <task>`.
 
 ## How to orchestrate
 
@@ -49,11 +49,10 @@ For `/kon:todo`: read `commands/todo.md`, run `scripts/kon_todo.py` directly —
 
 ### All commands
 
-1. **Session file (do this first)** — `python3 $KON_ROOT/scripts/kon_session.py init --command "/kon:go" --task "…"`. For ask: `--command "/kon:ask"`. See `adapters/cursor/kon.mdc` or `skills/session-tracking/SKILL.md`.
+1. **Session file (do this first)** — `python3 $KON_ROOT/scripts/kon_session.py init --command "/kon:team" --task "…"`. For ask: `--command "/kon:ask"`. See `adapters/cursor/kon.mdc` or `skills/session-tracking/SKILL.md`.
 
 2. Read the matching command file:
    - `/kon:begin` → `$KON_ROOT/commands/begin.md` + `$KON_ROOT/skills/interactive-session/SKILL.md`
-   - `/kon:go` → `$KON_ROOT/commands/go.md`
    - `/kon:team` → `$KON_ROOT/commands/team.md`
    - `/kon:design` → `$KON_ROOT/commands/design.md` + `$KON_ROOT/skills/design-debate/SKILL.md`
    - `/kon:quick` → `$KON_ROOT/commands/quick.md`
@@ -64,7 +63,7 @@ For `/kon:todo`: read `commands/todo.md`, run `scripts/kon_todo.py` directly —
    - `/kon:ask` → `$KON_ROOT/commands/ask.md`
    - `/kon:gc` → `$KON_ROOT/commands/gc.md`
 
-3. Read `$KON_ROOT/skills/teammate-flow/SKILL.md` — **skip for `/kon:ask`, `/kon:research`, and `/kon:review`**. For `/kon:debug`, follow `commands/debug.md` (no Mugi; Mio + Ritsu parallel). For `/kon:design`, also read design-debate. For go/team/design external lookup, read `skills/external-research/SKILL.md`.
+3. Read `$KON_ROOT/skills/teammate-flow/SKILL.md` — **skip for `/kon:ask`, `/kon:research`, and `/kon:review`**. For `/kon:debug`, follow `commands/debug.md` (no Mugi; Mio only). For `/kon:design`, also read design-debate. For team/design external lookup, read `skills/external-research/SKILL.md`.
 
 4. For each agent step, spawn a subagent. Include the agent file as the subagent's
    system context in the prompt:
@@ -77,7 +76,6 @@ For `/kon:todo`: read `commands/todo.md`, run `scripts/kon_todo.py` directly —
    | Planner | `$KON_ROOT/agents/Mugi.md` |
    | Implementer | `$KON_ROOT/agents/Yui.md` |
    | Reviewer | `$KON_ROOT/agents/Mio.md` + `$KON_ROOT/skills/strict-review/SKILL.md` |
-   | Verifier | `$KON_ROOT/agents/Ritsu.md` |
    | Cleaner | `$KON_ROOT/agents/Sawako.md` |
    | Summarizer | `$KON_ROOT/agents/Nodoka.md` |
 
@@ -90,7 +88,6 @@ For `/kon:todo`: read `commands/todo.md`, run `scripts/kon_todo.py` directly —
    | Mugi | `Mugi` |
    | Yui | `Yui` |
    | Mio | `Mio` |
-   | Ritsu | `Ritsu` |
    | Sawako | `Sawako` |
    | Nodoka | `Nodoka` |
    | Design challenge | `Azusa-challenge` |
@@ -101,7 +98,7 @@ For `/kon:todo`: read `commands/todo.md`, run `scripts/kon_todo.py` directly —
      | python3 $KON_ROOT/hooks/teammate_quality_check.py
    ```
 
-6. After Ritsu passes, spawn **Nodoka** — follow `commands/summarize.md`.
+6. After Mio approves, spawn **Nodoka** — follow `commands/summarize.md`. Testing is manual.
 
 7. Failure handling: `$KON_ROOT/skills/failure-handling/SKILL.md`.
 

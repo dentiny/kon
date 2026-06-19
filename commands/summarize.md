@@ -5,7 +5,7 @@ description: Write a clean session summary. Called automatically at the end of e
 # /kon:summarize
 
 Have Nodoka write a complete session report for the current (or specified) session.
-Called automatically at the end of every `/kon:go`, `/kon:team`, `/kon:quick`, `/kon:debug`, and `/kon:gc` run.
+Called automatically at the end of every `/kon:team`, `/kon:quick`, `/kon:debug`, and `/kon:gc` run.
 Can also be called manually to (re)summarize any session.
 
 ## Usage
@@ -34,8 +34,8 @@ Can also be called manually to (re)summarize any session.
 
 ## When called automatically
 
-Every `kon go`, `kon team`, `kon quick`, `kon debug`, and `kon gc` run calls `/kon:summarize`
-as its final step, after Ritsu passes. No additional user action needed.
+Every `kon team`, `kon quick`, `kon debug`, and `kon gc` run calls `/kon:summarize`
+as its final step, after Mio approves. No additional user action needed.
 
 ## Orchestrator rules
 

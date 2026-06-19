@@ -1,7 +1,7 @@
 """Shared JSONL retry-log helper used by kon hooks.
 
 Both `teammate_quality_check.py` (Mio must-fix counts) and
-`verify_completion.py` (Ritsu test-failure counts) need the same logic:
+`verify_completion.py` (Stop hook test-failure counts) need the same logic:
 append a timestamped entry to a JSONL file, then return how many times each
 key has been recorded across history. This module is the single source of
 truth for that shape.
@@ -35,7 +35,7 @@ def record_and_count(log_path: Path, keys: set[str], entry_key: str) -> dict[str
     """Append `keys` to the JSONL `log_path`; return total count per key.
 
     `entry_key` is the JSON field name used for the list of keys in each
-    entry (e.g. `"must_fix_keys"` for Mio, `"failures"` for Ritsu). Keeping
+    entry (e.g. `"must_fix_keys"` for Mio, `"failures"` for Stop hook). Keeping
     the field name configurable preserves backward compatibility with
     existing on-disk logs written by either hook.
     """

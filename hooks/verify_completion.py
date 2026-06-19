@@ -2,7 +2,7 @@
 """kon Stop hook: force-run tests before a task is declared complete.
 
 Detects project type → runs the appropriate test command → blocks on failure.
-Even if the orchestrator skipped Ritsu, this hook still runs as a backstop.
+Optional backstop for projects that want automated test verification.
 
 Supported config files (place in the user project's ``<project>/.kon/`` directory):
 - `skip-test-verification` — first non-empty, non-comment line is the skip reason
@@ -163,7 +163,7 @@ def main() -> None:
     if not has_git_modifications(cwd):
         emit(
             "approve",
-            "Ritsu (Verifier): no uncommitted changes — skipping test verification",
+            "Stop hook: no uncommitted changes — skipping test verification",
         )
 
     skip_reason = read_config_line(kon_dir / "skip-test-verification")
@@ -180,13 +180,13 @@ def main() -> None:
     exit_code, output = run_command(cmd, cwd)
 
     if exit_code == 0:
-        emit("approve", f"Ritsu (Verifier): `{' '.join(cmd)}` passed")
+        emit("approve", f"Stop hook: `{' '.join(cmd)}` passed")
 
     build_env_match = BUILD_ENV_ERROR_RE.search(output)
     if build_env_match:
         emit(
             "approve",
-            f"Ritsu (Verifier): `{' '.join(cmd)}` failed due to host build env "
+            f"Stop hook: `{' '.join(cmd)}` failed due to host build env "
             f"({build_env_match.group(0)!r}), not a test failure — skipping. "
             "Fix the host build env, or set `.kon/test-command` to a runnable command, "
             "or add a reason to `.kon/skip-test-verification`.",
@@ -196,7 +196,7 @@ def main() -> None:
     if fatal_match:
         emit(
             "block",
-            f"Ritsu (Verifier): `{' '.join(cmd)}` hit {fatal_match.group(1)} "
+            f"Stop hook: `{' '.join(cmd)}` hit {fatal_match.group(1)} "
             "(import/collection error, not a test failure). Fix this first.",
         )
 
@@ -216,7 +216,7 @@ def main() -> None:
         details = "\n".join(f"  - {f}" for f in sorted(new_failures))
         emit(
             "block",
-            f"{warning}Ritsu (Verifier): `{' '.join(cmd)}` exit {exit_code}, "
+            f"{warning}Stop hook: `{' '.join(cmd)}` exit {exit_code}, "
             f"{len(new_failures)} new failure(s):\n{details}\n\n"
             "(Known failures are ignored; to suppress a new failure, "
             "add its test ID to .kon/known-test-failures)",
@@ -225,13 +225,13 @@ def main() -> None:
     if actual and not new_failures:
         emit(
             "approve",
-            f"Ritsu (Verifier): {len(actual)} failure(s) all in known-test-failures — passing",
+            f"Stop hook: {len(actual)} failure(s) all in known-test-failures — passing",
         )
 
     tail = output[-OUTPUT_TAIL_CHARS:] if len(output) > OUTPUT_TAIL_CHARS else output
     emit(
         "block",
-        f"Ritsu (Verifier): `{' '.join(cmd)}` exit {exit_code} — "
+        f"Stop hook: `{' '.join(cmd)}` exit {exit_code} — "
         f"could not parse failure names. Raw tail:\n{tail}",
     )
 

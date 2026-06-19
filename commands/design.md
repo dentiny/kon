@@ -4,11 +4,11 @@ description: Design-only pipeline — Azusa explores, Mugi plans, then multi-age
 
 # /kon:design
 
-Design a change before writing code. Same exploration and planning as `/kon:go`,
+Design a change before writing code. Same exploration and planning as `/kon:team`,
 but adds a structured **argument phase** where 🎸 Azusa stress-tests 🍰 Mugi's plan
 and Mugi must respond point-by-point.
 
-Stops after plan approval — hand off to `/kon:go` or `/kon:team` when ready to implement.
+Stops after plan approval — hand off to `/kon:team` when ready to implement.
 
 ## Usage
 
@@ -53,8 +53,8 @@ When plan is ready for user review: set `steps_waiting: ["User"]`, `status=waiti
 - Read [`skills/teammate-flow`](https://github.com/dentiny/kon/blob/main/skills/teammate-flow/SKILL.md) for narration, session, and YOLO — but **only steps 1–3** (explore → plan → user confirm). Skip Yui/Mio/Ritsu/Nodoka unless user asks.
 - **Spawn Task subagents** for explore, plan, challenge, and revise — never play both sides yourself.
 - **Model inheritance:** Do NOT pass `model` parameter when spawning subagents — let them inherit parent's model
-- **No unit tests** — Ritsu (verifier) does not run in design phase. Tests run only in `/kon:go` or `/kon:team`.
-- **Design stops after debate** — After Mugi's final revision, present summary and STOP. Set `status=waiting`. Do NOT proceed to implementation. User must explicitly run `/kon:go` or `/kon:team` to implement.
+- **No unit tests** — Ritsu (verifier) does not run in design phase. Tests are manual in `/kon:team`.
+- **Design stops after debate** — After Mugi's final revision, present summary and STOP. Set `status=waiting`. Do NOT proceed to implementation. User must explicitly run `/kon:team` to implement.
 - After Azusa challenge and Mugi revise, run `teammate_quality_check.py` with roles `Azusa-challenge` and `Mugi-revise`.
 - Present the user a short summary: challenge count, accepted/rejected/deferred, open decisions.
 - Do **not** run `git commit` or `git push`.
@@ -72,14 +72,15 @@ When plan is ready for user review: set `steps_waiting: ["User"]`, `status=waiti
 
 ## Comparison
 
-| Item | `/kon:design` | `/kon:go` | `/kon:ask` |
+| Item | `/kon:design` | `/kon:team` | `/kon:ask` |
 |------|-----------------|-----------|------------|
 | Purpose | Design + debate | Full build | Q&A only |
 | Azusa explore | ✅ | ✅ | ✅ read-only |
 | Mugi plan | ✅ | ✅ | ❌ |
 | Design debate | ✅ | ❌ | ❌ |
 | Yui implement | ❌ | ✅ | ❌ |
-| Mio / Ritsu | ❌ | ✅ | ❌ |
+| Mio review | ❌ | ✅ | ❌ |
+| Testing | ❌ | Manual | ❌ |
 | Artifacts | `.kon/plan-<sid>.md`, `.kon/design-debate-<session-id>.md` | `.kon/plan-<sid>.md` + code | none in repo |
 
 ## After design
@@ -87,8 +88,8 @@ When plan is ready for user review: set `steps_waiting: ["User"]`, `status=waiti
 When the user approves the plan:
 
 ```
-/kon:go <task>       # sequential review + verify
-/kon:team <task>     # parallel review + verify
+/kon:team <task>       # full team workflow
+/kon:go <task>         # alias for /kon:team
 ```
 
 Orchestrator should offer to reuse the existing plan file (`.kon/plan-<session-id>.md`) instead of re-running Azusa + Mugi.

@@ -62,7 +62,7 @@ in_progress  →  waiting  →  completed
 - `completed` — user ran `/kon:finish` / dashboard ✓, **or** one-shot command finished (`/kon:ask`, `/kon:research`, `/kon:review`), **or** superseded by a newer session
 - `blocked` — retry limit hit, something needs human intervention
 
-**Never auto-set `completed` for pipeline commands** (`/kon:go`, `/kon:team`, `/kon:quick`, `/kon:debug`, `/kon:gc`, `/kon:design`). When their agents finish, set `status=waiting`.
+**Never auto-set `completed` for pipeline commands** (`/kon:team`, `/kon:quick`, `/kon:debug`, `/kon:gc`, `/kon:design`). When their agents finish, set `status=waiting`.
 
 **Auto-complete one-shot commands** when the sole agent finishes: `/kon:ask`, `/kon:research`, `/kon:review` → set `status=completed` (via `complete-agent`).
 

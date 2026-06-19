@@ -6,7 +6,7 @@ description: When to spawn 📚 Jun for external lookup — WebSearch/docs/APIs 
 # External Research
 
 **Owner**: orchestrator
-**Consumers**: [`/kon:research`](../commands/research.md), [`/kon:go`](../commands/go.md),
+**Consumers**: [`/kon:research`](../commands/research.md), [`/kon:team`](../commands/team.md),
 [`/kon:team`](../commands/team.md), [`/kon:design`](../commands/design.md)
 
 ## Azusa vs Jun
@@ -19,7 +19,7 @@ description: When to spawn 📚 Jun for external lookup — WebSearch/docs/APIs 
 
 **Rule:** repo-first for "our code"; web-first for "their docs".
 
-## When to spawn Jun in `/kon:go` / `/kon:team` / `/kon:design`
+## When to spawn Jun in `/kon:team` / `/kon:design`
 
 Spawn Jun **in parallel with Azusa** when the task mentions any of:
 

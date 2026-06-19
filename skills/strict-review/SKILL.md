@@ -6,7 +6,7 @@ description: This skill should be used when performing code review on a diff (wh
 # Strict Review
 
 **Owner Agent**: Mio (Reviewer)
-**Consumers**: `/kon:go` (Mio reviews Yui's diff), `/kon:review` (Mio reviews external PR / branch)
+**Consumers**: `/kon:team` (Mio reviews Yui's diff), `/kon:review` (Mio reviews external PR / branch)
 
 ## Core stance: default BLOCKED
 

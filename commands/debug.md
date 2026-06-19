@@ -1,5 +1,5 @@
 ---
-description: Bug investigation pipeline — reproduce with runtime evidence before fixing. Azusa traces the bug, Yui reproduces and applies a minimal fix, Mio + Ritsu run in parallel.
+description: Bug investigation pipeline — reproduce with runtime evidence before fixing. Azusa traces the bug, Yui reproduces and applies a minimal fix, Mio reviews.
 ---
 
 # /kon:debug
@@ -9,7 +9,7 @@ before changing code. Skips Mugi planning — writes `.kon/debug-<session-id>.md
 of a full implementation plan.
 
 Use when something is **broken** (failing test, wrong output, crash, regression).
-For "how does X work?" use [`/kon:ask`](ask.md). For new features use [`/kon:go`](go.md) or [`/kon:team`](team.md).
+For "how does X work?" use [`/kon:ask`](ask.md). For new features use [`/kon:team`](team.md).
 
 ## Usage
 
@@ -39,10 +39,8 @@ Examples:
    - Run repro steps; capture command + exit code + relevant output
    - Only then edit code — smallest diff that addresses the root cause
    - No drive-by refactors or scope expansion
-4. **Parallel (trigger both Tasks in one message):**
-   - **📝 Mio** — full 9-item strict-review (same as `/kon:go` / `/kon:team`)
-   - **🥁 Ritsu** — run tests / lint / type check
-5. **Merge** — same table as [`/kon:team`](team.md#merge-logic).
+4. **📝 Mio** — full 9-item strict-review (same as `/kon:team`)
+5. **Manual testing** — After Mio approves, user verifies the fix works
 6. **📋 Nodoka** — session summary (auto via [`/kon:summarize`](summarize.md)).
 
 Pass `DEBUG_FILE: .kon/debug-<SESSION_ID>.md` to Azusa and Yui in task prompts.
@@ -83,32 +81,31 @@ Orchestrator writes this after Azusa, before Yui:
 ## Failure handling
 
 See [`skills/failure-handling`](https://github.com/dentiny/kon/blob/main/skills/failure-handling/SKILL.md) —
-same 2-consecutive-same-issue limit. Merge logic matches [`/kon:team`](team.md#merge-logic).
+same 2-consecutive-same-issue limit applies to Mio's must-fix items.
 
 ## Session tracking
 
 Pipeline command — set `status=waiting` when agents finish (not auto-completed).
 Follow [`skills/session-tracking`](https://github.com/dentiny/kon/blob/main/skills/session-tracking/SKILL.md).
 
-On create: `command: "/kon:debug"`, `steps_pending: ["Azusa", "Yui", "Mio", "Ritsu", "Nodoka"]`.
+On create: `command: "/kon:debug"`, `steps_pending: ["Azusa", "Yui", "Mio", "Nodoka"]`.
 
 ## Orchestrator rules
 
 - **Narration:** use 🌸 Ui for opening, closing, stuck-point beats. Follow [`skills/narration`](https://github.com/dentiny/kon/blob/main/skills/narration/SKILL.md).
 - **Model inheritance:** Do NOT pass `model` parameter when spawning subagents — let them inherit parent's model
 - **The orchestrator does not implement or debug** — spawn agents via Task tool.
-- **Actually parallel** for Mio + Ritsu — two Task calls in one message.
-- Present Mio and Ritsu outputs **separately** — don't merge into one block.
-- After Ritsu passes, draft a commit message per [`skills/commit-message`](https://github.com/dentiny/kon/blob/main/skills/commit-message/SKILL.md). **Do not `git commit`.**
+- After Mio approves, draft a commit message per [`skills/commit-message`](https://github.com/dentiny/kon/blob/main/skills/commit-message/SKILL.md). **Do not `git commit`.**
+- Remind user to test the fix manually.
 
 ## Comparison
 
-| Item | `/kon:debug` | `/kon:quick` | `/kon:go` | `/kon:team` |
-|------|-------------|-------------|-----------|-------------|
-| Azusa explore | ✅ bug trace | ❌ | ✅ | ✅ |
-| Mugi plan | ❌ (debug notes) | ❌ | ✅ | ✅ |
-| Repro before fix | ✅ mandatory | ❌ | ❌ | ❌ |
-| Yui implement | ✅ minimal | ✅ | ✅ | ✅ |
-| Mio review | ✅ full (9) | ✅ quick (4) | ✅ full | ✅ full |
-| Ritsu verify | ✅ parallel | ❌ (Stop hook) | ✅ sequential | ✅ parallel |
-| Best for | bugs / regressions | tiny tweaks | features | features (fast) |
+| Item | `/kon:debug` | `/kon:quick` | `/kon:team` |
+|------|-------------|-------------|-----------|
+| Azusa explore | ✅ bug trace | ❌ | ✅ |
+| Mugi plan | ❌ (debug notes) | ❌ | ✅ |
+| Repro before fix | ✅ mandatory | ❌ | ❌ |
+| Yui implement | ✅ minimal | ✅ | ✅ |
+| Mio review | ✅ full (9) | ✅ quick (4) | ✅ full |
+| Testing | Manual | Manual | Manual |
+| Best for | bugs / regressions | tiny tweaks | features |

@@ -142,7 +142,7 @@ echo '{"teammate_role":"Mugi-revise","teammate_output":"<output>"}' \
 Same as teammate-flow plan gate:
 - Present plan + debate summary (not full paste of both files)
 - User says "go" to accept defaults in `## Decisions needed`, or answers open items
-- **Design stops here** — no Yui/Mio/Ritsu unless user continues with `/kon:go` or `/kon:team`
+- **Design stops here** — no Yui/Mio unless user continues with `/kon:team`
 
 ### Handoff to implementation
 

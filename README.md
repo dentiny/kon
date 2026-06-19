@@ -72,8 +72,10 @@ This merges into `~/.cursor/hooks.json`:
 |------------|--------|---------|
 | `sessionStart` | `ensure_project_dir.py` | create `~/.kon/projects/<repo>/`, record current workspace in `~/.kon/last_workspace.json` |
 | `beforeSubmitPrompt` | `init_kon_session.py` | auto-create session JSON when you send `/kon:*` (debug log at `~/.kon/logs/init_kon_session.log`) |
+| `beforeSubmitPrompt` | `log_begin_prompt.py` | auto-log each user message into an open `/kon:begin` session |
+| `afterAgentResponse` | `log_begin_response.py` | auto-log orchestrator replies into an open `/kon:begin` session |
 | `beforeShellExecution` | `no_git_write.py` | block `git commit` / `git push` |
-| `subagentStop` | `on_subagent_stop.py` | validate Task subagent output (Mio/Yui/…) |
+| `subagentStop` | `on_subagent_stop.py` | validate Task subagent output; auto-log agent steps into `/kon:begin` sessions |
 | `stop` | `verify_completion.py` | run tests when there are uncommitted changes |
 
 Each session card shows: status badge, task, project name (when viewing all), agent pipeline dots (🟢 done / 🔵 running / 🟡 waiting / 🔴 failed / ⚫ pending), timestamp, and current agent.

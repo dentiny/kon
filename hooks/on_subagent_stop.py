@@ -11,6 +11,13 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _hook_io import emit, format_payload, read_hook_stdin, resolve_hook_cwd, set_hook_event  # noqa: E402
+from _begin_log import (  # noqa: E402
+    agent_logged_since_last_user,
+    append_session_log,
+    assistant_summary_from_text,
+    find_active_begin,
+    hook_log,
+)
 from _kon_paths import kon_root  # noqa: E402
 from _token_estimate import SOURCE as USAGE_SOURCE, estimate_tokens_from_transcript  # noqa: E402
 
@@ -144,6 +151,21 @@ def _patch_open_session_usage(
     )
 
 
+def _log_subagent_to_begin_session(project: str, agent: str, output: str) -> None:
+    found = find_active_begin(project)
+    if found is None:
+        return
+    _, session = found
+    log = session.get("log") or []
+    if agent_logged_since_last_user(log, agent):
+        return
+    summary = assistant_summary_from_text(output)
+    if summary is None:
+        summary = assistant_summary_from_text(output[:500]) or f"{agent} finished"
+    if append_session_log(project, session["id"], agent, summary, complete=True):
+        hook_log(f"logged {agent} sid={session['id']} summary={summary[:60]!r}")
+
+
 def main() -> None:
     data = read_hook_stdin()
     set_hook_event(data.get("hook_event_name") or "subagentStop")
@@ -167,6 +189,7 @@ def main() -> None:
 
     project = resolve_hook_cwd(data)
     agent = _session_agent_name(role)
+    _log_subagent_to_begin_session(project, agent, output)
     _patch_open_session_usage(project, agent, _usage_from_data(data))
     emit("approve", f"{role}: quality check passed")
 

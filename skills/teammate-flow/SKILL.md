@@ -13,6 +13,8 @@ Each agent owns their segment; the orchestrator strings them together.
 
 **Highest priority across design, implementation, and review:** think from **first principles**; keep solutions **simple, easy to understand, and straightforward**. When in doubt, choose the simpler correct path.
 
+**When anything is unclear:** ask the user — do not guess or hallucinate. Follow [`skills/ask-dont-guess`](ask-dont-guess/SKILL.md). Orchestrator must not advance to the next stage until material uncertainty is resolved.
+
 ## Shared flow (Full pipeline)
 
 These steps are required in order for `/kon:team`:
@@ -116,6 +118,7 @@ Confirm flow completes, then the main flow continues — the command step struct
 ## Hard rules
 
 - **Never skip 📝 Mio** — code review is mandatory for every milestone
+- **Ask, don't guess** — if any stage is unclear, stop and ask the user; follow [`skills/ask-dont-guess`](ask-dont-guess/SKILL.md)
 - **Review per milestone, not all at once** — Mio reviews after each milestone implementation
 - **Mio blocking is final** — if Mio blocks, send back to Yui for fixes
 - **Standards don't relax on round 3** — the checklist is the same from round 1 to round N

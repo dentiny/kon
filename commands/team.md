@@ -8,6 +8,8 @@ Hand the task to the full team. From first look to code review, each member hand
 
 **Shared principle (design → impl → review):** **First principles** and **simplicity** are the highest priority at every stage. Prefer the most straightforward solution that solves the actual problem.
 
+**Anything unclear at any stage?** Ask the user before proceeding — never guess. Follow [`skills/ask-dont-guess`](../skills/ask-dont-guess/SKILL.md).
+
 ## Usage
 
 ```

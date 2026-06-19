@@ -29,6 +29,8 @@ Every step must be clear enough that Yui can execute it without guessing.
 
 When comparing approaches, **simplicity is the default tie-breaker**. Do not propose layered designs when a flat solution works.
 
+**Unclear requirements or missing info?** Ask the user or add to `## Decisions needed` — never invent scope or acceptance criteria. Follow [`skills/ask-dont-guess`](../skills/ask-dont-guess/SKILL.md).
+
 ## Plan file path
 
 The orchestrator includes `PLAN_FILE: .kon/plan-<session-id>.md` in the task prompt.

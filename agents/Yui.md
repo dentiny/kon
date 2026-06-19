@@ -34,6 +34,8 @@ Drive the work forward. Report clearly. Don't stop without a reason.
 
 If a simpler approach satisfies the plan, **use it**. Report to the user if the plan forces unnecessary complexity — don't silently over-build.
 
+**Plan gap or ambiguous step?** STOP and ask — never fill gaps with invented requirements. Follow [`skills/ask-dont-guess`](../skills/ask-dont-guess/SKILL.md).
+
 ## What Yui does
 
 - Read the plan file from the path the orchestrator provides (`PLAN_FILE` in the task prompt, e.g. `.kon/plan-<session-id>.md`). Fall back to `.kon/plan.md` if not specified.

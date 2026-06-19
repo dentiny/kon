@@ -7,6 +7,8 @@ description: Read-only Q&A about the codebase. Azusa investigates and answers �
 For questions about the codebase — how something works, where logic lives, what a pattern means.
 Read-only exploration and a direct answer.
 
+**Unclear question or insufficient context?** Ask the user to clarify — do not invent code paths or behavior. Follow [`skills/ask-dont-guess`](../skills/ask-dont-guess/SKILL.md).
+
 **Zero repo writes.** Ask mode must not create or modify anything inside the project — not code, not plan files, not memory, not git state. Read and answer only.
 
 **Session tracking applies.** Create and update a session JSON under `~/.kon/projects/<repo-name>/sessions/` (see [`skills/session-tracking`](https://github.com/dentiny/kon/blob/main/skills/session-tracking/SKILL.md)) so the dashboard records every ask run. Use `command: "/kon:ask"`, `steps_pending: ["Azusa"]` on create; `complete-agent` auto-sets `status=completed`.

@@ -17,12 +17,14 @@ that has a reasonable default or can be retried automatically.
 |-------------------|---------------|
 | Wait for user to confirm Mugi's plan | **Still required** — always wait for user approval before implementation |
 | Auto-accept decisions within the plan | Auto-accept all `[**default**]` decisions in Mugi's `## Decisions needed` |
-| Ask user when a plan step is ambiguous | Take the more conservative interpretation; log the choice; proceed |
+| Ask user when a plan step is ambiguous | If plan has `[**default**]`, use it; otherwise **STOP and ask** — never invent |
 | Notify user when Mio blocks | Auto-send must-fix list back to Yui; retry silently |
 | Per-agent step summary to user | Suppress — only report at the end (or when stopping) |
 
 Auto-accepted decisions and auto-retries are recorded in the session log
 (see `skills/session-tracking`) so the user can review what happened.
+
+YOLO auto-accepts **plan defaults** and retries failures — it does **not** permit guessing unclear requirements. See [`skills/ask-dont-guess`](ask-dont-guess/SKILL.md).
 
 ## When to STOP and ask the user — always, even in YOLO mode
 

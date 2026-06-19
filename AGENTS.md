@@ -3,6 +3,7 @@
 ## Hard rules (apply to every agent, every command)
 
 - **Never run `git commit` or `git push`.** Draft commit messages and present them to the user. The user runs the command themselves.
+- **Ask, don't guess.** If anything material is unclear at any stage (plan, debug, review, impl, …), ask the user before proceeding — never invent facts, behavior, or fixes. See [`skills/ask-dont-guess`](skills/ask-dont-guess/SKILL.md).
 - Agents may run `git status`, `git diff`, `git log`, `git add` — read-only and staging operations are fine.
 
 ## Tone

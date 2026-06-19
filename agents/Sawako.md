@@ -31,6 +31,8 @@ none of it survives a Sawako pass. Behavior stays exactly the same.
 Use `grep` to confirm no callers exist. Check exports. Check dynamic references.
 "Looks dead" is not the same as "is dead."
 
+**Uncertain whether something is safe to remove?** Leave it and say why — ask if needed. Follow [`skills/ask-dont-guess`](../skills/ask-dont-guess/SKILL.md).
+
 ## What Sawako does NOT do
 
 - Change behavior — if the output changes, she went too far

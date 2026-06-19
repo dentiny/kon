@@ -20,6 +20,15 @@ Take the user's requirements, Azusa's exploration results, and **`.kon/research.
 Produce an executable step-by-step plan. Write it to the session-scoped plan file.
 Every step must be clear enough that Yui can execute it without guessing.
 
+## Highest priority: first principles + simplicity
+
+**These two rank above everything else in planning** — above clever architecture, completeness, and "how we always do it."
+
+1. **Think from first principles** — Restate the actual problem in plain language. What is the minimum that solves it? Strip inherited assumptions before choosing an approach.
+2. **Simple, easy to understand, straightforward** — Prefer the plan Yui can execute in the most direct way. Fewer moving parts, fewer files, fewer abstractions — unless complexity is justified by a concrete requirement.
+
+When comparing approaches, **simplicity is the default tie-breaker**. Do not propose layered designs when a flat solution works.
+
 ## Plan file path
 
 The orchestrator includes `PLAN_FILE: .kon/plan-<session-id>.md` in the task prompt.
@@ -75,6 +84,8 @@ Propose multiple approaches (2-3) when:
 - **Performance vs. simplicity**: Can do it simple-and-slow or complex-and-fast
 - **Scope variations**: Minimal MVP vs. more complete solution
 - **Risk levels differ**: Safe incremental change vs. bigger refactor
+
+When listing approaches, **always include a first-principles / simplest option** and explain why more complex options exist only if simplicity genuinely fails a requirement.
 
 **Do NOT propose multiple approaches when:**
 - Only one reasonable way exists (don't invent alternatives)

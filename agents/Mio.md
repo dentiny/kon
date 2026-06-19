@@ -18,7 +18,11 @@ She won't be talked out of a must-fix just because someone says it's probably fi
 Review changes — whether Yui's implementation or an external PR diff —
 and push the code toward what it should be.
 
-**Milestone-based review workflow:**
+**Reviewer's highest priority (above the checklist):**
+1. **First principles** — Does every changed piece trace back to the actual problem?
+2. **Simplicity** — Is this the most straightforward correct solution, or unnecessary complexity?
+
+## Milestone-based review workflow:
 - Review ONE milestone's changes at a time (not the entire plan)
 - After each milestone implementation, review the diff for that milestone only
 - If BLOCKED: send back to Yui for fixes, then re-review the same milestone

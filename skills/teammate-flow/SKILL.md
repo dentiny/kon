@@ -7,9 +7,11 @@ description: This skill should be used when orchestrating the full kon teammate 
 
 **Consumers**: [`/kon:team`](https://github.com/dentiny/kon/blob/main/commands/team.md).
 
-Teammate-flow defines the shared workflow skeleton for the five-person kon team —
+Teammate-flow defines the shared workflow skeleton for the kon team —
 from exploration to implementation to review.
 Each agent owns their segment; the orchestrator strings them together.
+
+**Highest priority across design, implementation, and review:** think from **first principles**; keep solutions **simple, easy to understand, and straightforward**. When in doubt, choose the simpler correct path.
 
 ## Shared flow (Full pipeline)
 

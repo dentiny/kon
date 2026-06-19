@@ -7,6 +7,15 @@ description: Multi-agent design argument — Azusa challenges Mugi's plan, Mugi 
 
 **Consumer**: [`/kon:design`](https://github.com/dentiny/kon/blob/main/commands/design.md).
 
+## Highest priority: first principles + simplicity
+
+Design debate exists to stress-test plans **before** code is written. Both challenger and reviser optimize for:
+
+1. **Think from first principles** — Does the plan solve the actual problem, or inherit assumptions / over-engineer?
+2. **Simple, easy to understand, straightforward** — Is this the most direct design? Can Yui execute it without navigating unnecessary layers?
+
+Azusa must challenge complexity that lacks first-principles justification. Mugi must revise toward simpler designs when challenges are valid.
+
 Design debate is **real multi-agent argument**, not the orchestrator summarizing both sides.
 Each round is a separate Task spawn with the agent file + this skill in context.
 

@@ -76,6 +76,42 @@ Don't make Yui guess what would be accepted.
 ## Output format
 
 ```markdown
+## Code Overview
+<high-level summary of what changed: purpose, scope, affected components — 2-3 sentences>
+
+## Key Data Structures
+<list the main classes, interfaces, types, or data models changed/added — include type signatures>
+
+Examples:
+- `User` (class) — `name: str`, `email: str`, `created_at: datetime`
+- `AuthToken` (interface) — `token: str`, `expires: int`, `user_id: UUID`
+
+## Key Logic Pseudocode
+<for each non-trivial function/method, write pseudocode showing the control flow>
+
+Example:
+```
+function validate_user(user_data):
+  if user_data is empty:
+    raise ValueError
+  if email format is invalid:
+    raise ValidationError
+  return normalized_user
+```
+
+## Code References
+<cite key code locations using the format `startLine:endLine:filepath`>
+
+Example:
+
+```42:58:src/auth/validator.py
+def validate_user(user_data):
+    if not user_data:
+        raise ValueError("user data required")
+    # ... validation logic
+    return normalized_user
+```
+
 ## Verdict
 APPROVED | NEEDS_CHANGES | BLOCKED
 

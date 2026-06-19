@@ -28,6 +28,7 @@ With an optional rubric (🍰 Mugi writes criteria first):
 ## Scope boundary
 
 - **Review only** — verdict + must-fix. Do not edit code.
+- **No unit tests** — Ritsu (verifier) does not run. Review is code analysis only.
 - If the user wants fixes, offer `/kon:quick` or `/kon:go` after Mio finishes.
 - Commit/staging cleanliness is not a checklist item — review the diff content only.
 
@@ -45,6 +46,7 @@ With an optional rubric (🍰 Mugi writes criteria first):
 ## Orchestrator rules
 
 - **Do not review yourself** — spawn Mio via Task tool
+- **Model inheritance:** Do NOT pass `model` parameter when spawning Mio — let subagent inherit parent's model
 - **Narration:** 🌸 Ui opening/closing per [`skills/narration`](../skills/narration/SKILL.md)
 - **Do not run `git commit` or `git push`**
 - Skip [`skills/teammate-flow`](../skills/teammate-flow/SKILL.md) — review is Mio-only (optional Mugi rubric pass)

@@ -22,6 +22,12 @@ When the task needs web/docs lookup, spawn Jun per [`skills/external-research`](
 
 Review and verification run **sequentially** (Mio must pass before Ritsu runs).
 
+## Orchestrator rules
+
+- **Model inheritance:** Do NOT pass `model` parameter when spawning subagents — let them inherit parent's model
+- Follow [`skills/teammate-flow`](https://github.com/dentiny/kon/blob/main/skills/teammate-flow/SKILL.md) for full execution rules
+- All agents launched via Task tool with no model specification
+
 ## Plan reuse (after `/kon:design`)
 
 If a plan file already exists when this command starts — check `.kon/plan-<SESSION_ID>.md` first,

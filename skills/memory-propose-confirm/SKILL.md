@@ -1,12 +1,12 @@
 ---
 name: memory-propose-confirm
-description: This skill should be used by the kon orchestrator whenever a Mio or Yui output contains a ## Memory propose section. Handles the 6-step confirm flow, fence-tracking rules, and parallel-mode timing. Applies to /kon:go, /kon:quick, /kon:team.
+description: This skill should be used by the kon orchestrator whenever a Mio or Yui output contains a ## Memory propose section. Handles the 6-step confirm flow, fence-tracking rules, and parallel-mode timing. Applies to /kon:go, /kon:quick, /kon:team, /kon:debug.
 ---
 
 # Memory Propose Confirm Flow
 
 **Owner**: orchestrator
-**Consumers**: [`/kon:go`](https://github.com/dentiny/kon/blob/main/commands/go.md), [`/kon:quick`](https://github.com/dentiny/kon/blob/main/commands/quick.md), [`/kon:team`](https://github.com/dentiny/kon/blob/main/commands/team.md)
+**Consumers**: [`/kon:go`](https://github.com/dentiny/kon/blob/main/commands/go.md), [`/kon:quick`](https://github.com/dentiny/kon/blob/main/commands/quick.md), [`/kon:team`](https://github.com/dentiny/kon/blob/main/commands/team.md), [`/kon:debug`](https://github.com/dentiny/kon/blob/main/commands/debug.md)
 
 ## Trigger condition
 
@@ -41,9 +41,9 @@ Confirm flow completes, then main flow resumes — command step structure does n
 Only detect `## Memory propose` **outside** code fences.
 Track triple-backtick count from the start of the output; when inside a fence (odd count), ignore any `## Memory propose` heading.
 
-## Parallel mode (team)
+## Parallel mode (team / debug)
 
-In `/kon:team` parallel mode (Mio and Ritsu running simultaneously):
+In `/kon:team` or `/kon:debug` parallel mode (Mio and Ritsu running simultaneously):
 if Mio's output contains `## Memory propose`, wait until **both** agents have returned before starting the confirm flow — do not interrupt Ritsu mid-run.
 
 ## Memory types

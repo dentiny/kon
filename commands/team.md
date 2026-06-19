@@ -35,6 +35,7 @@ if a session-scoped plan file (`.kon/plan-<session-id>.md`) or a recent `.kon/pl
 Orchestrator parallel rules:
 - **Actually parallel:** fire both 📝 Mio and 🥁 Ritsu in a single message with two Task calls
 - **Not fake-parallel** (finishing Mio then calling Ritsu doesn't count)
+- **Model inheritance:** Do NOT pass `model` parameter when spawning subagents — let them inherit parent's model
 - Present both outputs **separately** to the user — don't merge them into one block
 
 ## Trade-off

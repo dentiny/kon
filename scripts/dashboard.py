@@ -332,9 +332,6 @@ async function closeSession(id, event) {
 
 async function deleteSession(id, event) {
   if (event) event.stopPropagation();
-  const s = allSessions.find(x => x.id === id);
-  const task = s ? s.task : id;
-  if (!confirm(`Delete session?\\n\\n"${task}"\\n\\nThis removes session files from disk.`)) return;
   try {
     const r = await fetch('/sessions/' + encodeURIComponent(id), {method: 'DELETE'});
     if (r.ok) {

@@ -29,10 +29,16 @@ These steps are required in order for `/kon:team`:
    - Only proceed to step 4 after user says "go", "approved", "proceed", or similar confirmation
    - **This applies even in `--yolo` mode** — plan approval is always required
    - Update session: set `steps_waiting: ["User"]`, `status=waiting` before waiting for input
-4. **🎶 Yui** — execute the plan steps. "Okay! Starting Step 1."
-   - **Only spawn Yui after receiving user confirmation in step 3**
-5. **📝 Mio** — review the changes (follow `skills/strict-review`).
-6. **Manual testing** — After Mio approves, user runs tests themselves.
+4. **Milestone loop** — For each milestone in the plan (or all steps if no milestones):
+   - **🎶 Yui** — implement this milestone only. "Working on Milestone X..."
+     - Execute steps for current milestone
+     - Stop after completing milestone (don't continue to next milestone)
+   - **📝 Mio** — review changes for this milestone only
+     - Follow `skills/strict-review` on the diff from this milestone
+     - If BLOCKED/NEEDS_CHANGES → Yui fixes → Mio re-reviews (repeat until approved)
+     - If APPROVED → proceed to next milestone
+   - Repeat loop until all milestones complete
+5. **Manual testing** — After all milestones approved, user runs tests themselves.
    - User verifies the implementation works in their environment
 
 After review passes, always call **📋 Nodoka** as the final step to write the session summary.
@@ -57,9 +63,14 @@ Follow [`skills/narration`](https://github.com/dentiny/kon/blob/main/skills/narr
   2. Set session `status=waiting` with `steps_waiting: ["User"]`
   3. STOP and wait for explicit user confirmation (even in `--yolo` mode)
   4. Only spawn Yui after user confirms
+- **Milestone-based review loop:**
+  1. If plan has milestones: implement and review ONE milestone at a time
+  2. Yui implements milestone → Mio reviews → if blocked, Yui fixes → repeat until Mio approves
+  3. Only after Mio approves current milestone, proceed to next milestone
+  4. Do NOT implement all milestones then review — review incrementally
 - After each agent finishes, give the user one-line summary (not a full paste).
 - No skipping steps. Even for small tasks, every step runs.
-- At the end, give a final summary: which files changed, test result, any unresolved issues.
+- At the end, give a final summary: which files changed, any unresolved issues.
 - **Pass `PLAN_FILE` to every agent that reads or writes the plan** (Mugi, Yui, Nodoka,
   Azusa-challenge). Include this line in the task prompt:
   `PLAN_FILE: .kon/plan-<SESSION_ID>.md`
@@ -96,7 +107,8 @@ Confirm flow completes, then the main flow continues — the command step struct
 
 ## Hard rules
 
-- **Never skip 📝 Mio** — code review is mandatory
+- **Never skip 📝 Mio** — code review is mandatory for every milestone
+- **Review per milestone, not all at once** — Mio reviews after each milestone implementation
 - **Mio blocking is final** — if Mio blocks, send back to Yui for fixes
 - **Standards don't relax on round 3** — the checklist is the same from round 1 to round N
-- **No automated testing** — 🥁 Ritsu is not called. User runs tests manually after Mio approves.
+- **No automated testing** — user runs tests manually after all milestones are approved

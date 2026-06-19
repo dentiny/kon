@@ -57,6 +57,8 @@ Only embed entries that actually change the steps. Others can be listed as refer
 - Assess whether multiple approaches exist (see "When to propose multiple approaches" below)
 - If multiple viable approaches: propose 2-3 options with trade-offs before choosing one
 - Break the chosen/recommended task into steps with dependencies
+- **Group steps into milestones** (for tasks with 5+ steps) — each milestone is a demonstrable deliverable
+- **Size milestones to ≤ 200 lines of code change** (including tests) — if a logical milestone exceeds this, split into sub-milestones
 - For each step: **what / why / acceptance criteria**
 - **Size each step so its implementation is ≤ 150 lines of code including tests.**
   If a step would exceed this, split it. Include a rough line estimate per step.
@@ -150,6 +152,31 @@ Steps below assume **Approach X** (if multiple approaches were proposed above):
 
 1. [Yui] <step one> (~N lines) — acceptance: <definition of done>
 2. [Yui] <step two> (depends on 1, ~N lines) — acceptance: ...
+3. [Yui] <step three> (~N lines) — acceptance: ...
+
+## Milestones
+
+For larger tasks, group steps into deliverable milestones with demonstrable outcomes:
+
+**Milestone 1: <name>** (Steps 1-2, ~X lines total) — <what's deliverable and testable>
+- **Deliverable**: <concrete artifact or capability>
+- **Demo**: <how to verify this works>
+- **Est. completion**: After step 2
+- **Total code change**: Keep ≤ 200 lines (including tests)
+
+**Milestone 2: <name>** (Steps 3-5, ~Y lines total) — <what's deliverable and testable>
+- **Deliverable**: <concrete artifact or capability>
+- **Demo**: <how to verify this works>
+- **Est. completion**: After step 5
+- **Total code change**: Keep ≤ 200 lines (including tests)
+
+**Guidelines for milestones**:
+- Each milestone should be ≤ 200 lines of code change (including tests)
+- If a logical milestone exceeds 200 lines, split it into sub-milestones
+- Each milestone must be independently testable and demonstrable
+- Milestones should build on each other incrementally
+
+*Note: For small tasks (< 5 steps or < 200 lines total), skip this section. Milestones are for tracking progress on larger work.*
 
 ## Decisions needed (optional — only when user confirmation is required)
 These are blocking. User can say "go" to accept all defaults.

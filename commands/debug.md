@@ -28,7 +28,8 @@ Examples:
 ## Flow
 
 1. **🎸 Azusa** — investigate: symptoms → suspect code paths, related files, repro hints.
-   No fixes — exploration only.
+   - No fixes — exploration only.
+   - **If root cause cannot be determined, say "I don't know" and stop** — do not guess or propose workarounds.
 2. **Orchestrator** — write `.kon/debug-<SESSION_ID>.md` from Azusa's findings:
    - **Symptoms** — what the user sees
    - **Repro steps** — concrete commands or UI steps
@@ -36,7 +37,8 @@ Examples:
    - **Related code** — key files and functions involved
 3. **🍰 Mugi** — propose multiple fix approaches:
    - Read Azusa's investigation and debug file
-   - Propose 2-3 different fix approaches with trade-offs
+   - **If Azusa couldn't find root cause: say "Cannot propose fixes without understanding root cause" and stop**
+   - Otherwise: Propose 2-3 different fix approaches with trade-offs
    - Compare: complexity, risk, maintainability, scope
    - Recommend one approach with reasoning
    - Write proposals to debug file under `## Fix Proposals` section
@@ -61,8 +63,9 @@ Pass `DEBUG_FILE: .kon/debug-<SESSION_ID>.md` to Azusa, Mugi, and Yui in task pr
 - **No fix without repro evidence** — Yui must show failing repro (or explain why repro is impossible and what proxy evidence was used).
 - **Multiple fix proposals required** — Mugi must propose at least 2 approaches before user decides.
 - **User approval required** — Cannot proceed to implementation without user selecting a fix approach.
+- **CRITICAL: Honesty over workarounds** — If root cause is not found, say "I don't know" and stop. **Never** propose temporary workarounds or band-aid fixes that hide the problem. A symptom patch without understanding the root cause is worse than no fix.
 - **Minimal diff** — debug fixes only what is broken; no "while I'm here" cleanup.
-- **Root cause over symptom** — prefer fixing the cause; if only a symptom patch is possible, say so in the debug file.
+- **Root cause over symptom** — prefer fixing the cause; if only a symptom patch is possible, say so in the debug file and explain why the root cause cannot be addressed.
 - **Do not skip Mio** — even one-line fixes get full review.
 
 ## Debug notes template
@@ -84,6 +87,19 @@ Orchestrator writes this after Azusa, before Mugi:
 
 ## Root cause analysis
 <why this is happening — the actual cause, not just symptoms>
+
+**CRITICAL**: If root cause cannot be determined after investigation, write:
+```
+Root cause: UNKNOWN
+
+The investigation found the symptoms but could not identify the underlying cause.
+Do not proceed with implementation. Recommend:
+1. Gather more information: <what's needed>
+2. Reproduce in isolation: <how>
+3. Consult domain expert: <who/what>
+```
+
+Do NOT propose workarounds when root cause is unknown. Hiding problems is worse than admitting uncertainty.
 
 ## Related code
 - `path/file.py:42` — <relevance>
@@ -130,6 +146,7 @@ On create: `command: "/kon:debug"`, `steps_pending: ["Azusa", "Mugi", "User", "Y
 - **Model inheritance:** Do NOT pass `model` parameter when spawning subagents — let them inherit parent's model
 - **The orchestrator does not implement or debug** — spawn agents via Task tool.
 - **MANDATORY user confirmation:** After Mugi proposes fixes, STOP and wait for user to select approach before spawning Yui (even in `--yolo` mode)
+- **Stop if root cause unknown:** If Azusa or Mugi indicate root cause cannot be determined, do NOT proceed to Yui. Present the uncertainty to user and ask for guidance.
 - After Mio approves, draft a commit message per [`skills/commit-message`](https://github.com/dentiny/kon/blob/main/skills/commit-message/SKILL.md). **Do not `git commit`.**
 - Remind user to test the fix manually.
 

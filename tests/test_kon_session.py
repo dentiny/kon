@@ -560,3 +560,67 @@ def test_repeat_agent_appends_steps_completed() -> None:
         data = _load_session(sessions, sid)
         assert data["steps_completed"] == ["Yui", "Yui"]
         assert len(data["log"]) == 2
+
+
+def test_finish_closes_most_recent_open_session() -> None:
+    tmp, project, env, sessions = _isolated_env()
+    with tmp:
+        sid = _run(
+            ["init", "--command", "/kon:begin", "--task", "interactive"],
+            env,
+            project,
+        )
+        closed = _run(["finish"], env, project)
+        assert closed == sid
+        data = _load_session(sessions, sid)
+        assert data["status"] == "completed"
+        assert data["current_agent"] is None
+        assert data["log"][-1]["agent"] == "User"
+        assert data["log"][-1]["summary"] == "Session closed by user."
+
+
+def test_finish_by_id() -> None:
+    tmp, project, env, sessions = _isolated_env()
+    with tmp:
+        sid = _run(
+            ["init", "--command", "/kon:team", "--task", "waiting pipeline", "--pending", "Yui"],
+            env,
+            project,
+        )
+        _run(
+            ["complete-agent", "--id", sid, "--agent", "Yui", "--summary", "done"],
+            env,
+            project,
+        )
+        assert _load_session(sessions, sid)["status"] == "waiting"
+        _run(["finish", "--id", sid, "--summary", "Done for today"], env, project)
+        data = _load_session(sessions, sid)
+        assert data["status"] == "completed"
+        assert data["log"][-1]["summary"] == "Done for today"
+
+
+def test_finish_no_open_session_exits_nonzero() -> None:
+    tmp, project, env, _sessions = _isolated_env()
+    with tmp:
+        with pytest.raises(subprocess.CalledProcessError) as exc:
+            _run(["finish"], env, project)
+        assert "no open session found" in exc.value.stderr
+
+
+def test_finish_rejects_already_completed() -> None:
+    tmp, project, env, sessions = _isolated_env()
+    with tmp:
+        sid = _run(
+            ["init", "--command", "/kon:ask", "--task", "how does X work"],
+            env,
+            project,
+        )
+        _run(
+            ["complete-agent", "--id", sid, "--agent", "Azusa", "--summary", "explained"],
+            env,
+            project,
+        )
+        assert _load_session(sessions, sid)["status"] == "completed"
+        with pytest.raises(subprocess.CalledProcessError) as exc:
+            _run(["finish", "--id", sid], env, project)
+        assert "not open" in exc.value.stderr

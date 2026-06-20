@@ -77,6 +77,7 @@ For `/kon:todo`: read `commands/todo.md`, run `scripts/kon_todo.py` directly —
    Save the printed session ID. After each agent step:
    ```bash
    python3 $KON_ROOT/scripts/kon_session.py complete-agent --id <sid> --agent Azusa --summary "<one sentence>"
+   python3 $KON_ROOT/scripts/kon_session.py finish --project .   # close open session (/kon:finish)
    ```
    Sessions live in `~/.kon/projects/<repo-name>/sessions/`. Path helper: `scripts/kon_session.py`.
 

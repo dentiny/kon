@@ -40,11 +40,12 @@ With an optional rubric (🍰 Mugi writes criteria first):
 
 1. **Orchestrator** — create session: `command: "/kon:review"`, `steps_pending: ["Mio"]`
    (add `"Mugi"` before `"Mio"` when `--rubric` is used).
-2. **`--rubric` only:** spawn **🍰 Mugi** in review-rubric mode → `.kon/review-rubric.md`.
+2. **`--rubric` only:** spawn **🍰 Mugi** in review-rubric mode → `sessions/<SESSION_ID>/review-rubric.md`.
 3. **📝 Mio** — read diff and optional rubric; follow `agents/Mio.md` + `skills/strict-review`.
    - `git diff HEAD` (default) or `git diff --cached` (`--staged`)
    - List untracked files relevant to the task so Mio knows what to read
 4. **Orchestrator** — run quality check (`teammate_role: Mio`), update session (`complete-agent` → `completed`), present verdict.
+   - Full review is saved to **`sessions/<SESSION_ID>/review.md`** (subagentStop hook — open locally in your browser/editor).
 5. No automated testing. No Nodoka unless `/kon:summarize`.
 
 ## Orchestrator rules

@@ -12,7 +12,15 @@ from collections.abc import Iterator
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "hooks"))
-from _kon_paths import ensure_sessions_dir, iter_sessions_dirs, resolve_project_path  # noqa: E402
+from _kon_paths import iter_sessions_dirs, resolve_project_path  # noqa: E402
+from _session_paths import (  # noqa: E402
+    ensure_session_dir,
+    iter_session_json_paths,
+    resolve_session_json,
+    session_artifact_path,
+    session_dir,
+    session_json_path,
+)
 from _token_estimate import SOURCE as USAGE_SOURCE  # noqa: E402
 
 _BEGIN_COMMAND = "/kon:begin"
@@ -35,11 +43,7 @@ def _slug(task: str) -> str:
 
 
 def _session_path(session_id: str, project: str | None) -> Path | None:
-    for directory in iter_sessions_dirs(project):
-        path = directory / f"{session_id}.json"
-        if path.is_file():
-            return path
-    return None
+    return resolve_session_json(project, session_id)
 
 
 def _load(session_id: str, project: str | None) -> tuple[Path, dict]:
@@ -90,8 +94,8 @@ def iter_session_files(
     """Yield (path, data) for every valid session matching the filters."""
     project_path = str(resolve_project_path(project))
     for directory in iter_sessions_dirs(project):
-        for path in directory.glob("*.json"):
-            if exclude_sid and path.stem == exclude_sid:
+        for session_id, path in iter_session_json_paths(directory):
+            if exclude_sid and session_id == exclude_sid:
                 continue
             try:
                 data = json.loads(path.read_text(encoding="utf-8"))
@@ -187,7 +191,8 @@ def cmd_init(args: argparse.Namespace) -> None:
     if command == _BEGIN_COMMAND:
         data["mode"] = "interactive"
         data["turns"] = []
-    path = ensure_sessions_dir(args.project) / f"{sid}.json"
+    ensure_session_dir(args.project, sid)
+    path = session_json_path(args.project, sid)
     _save(path, data)
     _supersede_open_sessions(args.project, sid)
     print(sid)
@@ -376,6 +381,19 @@ def cmd_set_status(args: argparse.Namespace) -> None:
     _save(path, data)
 
 
+def cmd_session_dir(args: argparse.Namespace) -> None:
+    directory = session_dir(args.project, args.id)
+    if not resolve_session_json(args.project, args.id):
+        raise SystemExit(f"session not found: {args.id}")
+    print(directory)
+
+
+def cmd_artifact_path(args: argparse.Namespace) -> None:
+    if not resolve_session_json(args.project, args.id):
+        raise SystemExit(f"session not found: {args.id}")
+    print(session_artifact_path(args.project, args.id, args.name))
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="kon session file helper")
     parser.add_argument("--project", default=None, help="Project directory (default: cwd)")
@@ -434,6 +452,19 @@ def main() -> None:
         "--status", required=True, choices=["in_progress", "waiting", "completed", "blocked"]
     )
     status.set_defaults(func=cmd_set_status)
+
+    session_dir_cmd = sub.add_parser("session-dir", help="Print session artifact directory")
+    session_dir_cmd.add_argument("--id", required=True)
+    session_dir_cmd.set_defaults(func=cmd_session_dir)
+
+    artifact = sub.add_parser("artifact-path", help="Print path to a named session artifact")
+    artifact.add_argument("--id", required=True)
+    artifact.add_argument(
+        "--name",
+        required=True,
+        help="Artifact filename (e.g. plan.md, review.md, debug.md, summary.md)",
+    )
+    artifact.set_defaults(func=cmd_artifact_path)
 
     args = parser.parse_args()
     args.func(args)

@@ -29,9 +29,9 @@ from _kon_paths import (  # noqa: E402
     iter_sessions_dirs,
     kon_data_dir,
     project_data_dir,
-    project_kon_dir,
     resolve_project_path,
 )
+from _session_paths import all_session_delete_paths, iter_session_json_paths, resolve_session_json  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import kon_todo  # noqa: E402
@@ -611,44 +611,15 @@ def _session_dirs() -> list[Path]:
 def _session_file(session_id: str) -> Path | None:
     if session_id in _SESSION_FILES:
         return _SESSION_FILES[session_id]
-    for directory in _session_dirs():
-        path = directory / f"{session_id}.json"
-        if path.is_file():
-            return path
+    path = resolve_session_json(None, session_id)
+    if path is not None:
+        return path
     return None
 
 
 def _session_related_paths(session_id: str, project_path: str | None = None) -> list[Path]:
-    """All session artifacts to remove: json, summary, optional legacy copies, session dir."""
-    paths: list[Path] = []
-    seen: set[Path] = set()
-
-    def add(path: Path) -> None:
-        resolved = path.resolve()
-        if resolved not in seen:
-            seen.add(resolved)
-            paths.append(path)
-
-    canonical = _session_file(session_id)
-    if canonical is not None:
-        add(canonical)
-        add(canonical.parent / f"{session_id}-summary.md")
-        session_dir = canonical.parent / session_id
-        if session_dir.is_dir():
-            add(session_dir)
-
-    for directory in _session_dirs():
-        add(directory / f"{session_id}.json")
-        add(directory / f"{session_id}-summary.md")
-        add(directory / session_id)
-
-    if project_path:
-        legacy_sessions = project_kon_dir(project_path) / "sessions"
-        add(legacy_sessions / f"{session_id}.json")
-        add(legacy_sessions / f"{session_id}-summary.md")
-        add(legacy_sessions / session_id)
-
-    return paths
+    """All session artifacts to remove — one directory plus legacy scattered files."""
+    return all_session_delete_paths(session_id, project_path)
 
 
 def delete_session(session_id: str) -> list[str]:
@@ -688,12 +659,15 @@ def _load_sessions() -> list[dict]:
     for directory in _session_dirs():
         if not directory.exists():
             continue
-        for path in sorted(directory.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True):
+        candidates: list[tuple[float, str, Path, dict]] = []
+        for sid, path in iter_session_json_paths(directory):
             try:
                 data = json.loads(path.read_text(encoding="utf-8"))
             except (json.JSONDecodeError, OSError):
                 continue
-            sid = data.get("id", path.stem)
+            mtime = path.stat().st_mtime
+            candidates.append((mtime, sid, path, data))
+        for _mtime, sid, path, data in sorted(candidates, key=lambda row: row[0], reverse=True):
             if sid in seen:
                 continue
             if PROJECT_FILTER:

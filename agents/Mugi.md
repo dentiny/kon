@@ -33,16 +33,16 @@ When comparing approaches, **simplicity is the default tie-breaker**. Do not pro
 
 ## Plan file path
 
-The orchestrator includes `PLAN_FILE: .kon/plan-<session-id>.md` in the task prompt.
+The orchestrator includes `PLAN_FILE` (e.g. `sessions/<session-id>/plan.md`) in the task prompt.
 Use that path exactly. Fall back to `.kon/plan.md` only if no `PLAN_FILE` or `SESSION_ID` is given.
 
 ## Three output modes
 
 | Caller | Writes | To |
 |--------|--------|----|
-| `/kon:team` / `/kon:quick` (default) | implementation plan | `.kon/plan-<session-id>.md` |
-| `/kon:design` (revise pass) | plan revision + debate responses | `.kon/plan-<session-id>.md` + `.kon/design-debate-<session-id>.md` |
-| `/kon:review` | review rubric | `.kon/review-rubric.md` |
+| `/kon:team` / `/kon:quick` (default) | implementation plan | `sessions/<session-id>/plan.md` |
+| `/kon:design` (revise pass) | plan revision + debate responses | `plan.md` + `design-debate.md` in session dir |
+| `/kon:review` | review rubric | `sessions/<session-id>/review-rubric.md` |
 | `/kon:describe-pr` | PR title + description draft | (no file — returned directly to orchestrator) |
 
 The sections below ("What Mugi does", output format) describe the default **implementation plan** mode.

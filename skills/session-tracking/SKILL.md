@@ -11,17 +11,41 @@ description: This skill should be used by the kon orchestrator at the start of e
 The orchestrator writes and updates a session file so `scripts/dashboard.py`
 can display live status and a clickable log of every run.
 
+## Session directory layout
+
+Each run gets one directory — delete the folder (dashboard 🗑) and all artifacts go with it:
+
+```
+~/.kon/projects/<repo-name>/sessions/<session-id>/
+  session.json          # status, log, pipeline steps
+  summary.md            # Nodoka debrief (optional)
+  plan.md               # Mugi plan
+  review.md             # Mio review (/kon:review, /kon:debug)
+  debug.md              # Azusa/Mugi debug notes (/kon:debug)
+  design-debate.md      # design debate (/kon:design)
+  review-rubric.md      # Mugi rubric (/kon:review --rubric)
+```
+
+Resolve paths from the orchestrator:
+
+```bash
+SID=$(python3 $KON_ROOT/scripts/kon_session.py init --command "/kon:team" --task "...")
+SESSION_DIR=$(python3 $KON_ROOT/scripts/kon_session.py session-dir --id "$SID")
+PLAN_FILE=$(python3 $KON_ROOT/scripts/kon_session.py artifact-path --id "$SID" --name plan.md)
+```
+
+Pass `PLAN_FILE`, `SESSION_DIR`, etc. in Task prompts. Legacy flat files (`.kon/plan-<id>.md`, `sessions/<id>.json`) are still removed on delete if present.
+
 ## Session file location
 
-`~/.kon/projects/<repo-name>/sessions/<session-id>.json` (override root with `KON_DATA_DIR`)
+`~/.kon/projects/<repo-name>/sessions/<session-id>/session.json` (override root with `KON_DATA_DIR`)
 
 `<repo-name>` is the git repo root directory name (e.g. `kon` for `~/Desktop/kon`).
 Created automatically on Cursor session start via `ensure_project_dir` hook (creates the directory only).
 
 **Auto-init:** when you send a `/kon:*` slash command, `beforeSubmitPrompt` → `init_kon_session.py` writes the session JSON under `~/.kon/projects/<repo>/sessions/` before the agent runs. Orchestrators should still call `init` if the hook is not installed; duplicate `init` is safe (supersedes prior open sessions).
 
-Session history lives **outside the project repo**. Project working files
-(`plan-<session-id>.md`, rubrics, retry logs) still go in `<project>/.kon/`.
+Session history lives **outside the project repo**. Only `.kon/todos.json` stays project-local (committable).
 
 **Session ID format**: `YYYYMMDD-HHMMSS-<task-slug>`
 where task-slug = first 4 words of the task, lowercased, spaces → hyphens.

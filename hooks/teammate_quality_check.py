@@ -148,12 +148,12 @@ def check_mugi(out: str) -> None:
 
     # plan / review mode: output written to .kon/ files
     # Accept session-scoped plan files (.kon/plan-<sid>.md) as well as the legacy .kon/plan.md
-    if not re.search(r"\.kon/(plan(-[a-z0-9-]+)?|review-rubric)\.md", out):
+    if not re.search(rf"(?:{_SESSION_PLAN_PATH}|{_SESSION_RUBRIC_PATH})", out):
         emit(
             "block",
-            "Mugi (Planner) output does not reference "
-            ".kon/plan-<session-id>.md or .kon/review-rubric.md. "
-            "Write the plan / rubric to that file and report it.",
+            "Mugi (Planner) output does not reference the session plan or rubric file "
+            "(sessions/<session-id>/plan.md or review-rubric.md). "
+            "Write the plan / rubric there and report it.",
         )
     if not re.search(
         r"##\s+(Goal|Steps|Rubric|Acceptance|Category)",
@@ -169,13 +169,21 @@ def check_mugi(out: str) -> None:
 
 CHALLENGE_ID_RE = re.compile(r"^###\s+C\d+:", re.MULTILINE)
 
+# Session dir (~/.kon/.../sessions/<id>/) or legacy project .kon/ paths.
+_SESSION_PLAN_PATH = r"(?:\.kon/plan(?:-[a-z0-9-]+)?\.md|/sessions/[\w-]+/plan\.md)"
+_SESSION_DEBATE_PATH = (
+    r"(?:\.kon/design-debate(?:-[a-z0-9-]+)?\.md|/sessions/[\w-]+/design-debate\.md)"
+)
+_SESSION_RUBRIC_PATH = r"(?:\.kon/review-rubric\.md|/sessions/[\w-]+/review-rubric\.md)"
+
 
 def check_azusa_challenge(out: str) -> None:
     require_memory_header(out, "Azusa (Challenge)")
-    if not re.search(r"\.kon/design-debate(-[a-z0-9-]+)?\.md", out):
+    if not re.search(_SESSION_DEBATE_PATH, out):
         emit(
             "block",
-            "Azusa (Challenge) output must reference `.kon/design-debate-<session-id>.md`. "
+            "Azusa (Challenge) output must reference the session design-debate file "
+            "(sessions/<session-id>/design-debate.md). "
             "Write challenges there under `## Round N — Azusa challenges`.",
         )
     challenges = CHALLENGE_ID_RE.findall(out)
@@ -185,8 +193,8 @@ def check_azusa_challenge(out: str) -> None:
             "Azusa (Challenge) must raise at least 3 concrete challenges (C1, C2, C3…). "
             f"Found {len(challenges)}.",
         )
-    if re.search(r"\.kon/plan(-[a-z0-9-]+)?\.md", out) and re.search(
-        r"(edit|update|rewrite).+\.kon/plan(-[a-z0-9-]+)?\.md", out, re.IGNORECASE
+    if re.search(_SESSION_PLAN_PATH, out) and re.search(
+        rf"(edit|update|rewrite).+{_SESSION_PLAN_PATH}", out, re.IGNORECASE
     ):
         emit(
             "block",
@@ -197,15 +205,15 @@ def check_azusa_challenge(out: str) -> None:
 
 def check_mugi_revise(out: str) -> None:
     require_memory_header(out, "Mugi (Revise)")
-    if not re.search(r"\.kon/plan(-[a-z0-9-]+)?\.md", out):
+    if not re.search(_SESSION_PLAN_PATH, out):
         emit(
             "block",
-            "Mugi (Revise) must update the plan file and reference it in output.",
+            "Mugi (Revise) must update the session plan file and reference it in output.",
         )
-    if not re.search(r"\.kon/design-debate(-[a-z0-9-]+)?\.md", out):
+    if not re.search(_SESSION_DEBATE_PATH, out):
         emit(
             "block",
-            "Mugi (Revise) must fill the response table in `.kon/design-debate-<session-id>.md`.",
+            "Mugi (Revise) must fill the response table in the session design-debate file.",
         )
     if not re.search(r"\|\s*C\d+\s*\|", out):
         emit(

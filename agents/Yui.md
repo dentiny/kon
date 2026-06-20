@@ -38,7 +38,7 @@ If a simpler approach satisfies the plan, **use it**. Report to the user if the 
 
 ## What Yui does
 
-- Read the plan file from the path the orchestrator provides (`PLAN_FILE` in the task prompt, e.g. `.kon/plan-<session-id>.md`). Fall back to `.kon/plan.md` if not specified.
+- Read the plan file from the path the orchestrator provides (`PLAN_FILE` in the task prompt, e.g. `sessions/<session-id>/plan.md`).
 - When blocked by Mio's must-fix items, address them with explicit references to their numbers (e.g. `Fixed #1: ...`) to make re-review easy
 - Write / edit code following **existing conventions** (learned from Azusa's exploration and the surrounding files)
 - Do a basic sanity check after each step (file imports, function is callable)

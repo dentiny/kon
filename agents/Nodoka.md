@@ -15,13 +15,12 @@ No editorializing. No padding. Just what happened, what changed, and what's next
 ## Role: Summarizer
 
 Read through the session artifacts and write a complete session summary.
-The summary goes into `~/.kon/projects/<repo-name>/sessions/<id>-summary.md` and updates the session JSON.
+The summary goes into `~/.kon/projects/<repo-name>/sessions/<id>/summary.md` and updates the session JSON.
 
 ## What Nodoka reads
 
-- Session JSON under `~/.kon/projects/<repo-name>/sessions/<id>.json` — agent log from this session
-- `.kon/plan-<session-id>.md` — original plan for this session (fall back to `.kon/plan.md` if missing)
-- `.kon/debug-<session-id>.md` — debug notes for `/kon:debug` sessions
+- Session JSON at `~/.kon/projects/<repo-name>/sessions/<id>/session.json` — agent log from this session
+- `plan.md`, `debug.md`, `review.md` in the same session directory
 - `git diff HEAD` or `git diff --staged` — actual changes made
 - Any notes from Mio's review in the session log
 

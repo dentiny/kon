@@ -14,8 +14,21 @@ HOOKS = ROOT / "hooks"
 
 sys.path.insert(0, str(HOOKS))
 from _hook_io import format_payload  # noqa: E402
+from _session_paths import SESSION_JSON  # noqa: E402
 from no_git_write import is_git_write_blocked  # noqa: E402
 from on_subagent_stop import _infer_role  # noqa: E402
+
+
+def _session_json_path(data_root: Path, sid: str) -> Path:
+    return data_root / "projects" / "repo" / "sessions" / sid / SESSION_JSON
+
+
+def _list_session_files(sessions_dir: Path) -> list[Path]:
+    if not sessions_dir.is_dir():
+        return []
+    files = list(sessions_dir.glob(f"*/{SESSION_JSON}"))
+    files.extend(sessions_dir.glob("*.json"))
+    return files
 
 
 def _mio_output(
@@ -207,11 +220,7 @@ class TestOnSubagentStop:
             },
         )
 
-        session = json.loads(
-            (data_root / "projects" / "repo" / "sessions" / f"{sid}.json").read_text(
-                encoding="utf-8"
-            )
-        )
+        session = json.loads(_session_json_path(data_root, sid).read_text(encoding="utf-8"))
         usage = session["log"][-1]["usage"]
         assert usage["input_tokens"] == 10
         assert usage["output_tokens"] >= 20
@@ -277,11 +286,7 @@ class TestOnSubagentStop:
             },
         )
 
-        session = json.loads(
-            (data_root / "projects" / "repo" / "sessions" / f"{sid}.json").read_text(
-                encoding="utf-8"
-            )
-        )
+        session = json.loads(_session_json_path(data_root, sid).read_text(encoding="utf-8"))
         assert session["log"][-1]["agent"] == "Yui"
         assert session["log"][-1]["usage"]["total_tokens"] > 0
         assert "Yui" in session["steps_completed"]
@@ -303,11 +308,7 @@ class TestOnSubagentStop:
             ],
             check=True,
         )
-        session2 = json.loads(
-            (data_root / "projects" / "repo" / "sessions" / f"{sid}.json").read_text(
-                encoding="utf-8"
-            )
-        )
+        session2 = json.loads(_session_json_path(data_root, sid).read_text(encoding="utf-8"))
         assert len(session2["log"]) == 1
         assert "orchestrator summary" in session2["log"][0]["summary"]
 
@@ -469,7 +470,7 @@ class TestInitKonSession:
         assert result == {"continue": True}
 
         sessions_dir = data_root / "projects" / "repo" / "sessions"
-        files = list(sessions_dir.glob("*.json"))
+        files = _list_session_files(sessions_dir)
         assert len(files) == 1
         data = json.loads(files[0].read_text(encoding="utf-8"))
         assert data["command"] == "/kon:review"
@@ -489,7 +490,7 @@ class TestInitKonSession:
         )
         assert result == {"continue": True}
         sessions_dir = data_root / "projects" / "repo" / "sessions"
-        assert not sessions_dir.exists() or not list(sessions_dir.glob("*.json"))
+        assert not sessions_dir.exists() or not _list_session_files(sessions_dir)
 
     def test_uses_last_workspace_when_stdin_has_no_cwd(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
@@ -516,7 +517,7 @@ class TestInitKonSession:
         assert result == {"continue": True}
 
         sessions_dir = data_root / "projects" / "myrepo" / "sessions"
-        files = list(sessions_dir.glob("*.json"))
+        files = _list_session_files(sessions_dir)
         assert len(files) == 1, f"expected 1 session, got {files}"
         session = json.loads(files[0].read_text(encoding="utf-8"))
         assert session["command"] == "/kon:review"
@@ -556,7 +557,7 @@ class TestInitKonSession:
         assert result == {"continue": True}
 
         sessions_dir = data_root / "projects" / "repo" / "sessions"
-        files = list(sessions_dir.glob("*.json"))
+        files = _list_session_files(sessions_dir)
         assert len(files) == 1
         data = json.loads(files[0].read_text(encoding="utf-8"))
         assert data["command"] == "/kon:begin"
@@ -619,9 +620,7 @@ class TestBeginAutoLog:
         )
         assert result == {"continue": True}
 
-        data = json.loads(
-            (data_root / "projects" / "repo" / "sessions" / f"{sid}.json").read_text()
-        )
+        data = json.loads(_session_json_path(data_root, sid).read_text())
         last = data["log"][-1]
         assert last["agent"] == "User"
         assert last["summary"] == "can you check the failing test?"
@@ -643,7 +642,7 @@ class TestBeginAutoLog:
         )
         assert result == {"continue": True}
         sessions_dir = data_root / "projects" / "repo" / "sessions"
-        assert not sessions_dir.exists() or not list(sessions_dir.glob("*.json"))
+        assert not sessions_dir.exists() or not _list_session_files(sessions_dir)
 
     def test_log_begin_response_records_assistant_reply(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
@@ -664,8 +663,6 @@ class TestBeginAutoLog:
         )
         assert result == {}
 
-        data = json.loads(
-            (data_root / "projects" / "repo" / "sessions" / f"{sid}.json").read_text()
-        )
+        data = json.loads(_session_json_path(data_root, sid).read_text())
         assert data["log"][-1]["agent"] == "Assistant"
         assert data["log"][-1]["summary"] == "The test fails because KUBECONFIG is unset in CI."

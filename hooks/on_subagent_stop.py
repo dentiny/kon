@@ -24,6 +24,7 @@ from _token_estimate import (  # noqa: E402
     estimate_tokens_from_output_text,
     estimate_tokens_from_transcript,
 )
+from _review_artifact import maybe_write_review_from_hook  # noqa: E402
 
 # Order matters — more specific roles first.
 _ROLE_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
@@ -204,6 +205,14 @@ def main() -> None:
     usage = _usage_from_data(data, output)
     summary = str(data.get("summary") or "").strip() or _summary_from_output(output, agent)
     _log_subagent_to_begin_session(project, agent, output)
+    transcript = data.get("agent_transcript_path")
+    transcript_path = transcript.strip() if isinstance(transcript, str) else None
+    maybe_write_review_from_hook(
+        project,
+        agent=agent,
+        output=output,
+        transcript_path=transcript_path,
+    )
     _complete_open_session_from_hook(project, agent, summary, usage)
     emit("approve", f"{role}: quality check passed")
 

@@ -28,6 +28,9 @@ def _run(args: list[str], env: dict, cwd: Path) -> str:
 
 
 def _load_session(sessions_dir: Path, sid: str) -> dict:
+    nested = sessions_dir / sid / "session.json"
+    if nested.is_file():
+        return json.loads(nested.read_text(encoding="utf-8"))
     return json.loads((sessions_dir / f"{sid}.json").read_text(encoding="utf-8"))
 
 
@@ -257,7 +260,7 @@ def test_init_refuses_during_active_begin() -> None:
             )
         assert "refusing init" in exc.value.stderr
         assert _load_session(sessions, begin_sid)["status"] == "in_progress"
-        assert len(list(sessions.glob("*.json"))) == 1
+        assert len(list(sessions.glob("*/session.json"))) == 1
     tmp, project, env, sessions = _isolated_env()
     with tmp:
         sid = _run(

@@ -9,6 +9,7 @@ import sys
 from pathlib import Path
 
 from _kon_paths import hook_log_path, iter_sessions_dirs, kon_root, resolve_project_path
+from _session_paths import iter_session_json_paths
 
 _BEGIN_COMMAND = "/kon:begin"
 _KON_CMD = re.compile(r"^/kon:([\w-]+)(?:\s+(.*))?$", re.DOTALL | re.IGNORECASE)
@@ -39,7 +40,7 @@ def find_active_begin(project: str | None) -> tuple[Path, dict] | None:
     best: tuple[Path, dict] | None = None
     best_key = ""
     for directory in iter_sessions_dirs(project):
-        for path in directory.glob("*.json"):
+        for _sid, path in iter_session_json_paths(directory):
             try:
                 data = json.loads(path.read_text(encoding="utf-8"))
             except (json.JSONDecodeError, OSError):

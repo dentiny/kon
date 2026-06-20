@@ -32,7 +32,7 @@ Examples:
 1. **🎸 Azusa** — investigate: symptoms → suspect code paths, related files, repro hints.
    - No fixes — exploration only.
    - **If root cause cannot be determined, say "I don't know" and stop** — do not guess or propose workarounds.
-2. **Orchestrator** — write `.kon/debug-<SESSION_ID>.md` from Azusa's findings:
+2. **Orchestrator** — write `debug.md` in the session directory from Azusa's findings:
    - **Symptoms** — what the user sees
    - **Repro steps** — concrete commands or UI steps
    - **Root cause analysis** — why this is happening
@@ -57,10 +57,11 @@ Examples:
    - If fix has multiple logical parts: implement incrementally, get review per part
 6. **📝 Mio** — review the fix (full 7-item golden checklist, same as `/kon:team`)
    - For multi-part fixes: review each part after implementation before next part
+   - Full review saved to **`sessions/<SESSION_ID>/review.md`** (subagentStop hook; append on each review pass)
 7. **Manual testing** — After Mio approves, user verifies the fix works
 8. **📋 Nodoka** — session summary (auto via [`/kon:summarize`](summarize.md)).
 
-Pass `DEBUG_FILE: .kon/debug-<SESSION_ID>.md` to Azusa, Mugi, and Yui in task prompts.
+Pass `SESSION_DIR` and `DEBUG_FILE: debug.md` (paths from `kon_session.py session-dir` / `artifact-path`) to Azusa, Mugi, and Yui in task prompts.
 
 ## Evidence rules (hard)
 

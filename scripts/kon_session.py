@@ -381,6 +381,31 @@ def cmd_set_status(args: argparse.Namespace) -> None:
     _save(path, data)
 
 
+def _close_session(path: Path, data: dict, *, summary: str) -> None:
+    data["status"] = "completed"
+    data["current_agent"] = None
+    log = data.get("log") or []
+    log.append({"ts": _ts(), "agent": "User", "summary": summary})
+    data["log"] = log
+    _save(path, data)
+
+
+def cmd_finish(args: argparse.Namespace) -> None:
+    """Close the most recent open session (or --id) — same as dashboard ✓."""
+    summary = args.summary or "Session closed by user."
+    if args.id:
+        path, data = _load(args.id, args.project)
+        if data.get("status") not in {"in_progress", "waiting"}:
+            raise SystemExit(f"session is not open: {args.id} (status={data.get('status')!r})")
+    else:
+        found = _find_open_session(args.project)
+        if found is None:
+            raise SystemExit("no open session found")
+        path, data = found
+    _close_session(path, data, summary=summary)
+    print(data["id"])
+
+
 def cmd_session_dir(args: argparse.Namespace) -> None:
     directory = session_dir(args.project, args.id)
     if not resolve_session_json(args.project, args.id):
@@ -445,6 +470,22 @@ def main() -> None:
 
     open_cmd = sub.add_parser("open", help="Print most recent open session id if any")
     open_cmd.set_defaults(func=cmd_open)
+
+    finish = sub.add_parser(
+        "finish",
+        help="Close the most recent open session (in_progress or waiting)",
+    )
+    finish.add_argument(
+        "--id",
+        default=None,
+        help="Session id to close (default: most recent open session for this project)",
+    )
+    finish.add_argument(
+        "--summary",
+        default=None,
+        help='Log summary (default: "Session closed by user.")',
+    )
+    finish.set_defaults(func=cmd_finish)
 
     status = sub.add_parser("set-status", help="Set session status")
     status.add_argument("--id", required=True)

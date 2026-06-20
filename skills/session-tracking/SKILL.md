@@ -127,7 +127,7 @@ in_progress  →  waiting  →  completed
 | All agents finished (pipeline command) | Set `status=waiting`, `current_agent=null` |
 | All agents finished (`/kon:ask`, `/kon:research`, `/kon:review`) | Set `status=completed` |
 | `init` creates a new session | Supersede other open sessions for same project → `completed` |
-| `kon finish` or dashboard ✓ | Set `status=completed` |
+| `/kon:finish` or dashboard ✓ | `python3 scripts/kon_session.py finish` → `status=completed`, log User row |
 
 ### `/kon:begin` variant
 

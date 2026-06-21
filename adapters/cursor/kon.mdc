@@ -32,6 +32,7 @@ User invokes a **slash command** (kon extension system commands):
 - `/kon:research <question>` — external lookup (📚 Jun, writes `.kon/research.md`)
 - `/kon:review` — code review only (📝 Mio on uncommitted/staged diff)
 - `/kon:review-pr` — holistic PR review (📝 Mio: diff + body + comments + linked issues)
+- `/kon:address-comments` — triage PR review comments → route to quick/team and implement
 - `/kon:describe-issue <#>` — summarize GitHub issue + comments (📚 Jun)
 - `/kon:todo <task>` — add a project todo (`.kon/todos.json`); manage in dashboard Todos tab
 - `/kon:ask <question>` — read-only Q&A (🎸 Azusa explores, **no repo writes** — session still tracked)
@@ -60,6 +61,7 @@ For `/kon:research`: read `commands/research.md`, spawn Jun only.
 For `/kon:review`: read `commands/review.md`, spawn Mio only (optional Mugi first with `--rubric`).
 For `/kon:review-pr`: read `commands/review-pr.md`, spawn Mio only (review-pr mode).
 For `/kon:describe-issue`: read `commands/describe-issue.md`, spawn Jun only (describe-issue mode).
+For `/kon:address-comments`: read `commands/address-comments.md` — orchestrator runs triage (steps 1–4); step 5 delegates to quick/team.
 
 For `/kon:todo`: read `commands/todo.md`, run `scripts/kon_todo.py` directly — no agents, no session JSON.
 
@@ -76,7 +78,7 @@ For `/kon:todo`: read `commands/todo.md`, run `scripts/kon_todo.py` directly —
    When `active` is empty:
    ```bash
    python3 $KON_ROOT/scripts/kon_session.py init --command "/kon:ask" --task "<question>"
-   # other commands: --command "/kon:team" | "/kon:design" | "/kon:quick" | "/kon:debug" | "/kon:gc" | "/kon:review-pr" | "/kon:describe-issue"
+   # other commands: --command "/kon:team" | "/kon:design" | "/kon:quick" | "/kon:debug" | "/kon:gc" | "/kon:review-pr" | "/kon:address-comments" | "/kon:describe-issue"
    ```
    Save the printed session ID. After each agent step:
    ```bash
@@ -96,6 +98,7 @@ For `/kon:todo`: read `commands/todo.md`, run `scripts/kon_todo.py` directly —
    - `/kon:research` → `$KON_ROOT/commands/research.md`
    - `/kon:review` → `$KON_ROOT/commands/review.md`
    - `/kon:review-pr` → `$KON_ROOT/commands/review-pr.md`
+   - `/kon:address-comments` → `$KON_ROOT/commands/address-comments.md`
    - `/kon:describe-issue` → `$KON_ROOT/commands/describe-issue.md`
    - `/kon:todo` → `$KON_ROOT/commands/todo.md`
    - `/kon:ask` → `$KON_ROOT/commands/ask.md`
@@ -103,7 +106,7 @@ For `/kon:todo`: read `commands/todo.md`, run `scripts/kon_todo.py` directly —
    - `/kon:finish` → `$KON_ROOT/commands/finish.md`
    - `/kon:summarize` → `$KON_ROOT/commands/summarize.md`
 
-3. Read `$KON_ROOT/skills/teammate-flow/SKILL.md` for orchestration rules — **skip for `/kon:ask`, `/kon:research`, `/kon:review`, `/kon:review-pr`, and `/kon:describe-issue`**. For `/kon:debug`, follow `commands/debug.md`. For `/kon:design`, also read `$KON_ROOT/skills/design-debate/SKILL.md`. For external lookup in team/design, also read `$KON_ROOT/skills/external-research/SKILL.md`.
+3. Read `$KON_ROOT/skills/teammate-flow/SKILL.md` for orchestration rules — **skip for `/kon:ask`, `/kon:research`, `/kon:review`, `/kon:review-pr`, `/kon:address-comments` (triage only), and `/kon:describe-issue`**. For `/kon:debug`, follow `commands/debug.md`. For `/kon:design`, also read `$KON_ROOT/skills/design-debate/SKILL.md`. For external lookup in team/design, also read `$KON_ROOT/skills/external-research/SKILL.md`.
 
 4. For each agent step, spawn a Task subagent. Pass the agent file as context in the prompt:
 

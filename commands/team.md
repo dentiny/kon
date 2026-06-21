@@ -63,3 +63,13 @@ Always confirm plan before implementation — no silent reuse even in `--yolo` m
 ## Failure handling
 
 See [`skills/failure-handling`](https://github.com/dentiny/kon/blob/main/skills/failure-handling/SKILL.md).
+
+## Session close (default)
+
+After all milestones are Mio-approved:
+
+1. **📋 Nodoka** — `/kon:summarize` (see [`commands/summarize.md`](summarize.md))
+2. **Retro** — orchestrator runs [`skills/session-retro`](../skills/session-retro/SKILL.md) (propose → user confirms public/repo saves)
+3. User closes with `/kon:finish` or dashboard ✓
+
+User may say **skip retro** to finish without memory proposals.

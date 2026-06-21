@@ -109,6 +109,16 @@ This feeds the live dashboard (`python3 scripts/dashboard.py`).
 When the user appends `--yolo` to any command, activate autonomous mode.
 Follow [`skills/yolo-mode`](https://github.com/dentiny/kon/blob/main/skills/yolo-mode/SKILL.md).
 
+## Session close (default)
+
+After all milestones approved and summarized:
+
+1. **📋 Nodoka** — `/kon:summarize` (if not already run)
+2. **Retro** — [`skills/session-retro`](session-retro/SKILL.md)
+3. User `/kon:finish` or dashboard ✓
+
+User may say **skip retro**. Read-only commands skip this block.
+
 ## Memory propose confirm flow
 
 Detection (including fence tracking) and the 6-step confirm flow follow

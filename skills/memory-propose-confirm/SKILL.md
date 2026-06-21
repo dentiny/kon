@@ -1,51 +1,91 @@
 ---
 name: memory-propose-confirm
-description: This skill should be used by the kon orchestrator whenever a Mio or Yui output contains a ## Memory propose section. Handles the 6-step confirm flow and fence-tracking rules. Applies to /kon:quick, /kon:team, /kon:debug.
+description: This skill should be used by the kon orchestrator when saving memory — from ## Memory propose (Mio/Yui), session retro, or /kon:remember. Handles scope selection (public vs repo), confirm flow, and index updates. Applies to /kon:team, /kon:quick, /kon:debug, /kon:retro.
 ---
 
 # Memory Propose Confirm Flow
 
 **Owner**: orchestrator
-**Consumers**: [`/kon:team`](https://github.com/dentiny/kon/blob/main/commands/team.md), [`/kon:quick`](https://github.com/dentiny/kon/blob/main/commands/quick.md), [`/kon:debug`](https://github.com/dentiny/kon/blob/main/commands/debug.md)
+**Consumers**: [`/kon:team`](../commands/team.md), [`/kon:quick`](../commands/quick.md), [`/kon:debug`](../commands/debug.md), [`/kon:retro`](../commands/retro.md), [`skills/session-retro`](session-retro/SKILL.md)
 
-## Trigger condition
+## Storage paths
 
-When 📝 Mio or 🎶 Yui output ends with a `## Memory propose` section,
-the orchestrator runs the confirm flow immediately after that agent completes —
-before continuing to the next step.
+| Scope | Directory | Index |
+|-------|-----------|-------|
+| **public** | `~/.kon/public/memory/` | `MEMORY.md` |
+| **repo** | `~/.kon/projects/<repo-name>/memory/` | `MEMORY.md` |
 
-## 6-step confirm flow
+Ensure dirs exist before write:
 
-1. **Format check**: verify the propose section has all 6 required fields:
-   `name` / `slug` / `description` / `body` / `type` / `rationale`.
-   Missing any field → skip silently with one line: "Memory propose detected but format incomplete — skipped."
+```bash
+python3 $KON_ROOT/hooks/_kon_paths.py public-memory
+python3 $KON_ROOT/hooks/_kon_paths.py project-memory
+```
 
-2. **Show current memory index**: display `~/.config/kon/memory/MEMORY.md` if it exists.
+## Trigger: agent `## Memory propose`
 
-3. **Print propose summary**: type / name / description / rationale.
+When 📝 Mio or 🎶 Yui output contains `## Memory propose` (outside code fences — see fence rule below),
+run confirm flow **before** the next pipeline step.
 
-4. **AskUserQuestion**: options `Save` / `Edit` / `Skip`.
+Required fields: `name` / `slug` / `description` / `body` / `type` / `rationale`.
+Missing any → skip with one line: "Memory propose detected but format incomplete — skipped."
 
-5. On **Save** or **Edit**:
-   - `mkdir -p ~/.config/kon/memory/`
-   - Write `~/.config/kon/memory/<slug>.md` with frontmatter + body
-   - Append `- [<name>](<slug>.md) — <description>` to `~/.config/kon/memory/MEMORY.md`
-   - On Edit: step 4 lets the user modify fields first
+## Confirm flow
 
-6. On **Skip**: continue main flow, write nothing.
+1. **Format check** (agent propose) or **build candidate** (retro / remember).
+2. **Show both indexes** — print paths to public and repo `MEMORY.md` if they exist.
+3. **Print summary** — type, name, description, rationale; suggest **scope**:
+   - `public` — user prefs, cross-repo habits, language, feedback
+   - `repo` — this repo's paths, tooling, local conventions
+   User may override.
+4. **Ask user** — `Save to public` / `Save to repo` / `Edit` / `Skip`.
+5. On **Save** or **Edit** → **write entry** (step below).
+6. On **Skip** → continue main flow, write nothing.
 
-Confirm flow completes, then main flow resumes — command step structure does not change.
+## Write entry
 
-## Fence-tracking rule
+On confirmed save:
+
+1. Resolve target dir from scope (`public` or `repo`).
+2. If `<slug>.md` already exists → ask: **Overwrite** / **Rename slug** / **Cancel**.
+3. Write `<slug>.md`:
+
+```markdown
+---
+name: <name>
+description: <description>
+type: <user|feedback|project|reference>
+---
+
+<body>
+```
+
+4. Append to that scope's `MEMORY.md` (skip if an identical index line already present):
+
+```markdown
+- [<name>](<slug>.md) — <description>
+```
+
+5. Print: `Saved [public|repo] <name> → <path>`.
+
+**Rollback on failure:** if index append fails after entry write, remove the new entry file and report error.
+
+## Fence-tracking rule (agent propose only)
 
 Only detect `## Memory propose` **outside** code fences.
-Track triple-backtick count from the start of the output; when inside a fence (odd count), ignore any `## Memory propose` heading.
+Track triple-backtick count from output start; inside a fence (odd count), ignore the heading.
 
 ## Memory types
 
-| Type | When to use |
-|------|-------------|
-| `user` | Personal preferences, language preferences, identity facts |
-| `project` | Repo-specific conventions, tool choices, patterns |
-| `feedback` | Past session feedback ("Mio's review was too long") |
-| `reference` | External URLs, docs, specs |
+| Type | Typical scope | When to use |
+|------|---------------|-------------|
+| `user` | public | Personal preferences, language, identity |
+| `project` | repo (sometimes public) | Repo conventions, tool choices, patterns |
+| `feedback` | public | Process feedback ("reviews too long") |
+| `reference` | either | URLs, docs, specs |
+
+## Relationship to retro
+
+Mid-session `## Memory propose` = immediate capture.
+Session retro = catch-all after summarize; reuses this write flow.
+Do not re-propose entries the user already saved this session.

@@ -37,6 +37,9 @@ Can also be called manually to (re)summarize any session.
 Every `kon team`, `kon quick`, `kon debug`, and `kon gc` run calls `/kon:summarize`
 as its final step, after Mio approves. No additional user action needed.
 
+**Then retro (default):** orchestrator runs [`skills/session-retro`](../session-retro/SKILL.md)
+after summarize unless the user says **skip retro**.
+
 ## Orchestrator rules
 
 - **Narration**: use 🌸 Ui for opening/closing. Follow [`skills/narration`](https://github.com/dentiny/kon/blob/main/skills/narration/SKILL.md).

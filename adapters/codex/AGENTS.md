@@ -27,7 +27,7 @@ When the user invokes a **slash command**:
 - `/kon:todo <task>`
 - `/kon:ask <question>`
 - `/kon:gc` or `/kon:gc <target>`
-- `/kon:finish`, `/kon:summarize`
+- `/kon:finish`, `/kon:summarize`, `/kon:retro`
 
 YOLO: `/kon:team --yolo <task>`.
 
@@ -50,6 +50,7 @@ For `/kon:review`: read `commands/review.md`, spawn Mio only (optional Mugi firs
 For `/kon:review-pr`: read `commands/review-pr.md`, spawn Mio only.
 For `/kon:describe-issue`: read `commands/describe-issue.md`, spawn Jun only.
 For `/kon:address-comments`: read `commands/address-comments.md` — orchestrator triage (steps 1–4); step 5 delegates to quick/team.
+For `/kon:retro`: read `commands/retro.md` + `skills/session-retro/SKILL.md` — orchestrator only.
 
 For `/kon:todo`: read `commands/todo.md`, run `scripts/kon_todo.py` directly — no agents, no session JSON.
 
@@ -67,12 +68,13 @@ For `/kon:todo`: read `commands/todo.md`, run `scripts/kon_todo.py` directly —
    - `/kon:review` → `$KON_ROOT/commands/review.md`
    - `/kon:review-pr` → `$KON_ROOT/commands/review-pr.md`
    - `/kon:address-comments` → `$KON_ROOT/commands/address-comments.md`
+   - `/kon:retro` → `$KON_ROOT/commands/retro.md`
    - `/kon:describe-issue` → `$KON_ROOT/commands/describe-issue.md`
    - `/kon:todo` → `$KON_ROOT/commands/todo.md`
    - `/kon:ask` → `$KON_ROOT/commands/ask.md`
    - `/kon:gc` → `$KON_ROOT/commands/gc.md`
 
-3. Read `$KON_ROOT/skills/teammate-flow/SKILL.md` — **skip for `/kon:ask`, `/kon:research`, `/kon:review`, `/kon:review-pr`, `/kon:address-comments` (triage only), and `/kon:describe-issue`**. For `/kon:debug`, follow `commands/debug.md` (no Mugi; Mio only). For `/kon:design`, also read design-debate. For team/design external lookup, read `skills/external-research/SKILL.md`.
+3. Read `$KON_ROOT/skills/teammate-flow/SKILL.md` — **skip for `/kon:ask`, `/kon:research`, `/kon:review`, `/kon:review-pr`, `/kon:address-comments` (triage only), `/kon:retro`, and `/kon:describe-issue`**. For `/kon:debug`, follow `commands/debug.md` (no Mugi; Mio only). For `/kon:design`, also read design-debate. For team/design external lookup, read `skills/external-research/SKILL.md`.
 
 4. For each agent step, spawn a subagent. Include the agent file as the subagent's
    system context in the prompt:
@@ -107,7 +109,7 @@ For `/kon:todo`: read `commands/todo.md`, run `scripts/kon_todo.py` directly —
      | python3 $KON_ROOT/hooks/teammate_quality_check.py
    ```
 
-6. After Mio approves, spawn **Nodoka** — follow `commands/summarize.md`. Testing is manual.
+6. After Mio approves, spawn **Nodoka** — follow `commands/summarize.md`, then **retro** per `skills/session-retro/SKILL.md`. Testing is manual.
 
 7. Failure handling: `$KON_ROOT/skills/failure-handling/SKILL.md`.
 

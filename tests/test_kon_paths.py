@@ -12,8 +12,12 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "hooks"))
 
 from _kon_paths import (  # noqa: E402
+    ensure_project_memory_dir,
+    ensure_public_memory_dir,
     install_bundled_paths_module,
     kon_root,
+    project_memory_dir,
+    public_memory_dir,
     read_config_kon_root,
     write_kon_config,
 )
@@ -56,3 +60,15 @@ def test_install_bundled_paths_module(monkeypatch: pytest.MonkeyPatch) -> None:
         dest = install_bundled_paths_module(ROOT / "hooks" / "_kon_paths.py")
         assert dest.is_file()
         assert dest.name == "_kon_paths.py"
+
+
+def test_public_and_project_memory_dirs(monkeypatch: pytest.MonkeyPatch) -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        data_dir = Path(tmp) / "kon-data"
+        monkeypatch.setenv("KON_DATA_DIR", str(data_dir))
+        pub = ensure_public_memory_dir()
+        assert pub == public_memory_dir()
+        assert (pub / "MEMORY.md").is_file()
+        proj = ensure_project_memory_dir()
+        assert proj == project_memory_dir()
+        assert (proj / "MEMORY.md").is_file()

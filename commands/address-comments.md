@@ -201,7 +201,7 @@ After all work items:
 3. **Commit message drafts** — list draft message(s) per work item (or one combined if user chose).
    User runs `git add` / `git commit` themselves.
 
-Optional: spawn **📋 Nodoka** only if user runs `/kon:summarize` or the session normally ends with summarize.
+4. **Session close** — `/kon:summarize` → [`skills/session-retro`](../skills/session-retro/SKILL.md) → user `/kon:finish` (may **skip retro**).
 
 ## Session tracking
 

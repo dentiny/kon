@@ -39,6 +39,7 @@ User invokes a **slash command** (kon extension system commands):
 - `/kon:gc` or `/kon:gc <target>` — garbage collect (dead code, comments, docs)
 - `/kon:finish` — mark current session completed
 - `/kon:summarize` — write session summary
+- `/kon:retro` — propose session learnings for public/repo memory (also default after pipeline commands)
 
 Append `--yolo` for autonomous mode: `/kon:team --yolo <task>`.
 
@@ -62,6 +63,8 @@ For `/kon:review`: read `commands/review.md`, spawn Mio only (optional Mugi firs
 For `/kon:review-pr`: read `commands/review-pr.md`, spawn Mio only (review-pr mode).
 For `/kon:describe-issue`: read `commands/describe-issue.md`, spawn Jun only (describe-issue mode).
 For `/kon:address-comments`: read `commands/address-comments.md` — orchestrator runs triage (steps 1–4); step 5 delegates to quick/team.
+
+For `/kon:retro`: read `commands/retro.md` + `skills/session-retro/SKILL.md` — orchestrator only.
 
 For `/kon:todo`: read `commands/todo.md`, run `scripts/kon_todo.py` directly — no agents, no session JSON.
 
@@ -99,6 +102,7 @@ For `/kon:todo`: read `commands/todo.md`, run `scripts/kon_todo.py` directly —
    - `/kon:review` → `$KON_ROOT/commands/review.md`
    - `/kon:review-pr` → `$KON_ROOT/commands/review-pr.md`
    - `/kon:address-comments` → `$KON_ROOT/commands/address-comments.md`
+   - `/kon:retro` → `$KON_ROOT/commands/retro.md`
    - `/kon:describe-issue` → `$KON_ROOT/commands/describe-issue.md`
    - `/kon:todo` → `$KON_ROOT/commands/todo.md`
    - `/kon:ask` → `$KON_ROOT/commands/ask.md`
@@ -106,7 +110,7 @@ For `/kon:todo`: read `commands/todo.md`, run `scripts/kon_todo.py` directly —
    - `/kon:finish` → `$KON_ROOT/commands/finish.md`
    - `/kon:summarize` → `$KON_ROOT/commands/summarize.md`
 
-3. Read `$KON_ROOT/skills/teammate-flow/SKILL.md` for orchestration rules — **skip for `/kon:ask`, `/kon:research`, `/kon:review`, `/kon:review-pr`, `/kon:address-comments` (triage only), and `/kon:describe-issue`**. For `/kon:debug`, follow `commands/debug.md`. For `/kon:design`, also read `$KON_ROOT/skills/design-debate/SKILL.md`. For external lookup in team/design, also read `$KON_ROOT/skills/external-research/SKILL.md`.
+3. Read `$KON_ROOT/skills/teammate-flow/SKILL.md` for orchestration rules — **skip for `/kon:ask`, `/kon:research`, `/kon:review`, `/kon:review-pr`, `/kon:address-comments` (triage only), `/kon:retro`, and `/kon:describe-issue`**. For `/kon:debug`, follow `commands/debug.md`. For `/kon:design`, also read `$KON_ROOT/skills/design-debate/SKILL.md`. For external lookup in team/design, also read `$KON_ROOT/skills/external-research/SKILL.md`.
 
 4. For each agent step, spawn a Task subagent. Pass the agent file as context in the prompt:
 
@@ -142,7 +146,7 @@ For `/kon:todo`: read `commands/todo.md`, run `scripts/kon_todo.py` directly —
 
    Block on `decision: block` or hook `followup_message`; retry the agent.
 
-6. After Mio approves all milestones, spawn **📋 Nodoka** — follow `$KON_ROOT/commands/summarize.md` (auto at end of team/quick/gc).
+6. After Mio approves all milestones, spawn **📋 Nodoka** — follow `$KON_ROOT/commands/summarize.md`, then run **retro** per `$KON_ROOT/skills/session-retro/SKILL.md` (user may skip).
 
 7. Use `$KON_ROOT/skills/narration/SKILL.md` for 🌸 Ui narration beats.
 

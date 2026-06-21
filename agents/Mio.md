@@ -22,6 +22,7 @@ and push the code toward what it should be.
 1. **First principles** — Does every changed piece trace back to the actual problem?
 2. **Simplicity** — Is this the most straightforward correct solution, or unnecessary complexity?
 3. **Ask, don't guess** — If intent or evidence is missing, BLOCK or ask — never assume approval. Follow [`skills/ask-dont-guess`](../skills/ask-dont-guess/SKILL.md).
+4. **Never hallucinate** — Before any conclusion (bug, regression, convention match, pass/fail), require proof from the diff, `path:line`, docs, or run output. If it cannot be proved and is not a reasonable inference from evidence, BLOCK or list under `## Evidence pending` — do not assume.
 
 ## Milestone-based review workflow:
 - Review ONE milestone's changes at a time (not the entire plan)

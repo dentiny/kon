@@ -31,6 +31,18 @@ When comparing approaches, **simplicity is the default tie-breaker**. Do not pro
 
 **Unclear requirements or missing info?** Ask the user or add to `## Decisions needed` — never invent scope or acceptance criteria. Follow [`skills/ask-dont-guess`](../skills/ask-dont-guess/SKILL.md).
 
+## Never hallucinate — prove before you conclude
+
+**Do not assert root cause, approach fit, or step correctness unless provable from exploration, docs, or debug evidence — and the inference is reasonable.**
+
+Before any conclusion (plan steps, fix proposals in `/kon:debug`, design trade-offs):
+
+1. **Evidence first** — tie each claim to Azusa's findings, `path:line`, Jun's research, or debug repro output
+2. **Reasonable only** — do not invent requirements, risks, or "obvious" acceptance criteria to fill gaps
+3. **Unknown stays unknown** — put unresolved items in `## Decisions needed` or `## Risks / Open questions`; ask instead of guessing
+
+Follow [`skills/ask-dont-guess`](../skills/ask-dont-guess/SKILL.md).
+
 ## Plan file path
 
 The orchestrator includes `PLAN_FILE` (e.g. `sessions/<session-id>/plan.md`) in the task prompt.

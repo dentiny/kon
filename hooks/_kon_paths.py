@@ -26,7 +26,10 @@ _LIB_SUBDIR = "lib"
 _LIB_MODULE = "_kon_paths.py"
 _DEFAULT_KON_ROOT = Path.home() / "Desktop" / "kon"
 _LAST_WORKSPACE_FILENAME = "last_workspace.json"
-_LOGS_SUBDIR = "logs"
+_PUBLIC_SUBDIR = "public"
+_MEMORY_SUBDIR = "memory"
+_MEMORY_INDEX = "MEMORY.md"
+_LEGACY_PUBLIC_MEMORY = Path.home() / ".config" / "kon" / "memory"
 
 
 def kon_data_dir() -> Path:
@@ -158,10 +161,12 @@ def project_kon_dir(project_dir: Path | str | None = None) -> Path:
 
 
 def ensure_project_dir(project_dir: Path | str | None = None) -> Path:
-    """Create ``~/.kon/projects/<repo-name>/`` and ``sessions/`` if missing."""
+    """Create ``~/.kon/projects/<repo-name>/``, ``sessions/``, and ``memory/`` if missing."""
     base = project_data_dir(project_dir)
     sessions = base / "sessions"
     sessions.mkdir(parents=True, exist_ok=True)
+    ensure_project_memory_dir(project_dir)
+    ensure_public_memory_dir()
     meta = base / "meta.json"
     project_path = str(resolve_project_path(project_dir))
     if meta.is_file():
@@ -237,6 +242,77 @@ def read_last_workspace() -> str | None:
     return project.strip()
 
 
+def public_memory_dir() -> Path:
+    """Cross-project memory: ``~/.kon/public/memory/``."""
+    return kon_data_dir() / _PUBLIC_SUBDIR / _MEMORY_SUBDIR
+
+
+def project_memory_dir(project_dir: Path | str | None = None) -> Path:
+    """Per-repo memory: ``~/.kon/projects/<repo-name>/memory/``."""
+    return project_data_dir(project_dir) / _MEMORY_SUBDIR
+
+
+def _memory_index_body(scope_label: str) -> str:
+    return f"""# kon memory index ({scope_label})
+
+Preferences and conventions loaded by agents at startup via `skills/memory-loading`.
+
+Add entries below (one per line):
+
+- [Title](slug.md) — one-line description
+
+Entry files live in this directory with YAML frontmatter (`name`, `description`, `type`).
+Types: `user`, `project`, `feedback`, `reference`.
+"""
+
+
+def ensure_memory_dir(memory_dir: Path, scope_label: str) -> Path:
+    """Create a memory directory and empty ``MEMORY.md`` index if missing."""
+    memory_dir.mkdir(parents=True, exist_ok=True)
+    index = memory_dir / _MEMORY_INDEX
+    if not index.is_file():
+        index.write_text(_memory_index_body(scope_label), encoding="utf-8")
+    return memory_dir
+
+
+def ensure_public_memory_dir() -> Path:
+    """Create ``~/.kon/public/memory/`` and index; migrate legacy ``~/.config/kon/memory/`` once."""
+    target = ensure_memory_dir(public_memory_dir(), "public")
+    legacy = _LEGACY_PUBLIC_MEMORY
+    legacy_index = legacy / _MEMORY_INDEX
+    target_index = target / _MEMORY_INDEX
+    if legacy.is_dir() and legacy_index.is_file() and target_index.is_file():
+        try:
+            legacy_lines = {
+                line.strip()
+                for line in legacy_index.read_text(encoding="utf-8").splitlines()
+                if line.strip().startswith("- [")
+            }
+            target_text = target_index.read_text(encoding="utf-8")
+            target_lines = {
+                line.strip() for line in target_text.splitlines() if line.strip().startswith("- [")
+            }
+            new_lines = sorted(legacy_lines - target_lines)
+            if new_lines:
+                merged = target_text.rstrip() + "\n\n" + "\n".join(new_lines) + "\n"
+                target_index.write_text(merged, encoding="utf-8")
+            for path in legacy.glob("*.md"):
+                if path.name == _MEMORY_INDEX:
+                    continue
+                dest = target / path.name
+                if not dest.exists():
+                    dest.write_text(path.read_text(encoding="utf-8"), encoding="utf-8")
+        except OSError:
+            pass
+    return target
+
+
+def ensure_project_memory_dir(project_dir: Path | str | None = None) -> Path:
+    """Create ``~/.kon/projects/<repo>/memory/`` and index if missing."""
+    repo_name = git_repo_name(project_dir)
+    return ensure_memory_dir(project_memory_dir(project_dir), f"repo:{repo_name}")
+
+
 def hook_log_path(name: str) -> Path:
     """Path to a hook's debug log under ``~/.kon/logs/``."""
     logs_dir = kon_data_dir() / _LOGS_SUBDIR
@@ -267,7 +343,7 @@ def _cli() -> None:
     if len(sys.argv) < 2:
         print(
             "usage: _kon_paths.py "
-            "<root|data|sessions|project-data|project-kon|repo-name|ensure|write-config>",
+            "<root|data|sessions|project-data|project-kon|public-memory|project-memory|repo-name|ensure|write-config>",
             file=sys.stderr,
         )
         sys.exit(1)
@@ -287,6 +363,10 @@ def _cli() -> None:
         print(project_data_dir())
     elif cmd == "project-kon":
         print(project_kon_dir())
+    elif cmd == "public-memory":
+        print(ensure_public_memory_dir())
+    elif cmd == "project-memory":
+        print(ensure_project_memory_dir())
     elif cmd == "repo-name":
         print(git_repo_name())
     elif cmd == "ensure":

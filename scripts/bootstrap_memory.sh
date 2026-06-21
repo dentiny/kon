@@ -1,30 +1,20 @@
 #!/usr/bin/env bash
-# Create ~/.config/kon/memory/ and an empty MEMORY.md index (one-time bootstrap).
+# Create ~/.kon/public/memory/ and per-repo memory under ~/.kon/projects/<repo>/memory/.
 set -euo pipefail
 
-MEMORY_DIR="${HOME}/.config/kon/memory"
-INDEX="${MEMORY_DIR}/MEMORY.md"
+KON_ROOT="${KON_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
 
-mkdir -p "${MEMORY_DIR}"
+public_dir="$(python3 "${KON_ROOT}/hooks/_kon_paths.py" public-memory)"
+echo "Public memory: ${public_dir}"
 
-if [[ -f "${INDEX}" ]]; then
-  echo "Memory index already exists: ${INDEX}"
-  exit 0
+if [[ -n "${1:-}" ]]; then
+  repo_dir="$(cd "$1" && python3 "${KON_ROOT}/hooks/_kon_paths.py" project-memory)"
+  echo "Repo memory: ${repo_dir}"
 fi
 
-cat > "${INDEX}" <<'EOF'
-# kon memory index
+legacy="${HOME}/.config/kon/memory"
+if [[ -d "${legacy}" ]]; then
+  echo "Note: legacy ${legacy} was merged into ${public_dir} on first ensure (if any entries existed)."
+fi
 
-Cross-project preferences and conventions loaded by Azusa, Mugi, and Mio at startup.
-See `skills/memory-loading/SKILL.md` in the kon repo.
-
-Add entries below (one per line):
-
-- [Title](slug.md) — one-line description
-
-Entry files live in this directory with YAML frontmatter (`name`, `description`, `type`).
-Types: `user`, `project`, `feedback`, `reference`.
-EOF
-
-echo "Created ${INDEX}"
-echo "Agents load entries via skills/memory-loading; propose new ones via Memory propose flow."
+echo "Agents load via skills/memory-loading; saves via memory-propose-confirm and session retro."

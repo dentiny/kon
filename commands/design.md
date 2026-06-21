@@ -98,3 +98,10 @@ When the user approves the plan:
 ```
 
 Orchestrator should offer to reuse the existing plan file (`.kon/plan-<session-id>.md`) instead of re-running Azusa + Mugi.
+
+## Session close
+
+When the user closes the design session (`/kon:finish` or dashboard ✓) after plan approval:
+
+1. **Retro** — [`skills/session-retro`](../skills/session-retro/SKILL.md) (capture design decisions / conventions; optional **skip retro**)
+2. No `/kon:summarize` unless user asks — design produces plan artefacts, not code changes.

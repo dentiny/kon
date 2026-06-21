@@ -1,60 +1,77 @@
 ---
 name: memory-loading
-description: This skill should be used by all kon agents at startup, before beginning work, to load relevant cross-project memory entries with relevance-based ordering and a 10-entry cap. Consumers: Azusa, Mugi, Mio, and any future agent that reads ~/.config/kon/memory/.
+description: This skill should be used by all kon agents at startup, before beginning work, to load relevant memory from public and repo indexes with relevance-based ordering and a 10-entry cap. Consumers: Azusa, Mugi, Mio, Jun, and any future memory-reading agent.
 ---
 
 # Memory Loading
 
-**Owner**: all agents
-**Consumers**: [`agents/Azusa.md`](https://github.com/dentiny/kon/blob/main/agents/Azusa.md), [`agents/Mugi.md`](https://github.com/dentiny/kon/blob/main/agents/Mugi.md), [`agents/Mio.md`](https://github.com/dentiny/kon/blob/main/agents/Mio.md)
+**Owner**: all memory-reading agents
+**Consumers**: [`agents/Azusa.md`](../agents/Azusa.md), [`agents/Mugi.md`](../agents/Mugi.md), [`agents/Mio.md`](../agents/Mio.md), [`agents/Jun.md`](../agents/Jun.md)
 
-## Why this skill exists
+## Storage layout
 
-Three agents run the same "read memory → schema check → fallback" flow at startup,
-but each used to duplicate the logic in their own prompt.
-This skill is the single source of truth for that shared behavior.
+| Scope | Path | Contents |
+|-------|------|----------|
+| **Public** (cross-project) | `~/.kon/public/memory/` | User prefs, habits, feedback across repos |
+| **Repo** (per project) | `~/.kon/projects/<repo-name>/memory/` | Conventions specific to this checkout |
 
-## Standard 5-step flow
+Each scope has a `MEMORY.md` index plus one file per entry (`<slug>.md`).
 
-Before starting work, load cross-project memory:
+Resolve paths when documenting commands:
 
-1. **`cat ~/.config/kon/memory/MEMORY.md`** — read the index
-2. **Read each index line** `- [Title](file.md) — description`, identify which descriptions overlap with the current task's keywords / topic
-3. **Sort by relevance**: rank matched entries by how closely they match the current task
-4. **Load top 10**: if too many entries match, read only the top 10 by relevance
-5. **Print `## Loaded memory entries`** at the start of output, listing which entries were used
+```bash
+python3 $KON_ROOT/hooks/_kon_paths.py public-memory
+python3 $KON_ROOT/hooks/_kon_paths.py project-memory
+```
+
+Override data root with `KON_DATA_DIR` (default `~/.kon`).
+
+## Standard load flow
+
+Before starting work:
+
+1. **Read both indexes** (if they exist):
+   - `~/.kon/public/memory/MEMORY.md`
+   - `~/.kon/projects/<repo-name>/memory/MEMORY.md`
+2. **Parse index lines** `- [Title](file.md) — description` from each; tag each row with scope `[public]` or `[repo:<name>]`.
+3. **Rank by relevance** to the current task (keywords / topic overlap with description).
+4. **Repo wins ties** — same topic in both indexes → prefer the repo entry.
+5. **Load top 10** entry files total (not 10 per index).
+6. **Print `## Loaded memory entries`** listing scope + title for each entry used.
 
 ## Schema check (lazy)
 
-For each loaded entry's frontmatter, check for:
+For each loaded entry's frontmatter:
 
-- Missing `name` / `description` / `type` field
-- `type` value not in `{user, feedback, project, reference}`
+- Missing `name` / `description` / `type`
+- `type` not in `{user, feedback, project, reference}`
 
-On a problem: **do not abort**, continue using the entry (lenient), but append `[schema warn: <what's missing or invalid>]` to the entry's line in `## Loaded memory entries`.
+On problem: **do not abort**; append `[schema warn: …]` on that line in `## Loaded memory entries`.
 
-## Fallback rules (no errors, no complaints, keep working)
+## Fallback rules
 
-- `~/.config/kon/memory/` doesn't exist → treat as "no memory"
-- `MEMORY.md` doesn't exist or is empty → treat as "no memory"
-- No relevant entries in the index → treat as "no memory"
+- Either index missing or empty → skip that scope, continue
+- No relevant entries after ranking → `(no relevant entries)`
+- Never ask the user to create directories — `ensure_project_dir` / `bootstrap_memory.sh` handle that
 
-Do not ask the user to create the memory directory or index.
-To enable memory, run once: `bash $KON_ROOT/scripts/bootstrap_memory.sh` (creates the index).
+Bootstrap once:
+
+```bash
+bash $KON_ROOT/scripts/bootstrap_memory.sh
+```
 
 ## Output format example
 
 ```
 ## Loaded memory entries
-- [Integration test preference](integration-test-preference.md) — loaded
-- [Some entry](some-entry.md) — loaded [schema warn: missing type]
-(if no relevant entries: "(no relevant entries)")
+- [public] Integration test preference — loaded
+- [repo:kon] Hook path conventions — loaded
+(no relevant entries)
 ```
 
 ## Agent-specific extensions
 
-Each agent can add extensions on top of this base after loading:
+- **🍰 Mugi:** Relevant `project` or `user` entries → optional `## Honoured memory` at top of plan. See `agents/Mugi.md`.
+- **📝 Mio:** `type: project` entries → collect `triggers` and append domain skills as checklist items 10+. See `agents/Mio.md`.
 
-- **🍰 Mugi (Planner):** If there are relevant `project` or `user` entries, add `## Honoured memory` at the top of the plan showing how each preference affects the step arrangement — so 🎶 Yui can absorb the user's preferences from the plan alone. See `agents/Mugi.md`.
-- **📝 Mio (Reviewer):** For `type: project` entries, collect the `triggers` field and append any found skill files as checklist items 10+. See `agents/Mio.md`.
-- Other agents with additional needs: document them in the agent's own file, not here.
+Other agents: document extensions in the agent file, not here.

@@ -277,6 +277,7 @@ Then in any Codex session:
 | `/kon:ask <question>` | Read-only Q&A — 🎸 Azusa explores the repo, **no repo writes**; session tracked in `~/.kon/projects/` |
 | `/kon:gc` | Garbage collect — remove dead code, simplify comments/docs |
 | `/kon:summarize` | Write a session summary (auto-runs at end of every command) |
+| `/kon:retro` | Propose session learnings for public/repo memory (default after pipeline commands) |
 | `/kon:finish` | Mark the current session as completed |
 
 ### YOLO mode
@@ -308,19 +309,32 @@ Close a session by clicking **✓** in the dashboard, or by running `/kon:finish
 
 ---
 
-## Cross-project memory (optional)
+## Memory (optional)
 
-kon agents can load preferences from `~/.config/kon/memory/` at startup (see `skills/memory-loading`).
+kon agents load memory at startup from two scopes (see `skills/memory-loading`):
+
+| Scope | Path |
+|-------|------|
+| **Public** (cross-project) | `~/.kon/public/memory/` |
+| **Repo** (this checkout) | `~/.kon/projects/<repo-name>/memory/` |
+
+Both use a `MEMORY.md` index plus one file per entry. Override data root with `KON_DATA_DIR`.
 
 Bootstrap once:
 
 ```bash
 bash $KON_ROOT/scripts/bootstrap_memory.sh
+# optional: bootstrap repo index for cwd
+bash $KON_ROOT/scripts/bootstrap_memory.sh /path/to/repo
 ```
 
-This creates `~/.config/kon/memory/MEMORY.md`. Add lines like `- [Title](slug.md) — description`
-and create matching `.md` files with frontmatter. Agents propose new entries during review via
-`skills/memory-propose-confirm` — the orchestrator asks before writing.
+**Saving memory:**
+
+- Mid-session: Mio/Yui `## Memory propose` → [`skills/memory-propose-confirm`](skills/memory-propose-confirm/SKILL.md)
+- End of session: **retro** (default after team/quick/debug/gc) → [`skills/session-retro`](skills/session-retro/SKILL.md)
+- Manual: `/kon:retro`
+
+Legacy `~/.config/kon/memory/` is merged into public memory on first `ensure_project_dir`.
 
 ---
 

@@ -40,6 +40,14 @@ Behavior stays exactly the same after a gc pass.
 The cleanup must be reverted to the last clean state and re-scoped.
 User runs tests manually after Mio approves to verify nothing broke.
 
+## Session close (default)
+
+After Mio approves:
+
+1. **📋 Nodoka** — `/kon:summarize`
+2. **Retro** — [`skills/session-retro`](../skills/session-retro/SKILL.md)
+3. `/kon:finish` or dashboard ✓
+
 ## Failure handling
 
 See [`skills/failure-handling`](https://github.com/dentiny/kon/blob/main/skills/failure-handling/SKILL.md).

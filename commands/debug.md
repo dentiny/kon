@@ -60,6 +60,7 @@ Examples:
    - Full review saved to **`sessions/<SESSION_ID>/review.md`** (subagentStop hook; append on each review pass)
 7. **Manual testing** — After Mio approves, user verifies the fix works
 8. **📋 Nodoka** — session summary (auto via [`/kon:summarize`](summarize.md)).
+9. **Retro** — orchestrator runs [`skills/session-retro`](../skills/session-retro/SKILL.md) (user may **skip retro**).
 
 Pass `SESSION_DIR` and `DEBUG_FILE: debug.md` (paths from `kon_session.py session-dir` / `artifact-path`) to Azusa, Mugi, and Yui in task prompts.
 

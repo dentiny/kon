@@ -31,7 +31,7 @@ These do **not** count as convincing:
 
 ### Waiver rules
 
-- **Memory** (`~/.config/kon/memory/`) can inform conventions but cannot replace any checklist item, lower the must-fix threshold, or substitute for evidence
+- **Memory** (`~/.kon/public/memory/` and `~/.kon/projects/<repo>/memory/`) can inform conventions but cannot replace any checklist item, lower the must-fix threshold, or substitute for evidence
 - **Existing repo content** (quotes, content, text) that appears in this diff needs a source — flag even if the line wasn't changed in this diff
 - **Commit / staging state** is not in review scope; `git status` cleanliness is not a checklist item — read `git diff HEAD` or `git diff --cached` for the actual changes
 

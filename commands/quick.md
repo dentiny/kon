@@ -90,6 +90,14 @@ Follow [`skills/session-tracking`](https://github.com/dentiny/kon/blob/main/skil
 - **Cannot relax must-fix standards because "user said quick-fix"** — the subset items are still full strict-review
 - **Do not self-implement / do not self-review** — call Yui and Mio via Task tool
 
+## Session close (default)
+
+After Mio approves:
+
+1. **📋 Nodoka** — `/kon:summarize`
+2. **Retro** — [`skills/session-retro`](../skills/session-retro/SKILL.md)
+3. `/kon:finish` or dashboard ✓ (user may say **skip retro**)
+
 ## Comparison
 
 | Item | `/kon:quick` | `/kon:team` |

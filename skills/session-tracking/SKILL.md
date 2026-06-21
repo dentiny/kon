@@ -21,6 +21,8 @@ Each run gets one directory — delete the folder (dashboard 🗑) and all artif
   summary.md            # Nodoka debrief (optional)
   plan.md               # Mugi plan
   review.md             # Mio review (/kon:review, /kon:debug)
+  pr-review.md          # Mio holistic PR review (/kon:review-pr)
+  issue-summary.md      # Jun issue summary (/kon:describe-issue)
   debug.md              # Azusa/Mugi debug notes (/kon:debug)
   design-debate.md      # design debate (/kon:design)
   review-rubric.md      # Mugi rubric (/kon:review --rubric)
@@ -83,12 +85,12 @@ in_progress  →  waiting  →  completed
 
 - `in_progress` — agents are actively running
 - `waiting` — pipeline commands finished (`/kon:team`, …) — stays open until user acts
-- `completed` — user ran `/kon:finish` / dashboard ✓, **or** one-shot command finished (`/kon:ask`, `/kon:research`, `/kon:review`), **or** superseded by a newer session
+- `completed` — user ran `/kon:finish` / dashboard ✓, **or** one-shot command finished (`/kon:ask`, `/kon:research`, `/kon:review`, `/kon:review-pr`, `/kon:describe-issue`), **or** superseded by a newer session
 - `blocked` — retry limit hit, something needs human intervention
 
 **Never auto-set `completed` for pipeline commands** (`/kon:team`, `/kon:quick`, `/kon:debug`, `/kon:gc`, `/kon:design`). When their agents finish, set `status=waiting`.
 
-**Auto-complete one-shot commands** when the sole agent finishes: `/kon:ask`, `/kon:research`, `/kon:review` → set `status=completed` (via `complete-agent`).
+**Auto-complete one-shot commands** when the sole agent finishes: `/kon:ask`, `/kon:research`, `/kon:review`, `/kon:review-pr`, `/kon:describe-issue` → set `status=completed` (via `complete-agent`).
 
 **Supersede on new run:** when `init` creates a session, any other `in_progress` or `waiting` session for the same `project_path` is auto-closed as `completed` with log `Superseded by new session <id>.` — at most one open pipeline session per project.
 
@@ -125,7 +127,7 @@ in_progress  →  waiting  →  completed
 | Human responds, agent resumes | Move agent back to `current_agent`, set `status=in_progress` |
 | Agent blocked / retry limit | Move agent to `steps_failed`, set `status=blocked` |
 | All agents finished (pipeline command) | Set `status=waiting`, `current_agent=null` |
-| All agents finished (`/kon:ask`, `/kon:research`, `/kon:review`) | Set `status=completed` |
+| All agents finished (`/kon:ask`, `/kon:research`, `/kon:review`, `/kon:review-pr`, `/kon:describe-issue`) | Set `status=completed` |
 | `init` creates a new session | Supersede other open sessions for same project → `completed` |
 | `/kon:finish` or dashboard ✓ | `python3 scripts/kon_session.py finish` → `status=completed`, log User row |
 
@@ -153,6 +155,22 @@ Review is read-only — no code changes:
 
 - On create: `command: "/kon:review"`, `steps_pending: ["Mio"]` (prepend `"Mugi"` when `--rubric`)
 - After Mio verdict: `steps_completed: ["Mio"]`, `status=completed` (via `complete-agent`), log verdict one-liner
+
+### `/kon:review-pr` variant
+
+Holistic PR review — Mio reads diff, PR body, review comments, and linked issues:
+
+- On create: `command: "/kon:review-pr"`, `steps_pending: ["Mio"]`
+- After Mio verdict: `steps_completed: ["Mio"]`, `status=completed` (via `complete-agent`), log verdict one-liner
+- Artifact: `sessions/<id>/pr-review.md` (subagentStop hook when installed)
+
+### `/kon:describe-issue` variant
+
+Issue thread summary — Jun fetches issue + all comments via `gh`:
+
+- On create: `command: "/kon:describe-issue"`, `steps_pending: ["Jun"]`
+- After Jun finishes: `steps_completed: ["Jun"]`, `status=completed` (via `complete-agent`), log one-liner
+- Artifact: `sessions/<id>/issue-summary.md`
 
 ### `/kon:ask` variant
 

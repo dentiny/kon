@@ -21,6 +21,8 @@ When the user invokes a **slash command**:
 - `/kon:team <task>`, `/kon:design <task>`, `/kon:quick <task>`, `/kon:debug <bug>`
 - `/kon:research <question>`
 - `/kon:review`
+- `/kon:review-pr`
+- `/kon:describe-issue <#>`
 - `/kon:todo <task>`
 - `/kon:ask <question>`
 - `/kon:gc` or `/kon:gc <target>`
@@ -44,6 +46,8 @@ For `/kon:ask`: create session JSON first (step 1), then read `commands/ask.md`.
 
 For `/kon:research`: read `commands/research.md`, spawn Jun only.
 For `/kon:review`: read `commands/review.md`, spawn Mio only (optional Mugi first with `--rubric`).
+For `/kon:review-pr`: read `commands/review-pr.md`, spawn Mio only.
+For `/kon:describe-issue`: read `commands/describe-issue.md`, spawn Jun only.
 
 For `/kon:todo`: read `commands/todo.md`, run `scripts/kon_todo.py` directly — no agents, no session JSON.
 
@@ -59,11 +63,13 @@ For `/kon:todo`: read `commands/todo.md`, run `scripts/kon_todo.py` directly —
    - `/kon:debug` → `$KON_ROOT/commands/debug.md`
    - `/kon:research` → `$KON_ROOT/commands/research.md`
    - `/kon:review` → `$KON_ROOT/commands/review.md`
+   - `/kon:review-pr` → `$KON_ROOT/commands/review-pr.md`
+   - `/kon:describe-issue` → `$KON_ROOT/commands/describe-issue.md`
    - `/kon:todo` → `$KON_ROOT/commands/todo.md`
    - `/kon:ask` → `$KON_ROOT/commands/ask.md`
    - `/kon:gc` → `$KON_ROOT/commands/gc.md`
 
-3. Read `$KON_ROOT/skills/teammate-flow/SKILL.md` — **skip for `/kon:ask`, `/kon:research`, and `/kon:review`**. For `/kon:debug`, follow `commands/debug.md` (no Mugi; Mio only). For `/kon:design`, also read design-debate. For team/design external lookup, read `skills/external-research/SKILL.md`.
+3. Read `$KON_ROOT/skills/teammate-flow/SKILL.md` — **skip for `/kon:ask`, `/kon:research`, `/kon:review`, `/kon:review-pr`, and `/kon:describe-issue`**. For `/kon:debug`, follow `commands/debug.md` (no Mugi; Mio only). For `/kon:design`, also read design-debate. For team/design external lookup, read `skills/external-research/SKILL.md`.
 
 4. For each agent step, spawn a subagent. Include the agent file as the subagent's
    system context in the prompt:

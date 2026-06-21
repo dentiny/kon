@@ -42,6 +42,8 @@ Begin sessions stay `in_progress` after each agent — only `/kon:finish` closes
 | Question about **our code** / "where is…" / "how does X work" | ask | 🎸 Azusa read-only |
 | **External** docs / API / "look up…" | research | 📚 Jun |
 | **Review** diff / "check my changes" | review | 📝 Mio |
+| **Review PR** / holistic PR check / "review this PR" | review-pr | 📝 Mio |
+| **Summarize issue** / GitHub issue thread | describe-issue | 📚 Jun |
 | **Bug** / failing test / regression / "X is broken" | debug | 🎸 Azusa → 🍰 Mugi → User → 🎶 Yui → 🧹 Sawako → 📝 Mio |
 | **Small** fix, typo, one file | quick | 🎶 Yui → 📝 Mio |
 | **Feature**, multi-file, unclear scope | team | full pipeline |

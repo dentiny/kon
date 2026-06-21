@@ -60,8 +60,9 @@ Process follows the skill specified by the caller:
 | Caller | Skill | Used for |
 |--------|-------|----------|
 | `/kon:team` / `/kon:quick` / `/kon:debug` / `/kon:review` | [`skills/strict-review`](https://github.com/dentiny/kon/blob/main/skills/strict-review/SKILL.md) | Code review (default BLOCKED, 7-item golden checklist) |
+| `/kon:review-pr` | [`skills/review-pr`](https://github.com/dentiny/kon/blob/main/skills/review-pr/SKILL.md) | Holistic PR review (diff + description + comments + linked issues) |
 
-For `/kon:review` and `/kon:debug`, your full output is persisted to `sessions/<session-id>/review.md` by the subagentStop hook so the user can read it locally.
+For `/kon:review`, `/kon:debug`, and `/kon:review-pr`, your full output is persisted under `sessions/<session-id>/` by the subagentStop hook so the user can read it locally (`review.md` or `pr-review.md`).
 
 The skill file is the source of truth. This file holds Mio's **personality**.
 

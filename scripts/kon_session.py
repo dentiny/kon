@@ -26,7 +26,15 @@ from _token_estimate import SOURCE as USAGE_SOURCE  # noqa: E402
 _BEGIN_COMMAND = "/kon:begin"
 
 # One-shot commands: auto-complete when the sole agent finishes (no dashboard clutter).
-_EPHEMERAL_COMMANDS = frozenset({"/kon:ask", "/kon:research", "/kon:review"})
+_EPHEMERAL_COMMANDS = frozenset(
+    {
+        "/kon:ask",
+        "/kon:research",
+        "/kon:review",
+        "/kon:review-pr",
+        "/kon:describe-issue",
+    }
+)
 
 
 def _utcnow() -> datetime.datetime:
@@ -73,6 +81,10 @@ def _default_pending(command: str) -> list[str]:
         return ["Jun"]
     if c == "/kon:review":
         return ["Mio"]
+    if c == "/kon:review-pr":
+        return ["Mio"]
+    if c == "/kon:describe-issue":
+        return ["Jun"]
     if c == "/kon:begin":
         return []
     if c == "/kon:design":

@@ -211,6 +211,7 @@ Re-run `setup_cursor.sh` after moving your kon clone (hooks use absolute paths).
 /kon:research what Cursor hook events support followup_message?
 /kon:review
 /kon:review-pr
+/kon:address-comments
 /kon:describe-issue 123
 /kon:todo add rate limiting to the API
 /kon:design add rate limiting to the API
@@ -270,6 +271,7 @@ Then in any Codex session:
 | `/kon:research <question>` | External lookup — 📚 Jun searches docs/web, writes `.kon/research.md` |
 | `/kon:review` | Code review only — 📝 Mio strict-review on uncommitted/staged diff |
 | `/kon:review-pr` | Holistic PR review — 📝 Mio on diff + PR body + review comments + linked issues |
+| `/kon:address-comments` | Triage PR review comments on current branch → route to quick/team and implement |
 | `/kon:describe-issue <#>` | Summarize GitHub issue + all comments — 📚 Jun writes `issue-summary.md` |
 | `/kon:todo <task>` | Add a project todo — stored in `.kon/todos.json`; manage in dashboard **Todos** tab |
 | `/kon:ask <question>` | Read-only Q&A — 🎸 Azusa explores the repo, **no repo writes**; session tracked in `~/.kon/projects/` |

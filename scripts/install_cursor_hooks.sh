@@ -41,6 +41,7 @@ KON_HOOK_SCRIPTS = [
 # Removed hooks — stripped from ~/.cursor/hooks.json on every install/upgrade.
 DEPRECATED_HOOK_SCRIPTS = [
     "verify_completion.py",
+    "repo_detect.py",
 ]
 
 MANAGED = KON_HOOK_SCRIPTS + DEPRECATED_HOOK_SCRIPTS

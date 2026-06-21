@@ -26,7 +26,7 @@ The summary goes into `~/.kon/projects/<repo-name>/sessions/<id>/summary.md` and
 
 ## What Nodoka writes
 
-A structured session report at `~/.kon/projects/<repo-name>/sessions/<id>-summary.md`:
+A structured session report at `~/.kon/projects/<repo-name>/sessions/<id>/summary.md`:
 
 ```markdown
 # Session summary: <task>

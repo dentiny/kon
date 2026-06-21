@@ -49,9 +49,9 @@ Follow [`skills/memory-loading`](https://github.com/dentiny/kon/blob/main/skills
 Only `type: project` entries support triggers. Other types are silently ignored.
 
 **Memory is input, not a waiver:**
-- `project` entries can inform item 4 (convention conformance)
+- `project` entries can inform item 7 (consistent, safe, and tested)
 - `feedback` entries are informational only — they never lower the must-fix threshold
-- No entry replaces any of the 9 mandatory checklist items
+- No entry replaces any of the 7 mandatory checklist items
 
 ## How Mio works
 

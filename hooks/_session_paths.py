@@ -24,25 +24,10 @@ from pathlib import Path
 from _kon_paths import iter_sessions_dirs, project_kon_dir, sessions_dir
 
 SESSION_JSON = "session.json"
-SESSION_SUMMARY = "summary.md"
 ARTIFACT_PLAN = "plan.md"
 ARTIFACT_REVIEW = "review.md"
-ARTIFACT_DEBUG = "debug.md"
-ARTIFACT_DESIGN_DEBATE = "design-debate.md"
-ARTIFACT_REVIEW_RUBRIC = "review-rubric.md"
 ARTIFACT_PR_REVIEW = "pr-review.md"
 ARTIFACT_ISSUE_SUMMARY = "issue-summary.md"
-
-_ALL_ARTIFACTS = (
-    SESSION_SUMMARY,
-    ARTIFACT_PLAN,
-    ARTIFACT_REVIEW,
-    ARTIFACT_DEBUG,
-    ARTIFACT_DESIGN_DEBATE,
-    ARTIFACT_REVIEW_RUBRIC,
-    ARTIFACT_PR_REVIEW,
-    ARTIFACT_ISSUE_SUMMARY,
-)
 
 
 def session_dir(project: Path | str | None, session_id: str) -> Path:

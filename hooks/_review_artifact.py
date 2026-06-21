@@ -17,7 +17,6 @@ from _session_paths import (
 )
 
 MIO_REVIEW_COMMANDS = frozenset({"/kon:review", "/kon:debug", "/kon:review-pr"})
-JUN_ISSUE_COMMANDS = frozenset({"/kon:describe-issue"})
 
 
 def review_artifact_path(project: str | Path | None, session_id: str) -> Path:

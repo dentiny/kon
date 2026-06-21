@@ -1,5 +1,6 @@
 {
   "version": 1,
+  "_note": "Template only — run scripts/setup_cursor.sh to install hooks with absolute paths.",
   "hooks": {
     "sessionStart": [
       {

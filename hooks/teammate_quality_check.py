@@ -38,15 +38,19 @@ _CHECKLIST_HEADING_RE = re.compile(r"##\s+checklist\b", re.IGNORECASE)
 _CHECKLIST_ITEM_RE = re.compile(r"^\s*-\s*\[([ xX—\-])\]\s*(.+)$", re.MULTILINE)
 
 _MIO_REQUIRED_CHECKLIST: list[tuple[str, re.Pattern[str]]] = [
-    ("acceptance match", re.compile(r"acceptance\s+match", re.IGNORECASE)),
-    ("evidence per function", re.compile(r"evidence\s+per\s+function", re.IGNORECASE)),
-    ("edge case coverage", re.compile(r"edge\s+case\s+coverage", re.IGNORECASE)),
-    ("convention conformance", re.compile(r"convention\s+conformance", re.IGNORECASE)),
-    ("no unsafe pattern", re.compile(r"no\s+unsafe\s+pattern", re.IGNORECASE)),
-    ("no unexplained magic", re.compile(r"no\s+unexplained\s+magic", re.IGNORECASE)),
-    ("no TODO evasion", re.compile(r"no\s+todo\s+evasion", re.IGNORECASE)),
-    ("no defensive bloat", re.compile(r"no\s+defensive\s+bloat", re.IGNORECASE)),
-    ("no completeness theatre", re.compile(r"no\s+completeness\s+theatre", re.IGNORECASE)),
+    (
+        "simplest correct implementation",
+        re.compile(r"simplest\s+correct\s+implementation", re.IGNORECASE),
+    ),
+    ("requirement coverage", re.compile(r"requirement\s+coverage", re.IGNORECASE)),
+    ("correctness proven", re.compile(r"correctness\s+proven", re.IGNORECASE)),
+    ("edge cases handled", re.compile(r"edge\s+cases?\s+handled", re.IGNORECASE)),
+    ("no regression", re.compile(r"no\s+regression", re.IGNORECASE)),
+    ("no performance issue", re.compile(r"no\s+performance\s+issue", re.IGNORECASE)),
+    (
+        "consistent, safe, and tested",
+        re.compile(r"consistent[\s,]+safe[\s,]+and\s+tested", re.IGNORECASE),
+    ),
 ]
 _NEXT_HEADING_RE = re.compile(r"^##\s+", re.MULTILINE)
 
@@ -307,7 +311,7 @@ def check_mio(out: str) -> None:
     if missing_items:
         emit(
             "block",
-            "Mio (Reviewer) checklist is incomplete — all 9 mandatory items from "
+            "Mio (Reviewer) checklist is incomplete — all 7 mandatory items from "
             "skills/strict-review must appear in `## Checklist`. "
             f"Missing: {', '.join(missing_items)}.",
         )

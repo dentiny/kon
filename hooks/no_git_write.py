@@ -7,6 +7,7 @@ Agents must draft the message and ask the user to run it manually.
 
 from __future__ import annotations
 
+import re
 import shlex
 import sys
 from pathlib import Path
@@ -32,6 +33,20 @@ _GIT_GLOBAL_OPTS_WITH_ARG = frozenset(
 )
 
 _SHELL_SEGMENT_SPLIT = ["&&", "||", ";", "|"]
+
+# Fallback when token parsing misses nested invocations (bash -c, $(which git), etc.).
+_GIT_WRITE_FALLBACK = re.compile(
+    r"""
+    \bgit\b
+    (?:\s+(?:-[^\s]|--[^\s=]+(?:=\S+)?|\S))*
+    \s+(?:commit|push)\b
+    """,
+    re.IGNORECASE | re.VERBOSE,
+)
+_GIT_SUBSTITUTION_WRITE = re.compile(
+    r"\$\([^)]*\bgit\b[^)]*\)\s+(?:\S+\s+)*(?:commit|push)\b",
+    re.IGNORECASE,
+)
 
 
 def _split_shell_segments(command: str) -> list[str]:
@@ -86,6 +101,8 @@ def _segment_has_git_write(tokens: list[str]) -> bool:
 
 def is_git_write_blocked(command: str) -> bool:
     """Return True if *command* runs ``git commit`` or ``git push`` anywhere."""
+    if _GIT_WRITE_FALLBACK.search(command) or _GIT_SUBSTITUTION_WRITE.search(command):
+        return True
     for segment in _split_shell_segments(command):
         try:
             tokens = shlex.split(segment)

@@ -19,15 +19,15 @@ Can also be called manually to (re)summarize any session.
 
 1. **Orchestrator** — resolve the target session:
    - No argument → use the most recent session for this repo under `~/.kon/projects/<repo-name>/sessions/` (by mtime)
-   - Session ID given → load from `~/.kon/projects/<repo-name>/sessions/<id>.json`
+   - Session ID given → load from `~/.kon/projects/<repo-name>/sessions/<id>/session.json`
    - No sessions found → print "No sessions found for this project" and exit
 
 2. **📋 Nodoka** — read session artifacts and write the summary:
-   - Reads the session JSON (agent log)
-   - Reads `.kon/plan-<session-id>.md` if it exists (fall back to `.kon/plan.md`)
-   - Reads `.kon/debug-<session-id>.md` if it exists (debug sessions)
+   - Reads `~/.kon/projects/<repo-name>/sessions/<id>/session.json` (agent log)
+   - Reads `plan.md`, `debug.md`, `review.md` in the same session directory if present
+   - Falls back to legacy `.kon/plan-<session-id>.md` or `.kon/debug-<session-id>.md` when needed
    - Reads `git diff HEAD` for the actual diff
-   - Writes summary alongside the session JSON in `~/.kon/projects/<repo-name>/sessions/<id>-summary.md`
+   - Writes summary to `~/.kon/projects/<repo-name>/sessions/<id>/summary.md`
    - Updates `summary_path` field in the session JSON
 
 3. **Orchestrator** — print the summary to chat and update the dashboard entry.
@@ -37,7 +37,7 @@ Can also be called manually to (re)summarize any session.
 Every `kon team`, `kon quick`, `kon debug`, and `kon gc` run calls `/kon:summarize`
 as its final step, after Mio approves. No additional user action needed.
 
-**Then retro (default):** orchestrator runs [`skills/session-retro`](../session-retro/SKILL.md)
+**Then retro (default):** orchestrator runs [`skills/session-retro`](../skills/session-retro/SKILL.md)
 after summarize unless the user says **skip retro**.
 
 ## Orchestrator rules

@@ -83,7 +83,7 @@ kon splits into **live clone content** (agents, skills, hook `.py` logic) and **
 | `adapters/cursor/kon.mdc` (commands, agent table) | `git pull` then `bash ~/kon/scripts/setup_cursor.sh` |
 | Moved kon clone to a new path | `bash ~/kon/scripts/setup_cursor.sh` |
 
-`setup_cursor.sh` is **safe to re-run** — it refreshes `kon.mdc`, rewrites `~/.kon/config.json`, replaces kon hook entries in `~/.cursor/hooks.json`, and removes deprecated kon hooks (e.g. old `verify_completion.py` stop hook).
+`setup_cursor.sh` is **safe to re-run** — it refreshes `kon.mdc`, rewrites `~/.kon/config.json`, replaces kon hook entries in `~/.cursor/hooks.json`, and removes deprecated kon hooks (e.g. old `verify_completion.py`, `repo_detect.py`).
 
 **Typical upgrade on any machine:**
 
@@ -154,13 +154,13 @@ or scope expansion is required.
 kon is split into two layers so it works across different AI harnesses without rewriting anything.
 
 ```
-agents/*.md      ← agent personas (harness-agnostic markdown)
-commands/*.md    ← workflow definitions (harness-agnostic markdown)
-skills/*.md      ← shared process knowledge (harness-agnostic markdown)
-hooks/*.py       ← quality checks (pure Python, any harness can shell out)
+agents/*.md              ← agent personas (harness-agnostic markdown)
+commands/*.md            ← workflow definitions (harness-agnostic markdown)
+skills/<name>/SKILL.md   ← shared process knowledge (harness-agnostic markdown)
+hooks/*.py               ← quality checks (pure Python, any harness can shell out)
 
 adapters/
-  cursor/kon.mdc          ← Cursor integration
+  cursor/kon.mdc          ← Cursor integration (run setup_cursor.sh — do not copy hooks.json raw)
   codex/AGENTS.md         ← Codex CLI integration
 ```
 

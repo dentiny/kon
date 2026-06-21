@@ -26,7 +26,7 @@ def hook_log(message: str) -> None:
         ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         with path.open("a", encoding="utf-8") as fh:
             fh.write(f"[{ts}] {message}\n")
-    except OSError:
+    except Exception:
         pass
 
 

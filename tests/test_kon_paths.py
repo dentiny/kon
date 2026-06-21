@@ -14,6 +14,7 @@ sys.path.insert(0, str(ROOT / "hooks"))
 from _kon_paths import (  # noqa: E402
     ensure_project_memory_dir,
     ensure_public_memory_dir,
+    hook_log_path,
     install_bundled_paths_module,
     kon_root,
     project_memory_dir,
@@ -72,3 +73,14 @@ def test_public_and_project_memory_dirs(monkeypatch: pytest.MonkeyPatch) -> None
         proj = ensure_project_memory_dir()
         assert proj == project_memory_dir()
         assert (proj / "MEMORY.md").is_file()
+
+
+def test_hook_log_path(monkeypatch: pytest.MonkeyPatch) -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        data_dir = Path(tmp).resolve() / "kon-data"
+        monkeypatch.setenv("KON_DATA_DIR", str(data_dir))
+        path = hook_log_path("init_kon_session")
+        assert path == data_dir / "logs" / "init_kon_session.log"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("ok", encoding="utf-8")
+        assert path.read_text(encoding="utf-8") == "ok"

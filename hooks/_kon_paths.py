@@ -29,6 +29,7 @@ _LAST_WORKSPACE_FILENAME = "last_workspace.json"
 _PUBLIC_SUBDIR = "public"
 _MEMORY_SUBDIR = "memory"
 _MEMORY_INDEX = "MEMORY.md"
+_LOGS_SUBDIR = "logs"
 _LEGACY_PUBLIC_MEMORY = Path.home() / ".config" / "kon" / "memory"
 
 

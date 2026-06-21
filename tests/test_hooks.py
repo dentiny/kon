@@ -38,15 +38,13 @@ def _mio_output(
     extra: str = "",
 ) -> str:
     labels = [
-        "acceptance match",
-        "evidence per function",
-        "edge case coverage",
-        "convention conformance",
-        "no unsafe pattern",
-        "no unexplained magic",
-        "no TODO evasion",
-        "no defensive bloat",
-        "no completeness theatre",
+        "1. simplest correct implementation",
+        "2. requirement coverage",
+        "3. correctness proven",
+        "4. edge cases handled",
+        "5. no regression",
+        "6. no performance issue",
+        "7. consistent, safe, and tested",
     ]
     if checklist_marks is None:
         checklist_marks = ["x"] * len(labels)
@@ -122,6 +120,16 @@ class TestNoGitWrite:
     def test_allows_diff(self) -> None:
         assert not is_git_write_blocked("git -C repo diff")
         assert not is_git_write_blocked("git --git-dir=.git log -1")
+
+    @pytest.mark.parametrize(
+        "command",
+        [
+            'bash -c "git commit -m test"',
+            "$(which git) commit -m test",
+        ],
+    )
+    def test_blocks_nested_git_write(self, command: str) -> None:
+        assert is_git_write_blocked(command)
 
 
 class TestOnSubagentStop:
@@ -335,7 +343,7 @@ class TestTeammateQualityCheck:
         assert "checklist" in result["reason"].lower()
 
     def test_mio_rejects_approved_with_unchecked_item(self) -> None:
-        marks = ["x"] * 8 + [" "]
+        marks = ["x"] * 6 + [" "]
         result = _run_hook(
             "teammate_quality_check.py",
             {
@@ -546,6 +554,21 @@ class TestInitKonSession:
         result = _run_hook(
             "init_kon_session.py",
             {"prompt": "fix the bug in dashboard.py", "cwd": str(project)},
+        )
+        assert result == {"continue": True}
+        sessions_dir = data_root / "projects" / "repo" / "sessions"
+        assert not sessions_dir.exists() or not _list_session_files(sessions_dir)
+
+    def test_skips_todo_command(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        project = tmp_path / "repo"
+        project.mkdir()
+        data_root = tmp_path / "kon-data"
+        monkeypatch.setenv("KON_DATA_DIR", str(data_root))
+        monkeypatch.setenv("KON_ROOT", str(ROOT))
+
+        result = _run_hook(
+            "init_kon_session.py",
+            {"prompt": "/kon:todo add rate limiting", "cwd": str(project)},
         )
         assert result == {"continue": True}
         sessions_dir = data_root / "projects" / "repo" / "sessions"

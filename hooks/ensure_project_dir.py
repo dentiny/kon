@@ -16,6 +16,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _git_exclude import ensure_kon_ignored  # noqa: E402
 from _kon_paths import ensure_project_dir, write_last_workspace  # noqa: E402
 
 
@@ -51,6 +52,7 @@ def main() -> None:
         path = ensure_project_dir(cwd)
         if _looks_like_workspace(cwd):
             write_last_workspace(cwd)
+            ensure_kon_ignored(cwd)
         print(json.dumps({"ok": True, "project_data_dir": str(path)}))
     except Exception as exc:  # noqa: BLE001
         print(json.dumps({"ok": False, "error": str(exc)}), file=sys.stderr)

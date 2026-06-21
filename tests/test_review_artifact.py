@@ -194,15 +194,13 @@ def test_maybe_write_review_skips_team_command() -> None:
 
 def _mio_output(verdict: str) -> str:
     labels = [
-        "acceptance match",
-        "evidence per function",
-        "edge case coverage",
-        "convention conformance",
-        "no unsafe pattern",
-        "no unexplained magic",
-        "no TODO evasion",
-        "no defensive bloat",
-        "no completeness theatre",
+        "1. simplest correct implementation",
+        "2. requirement coverage",
+        "3. correctness proven",
+        "4. edge cases handled",
+        "5. no regression",
+        "6. no performance issue",
+        "7. consistent, safe, and tested",
     ]
     checklist = "\n".join(f"- [x] {label}" for label in labels)
     return (

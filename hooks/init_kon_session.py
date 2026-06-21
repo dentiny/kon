@@ -39,7 +39,7 @@ from _kon_paths import (  # noqa: E402
 from _workspace import resolve_workspace  # noqa: E402
 
 _KON_CMD = re.compile(r"/kon:([\w-]+)(?:\s+(.*))?", re.DOTALL)
-_SKIP_COMMANDS = frozenset({"/kon:finish"})
+_SKIP_COMMANDS = frozenset({"/kon:finish", "/kon:todo"})
 _BEGIN_COMMAND = "/kon:begin"
 _LOG_NAME = "init_kon_session"
 
@@ -51,7 +51,7 @@ def _log(message: str) -> None:
         ts = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         with path.open("a", encoding="utf-8") as fh:
             fh.write(f"[{ts}] {message}\n")
-    except OSError:
+    except Exception:
         pass
 
 

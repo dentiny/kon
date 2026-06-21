@@ -17,6 +17,7 @@ sys.path.insert(0, str(ROOT / "hooks"))
 from _review_artifact import (  # noqa: E402
     extract_assistant_markdown,
     maybe_write_review_from_hook,
+    pr_review_artifact_path,
     review_artifact_path,
     write_review_artifact,
 )
@@ -69,6 +70,24 @@ def test_write_review_artifact_creates_markdown() -> None:
         assert "APPROVED" in text
 
 
+def test_write_review_pr_artifact_uses_pr_review_path() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        project = Path(tmp) / "repo"
+        project.mkdir()
+        sid = "20260619-140000-review-pr"
+        path = write_review_artifact(
+            project,
+            sid,
+            command="/kon:review-pr",
+            task="review PR 42",
+            body="## Verdict\nNEEDS_CHANGES\n",
+        )
+        assert path == pr_review_artifact_path(project, sid)
+        text = path.read_text(encoding="utf-8")
+        assert "# PR review" in text
+        assert "/kon:review-pr" in text
+
+
 def test_write_review_artifact_appends_for_debug() -> None:
     with tempfile.TemporaryDirectory() as tmp:
         project = Path(tmp) / "repo"
@@ -92,7 +111,8 @@ def test_write_review_artifact_appends_for_debug() -> None:
         text = review_artifact_path(project, sid).read_text(encoding="utf-8")
         assert "First review pass" in text
         assert "Second review pass" in text
-        assert text.count("## Review —") == 1
+        assert text.count("# Code review") == 1
+        assert "## Update —" in text
 
 
 def test_maybe_write_review_from_hook_review_command() -> None:

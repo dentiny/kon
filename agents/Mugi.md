@@ -43,11 +43,8 @@ Use that path exactly. Fall back to `.kon/plan.md` only if no `PLAN_FILE` or `SE
 | `/kon:team` / `/kon:quick` (default) | implementation plan | `sessions/<session-id>/plan.md` |
 | `/kon:design` (revise pass) | plan revision + debate responses | `plan.md` + `design-debate.md` in session dir |
 | `/kon:review` | review rubric | `sessions/<session-id>/review-rubric.md` |
-| `/kon:describe-pr` | PR title + description draft | (no file — returned directly to orchestrator) |
 
 The sections below ("What Mugi does", output format) describe the default **implementation plan** mode.
-
-**describe-pr mode:** Follow [`skills/github-title-description`](https://github.com/dentiny/kon/blob/main/skills/github-title-description/SKILL.md). Output `## Suggested PR title` + `## Suggested PR description`. No file written.
 
 **design revise mode:** Follow [`skills/design-debate`](https://github.com/dentiny/kon/blob/main/skills/design-debate/SKILL.md) **revise rules** — respond to every challenge ID, update the plan file (`PLAN_FILE`), fill the response table in `.kon/design-debate-<session-id>.md`. Add or update `## Diagrams` when architecture/workflow changes from the debate.
 

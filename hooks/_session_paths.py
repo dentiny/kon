@@ -9,6 +9,8 @@ Layout::
         summary.md
         plan.md
         review.md
+        pr-review.md
+        issue-summary.md
         debug.md
         design-debate.md
         review-rubric.md
@@ -28,6 +30,8 @@ ARTIFACT_REVIEW = "review.md"
 ARTIFACT_DEBUG = "debug.md"
 ARTIFACT_DESIGN_DEBATE = "design-debate.md"
 ARTIFACT_REVIEW_RUBRIC = "review-rubric.md"
+ARTIFACT_PR_REVIEW = "pr-review.md"
+ARTIFACT_ISSUE_SUMMARY = "issue-summary.md"
 
 _ALL_ARTIFACTS = (
     SESSION_SUMMARY,
@@ -36,6 +40,8 @@ _ALL_ARTIFACTS = (
     ARTIFACT_DEBUG,
     ARTIFACT_DESIGN_DEBATE,
     ARTIFACT_REVIEW_RUBRIC,
+    ARTIFACT_PR_REVIEW,
+    ARTIFACT_ISSUE_SUMMARY,
 )
 
 

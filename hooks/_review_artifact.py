@@ -1,4 +1,4 @@
-"""Write Mio review output to session-local markdown for browser review."""
+"""Write agent markdown artifacts under sessions/<session-id>/ for browser review."""
 
 from __future__ import annotations
 
@@ -8,18 +8,44 @@ from pathlib import Path
 
 from _kon_paths import iter_sessions_dirs, resolve_project_path
 from _session_paths import (
+    ARTIFACT_ISSUE_SUMMARY,
+    ARTIFACT_PR_REVIEW,
     ARTIFACT_REVIEW,
     ensure_session_dir,
     iter_session_json_paths,
     session_artifact_path,
 )
 
-REVIEW_COMMANDS = frozenset({"/kon:review", "/kon:debug"})
+MIO_REVIEW_COMMANDS = frozenset({"/kon:review", "/kon:debug", "/kon:review-pr"})
+JUN_ISSUE_COMMANDS = frozenset({"/kon:describe-issue"})
 
 
 def review_artifact_path(project: str | Path | None, session_id: str) -> Path:
-    """``sessions/<session-id>/review.md`` under ~/.kon."""
     return session_artifact_path(project, session_id, ARTIFACT_REVIEW)
+
+
+def pr_review_artifact_path(project: str | Path | None, session_id: str) -> Path:
+    return session_artifact_path(project, session_id, ARTIFACT_PR_REVIEW)
+
+
+def issue_summary_artifact_path(project: str | Path | None, session_id: str) -> Path:
+    return session_artifact_path(project, session_id, ARTIFACT_ISSUE_SUMMARY)
+
+
+def _artifact_path_for_command(project: str | Path | None, session_id: str, command: str) -> Path:
+    if command == "/kon:review-pr":
+        return pr_review_artifact_path(project, session_id)
+    if command == "/kon:describe-issue":
+        return issue_summary_artifact_path(project, session_id)
+    return review_artifact_path(project, session_id)
+
+
+def _title_for_command(command: str) -> str:
+    if command == "/kon:review-pr":
+        return "PR review"
+    if command == "/kon:describe-issue":
+        return "Issue summary"
+    return "Code review"
 
 
 def _content_text(content: object) -> str:
@@ -112,7 +138,7 @@ def find_open_session(project: str | Path | None) -> tuple[str, dict] | None:
     return str(best_data.get("id") or ""), best_data
 
 
-def _format_review_markdown(
+def _format_artifact_markdown(
     *,
     session_id: str,
     command: str,
@@ -121,18 +147,19 @@ def _format_review_markdown(
     section_ts: str | None = None,
 ) -> str:
     ts = section_ts or datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    title = _title_for_command(command)
     header = (
-        f"# Code review\n\n"
+        f"# {title}\n\n"
         f"**Session**: `{session_id}`  \n"
         f"**Command**: `{command}`  \n"
         f"**Task**: {task.strip() or '—'}  \n"
-        f"**Reviewed**: {ts}\n\n"
+        f"**Written**: {ts}\n\n"
         f"---\n\n"
     )
     return header + body.strip() + "\n"
 
 
-def write_review_artifact(
+def write_session_artifact(
     project: str | Path | None,
     session_id: str,
     *,
@@ -141,13 +168,12 @@ def write_review_artifact(
     body: str,
     append: bool = False,
 ) -> Path | None:
-    """Write Mio review markdown to ``sessions/<session-id>/review.md``."""
     text = body.strip()
     if not text:
         return None
 
     ensure_session_dir(project, session_id)
-    path = review_artifact_path(project, session_id)
+    path = _artifact_path_for_command(project, session_id, command)
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     if append and path.is_file():
@@ -155,12 +181,12 @@ def write_review_artifact(
             existing = path.read_text(encoding="utf-8")
         except OSError:
             existing = ""
-        section = f"\n\n---\n\n## Review — {ts}\n\n{text}\n"
+        section = f"\n\n---\n\n## Update — {ts}\n\n{text}\n"
         path.write_text(existing.rstrip() + section, encoding="utf-8")
         return path
 
     path.write_text(
-        _format_review_markdown(
+        _format_artifact_markdown(
             session_id=session_id,
             command=command,
             task=task,
@@ -172,6 +198,26 @@ def write_review_artifact(
     return path
 
 
+def write_review_artifact(
+    project: str | Path | None,
+    session_id: str,
+    *,
+    command: str,
+    task: str,
+    body: str,
+    append: bool = False,
+) -> Path | None:
+    """Backward-compatible alias for Mio review artifacts."""
+    return write_session_artifact(
+        project,
+        session_id,
+        command=command,
+        task=task,
+        body=body,
+        append=append,
+    )
+
+
 def maybe_write_review_from_hook(
     project: str | Path | None,
     *,
@@ -179,7 +225,7 @@ def maybe_write_review_from_hook(
     output: str,
     transcript_path: str | Path | None = None,
 ) -> Path | None:
-    """Persist Mio output for review/debug sessions."""
+    """Persist Mio output for review / review-pr / debug sessions."""
     if agent != "Mio":
         return None
 
@@ -188,18 +234,49 @@ def maybe_write_review_from_hook(
         return None
     session_id, data = found
     command = str(data.get("command") or "")
-    if command not in REVIEW_COMMANDS:
+    if command not in MIO_REVIEW_COMMANDS:
         return None
 
     body = extract_assistant_markdown(output, transcript_path)
     if not body:
         return None
 
-    return write_review_artifact(
+    return write_session_artifact(
         project,
         session_id,
         command=command,
         task=str(data.get("task") or ""),
         body=body,
         append=command == "/kon:debug",
+    )
+
+
+def maybe_write_issue_from_hook(
+    project: str | Path | None,
+    *,
+    agent: str,
+    output: str,
+    transcript_path: str | Path | None = None,
+) -> Path | None:
+    """Persist Jun output for describe-issue sessions."""
+    if agent != "Jun":
+        return None
+
+    found = find_open_session(project)
+    if found is None:
+        return None
+    session_id, data = found
+    if str(data.get("command") or "") != "/kon:describe-issue":
+        return None
+
+    body = extract_assistant_markdown(output, transcript_path)
+    if not body:
+        return None
+
+    return write_session_artifact(
+        project,
+        session_id,
+        command="/kon:describe-issue",
+        task=str(data.get("task") or ""),
+        body=body,
     )

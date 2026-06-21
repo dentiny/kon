@@ -105,6 +105,29 @@ def check_azusa(out: str) -> None:
 
 def check_jun(out: str) -> None:
     require_memory_header(out, "Jun (Researcher)")
+
+    # describe-issue mode: structured issue + comment summary
+    if re.search(r"##\s+Issue summary", out, re.IGNORECASE):
+        if not re.search(
+            r"/sessions/[\w-]+/issue-summary\.md|issue-summary\.md",
+            out,
+        ):
+            emit(
+                "block",
+                "Jun (describe-issue) must write `sessions/<session-id>/issue-summary.md "
+                "and reference that path in output.",
+            )
+            return
+        for heading in ("Discussion summary", "Open questions"):
+            if not re.search(rf"##\s+{heading}", out, re.IGNORECASE):
+                emit(
+                    "block",
+                    f"Jun (describe-issue) output is missing `## {heading}`.",
+                )
+                return
+        emit("approve", "Jun (describe-issue) output is compliant")
+        return
+
     if not re.search(r"\.kon/research\.md", out):
         emit(
             "block",
@@ -129,24 +152,13 @@ def check_jun(out: str) -> None:
     emit("approve", "Jun (Researcher) output is compliant")
 
 
-PR_DRAFT_RE = re.compile(r"##\s+Suggested PR title", re.IGNORECASE)
+PR_REVIEW_RE = re.compile(r"##\s+PR overview", re.IGNORECASE)
 
 
 def check_mugi(out: str) -> None:
     require_memory_header(out, "Mugi (Planner)")
 
-    # describe-pr mode: Mugi produces a PR draft, not plan.md
-    if PR_DRAFT_RE.search(out):
-        if not re.search(r"##\s+Suggested PR description", out, re.IGNORECASE):
-            emit(
-                "block",
-                "Mugi (Planner) PR draft is missing `## Suggested PR description`. "
-                "describe-pr mode requires both `## Suggested PR title` and "
-                "`## Suggested PR description`.",
-            )
-        emit("approve", "Mugi (Planner) PR draft structure is complete")
-
-    # plan / review mode: output written to .kon/ files
+    # plan / review mode: output written to session files
     # Accept session-scoped plan files (.kon/plan-<sid>.md) as well as the legacy .kon/plan.md
     if not re.search(rf"(?:{_SESSION_PLAN_PATH}|{_SESSION_RUBRIC_PATH})", out):
         emit(
@@ -250,6 +262,30 @@ def _missing_mio_checklist_items(checklist_section: str) -> list[str]:
     return missing
 
 
+def _check_mio_pr_review(out: str, verdict: str) -> None:
+    for heading in (
+        "PR overview",
+        "Code review",
+        "PR description review",
+        "Existing review comments",
+        "Linked issues",
+    ):
+        if not re.search(rf"##\s+{re.escape(heading)}", out, re.IGNORECASE):
+            emit(
+                "block",
+                f"Mio (review-pr) output is missing `## {heading}`. "
+                "Holistic PR review requires code, description, comments, and linked issues.",
+            )
+            return
+    if verdict != "APPROVED" and not _MUST_FIX_HEADING_RE.search(out):
+        emit(
+            "block",
+            f"Mio (review-pr) issued {verdict} but has no `## Must-fix` section.",
+        )
+        return
+    emit("approve", f"Mio (review-pr) output is compliant (verdict={verdict})")
+
+
 def check_mio(out: str) -> None:
     require_memory_header(out, "Mio (Reviewer)")
     verdict_match = re.search(r"\b(APPROVED|NEEDS_CHANGES|BLOCKED)\b", out)
@@ -261,6 +297,10 @@ def check_mio(out: str) -> None:
         )
         return
     verdict = verdict_match.group(1)
+
+    if PR_REVIEW_RE.search(out):
+        _check_mio_pr_review(out, verdict)
+        return
 
     checklist_section = _extract_section(out, _CHECKLIST_HEADING_RE)
     missing_items = _missing_mio_checklist_items(checklist_section)

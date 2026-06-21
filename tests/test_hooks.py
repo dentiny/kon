@@ -371,6 +371,65 @@ class TestTeammateQualityCheck:
         )
         assert result["decision"] == "approve"
 
+    def test_mio_review_pr_approves_holistic_sections(self) -> None:
+        output = (
+            "## Loaded memory entries\n(no relevant entries)\n\n"
+            "## Verdict\nNEEDS_CHANGES\n\n"
+            "## PR overview\nAuth email validation PR.\n\n"
+            "## Code review\n- [ ] edge case missing\n\n"
+            "## PR description review\nTest plan is thin.\n\n"
+            "## Existing review comments\n- reviewer: add test — partial\n\n"
+            "## Linked issues\nFixes #42 — requirements met partially.\n\n"
+            "## Must-fix\n- Add empty-email test\n"
+        )
+        result = _run_hook(
+            "teammate_quality_check.py",
+            {"teammate_role": "Mio", "teammate_output": output},
+        )
+        assert result["decision"] == "approve"
+
+    def test_mio_review_pr_blocks_missing_section(self) -> None:
+        output = (
+            "## Loaded memory entries\n(no relevant entries)\n\n"
+            "## Verdict\nBLOCKED\n\n"
+            "## PR overview\nAuth email validation PR.\n\n"
+            "## Code review\n- [ ] edge case missing\n"
+        )
+        result = _run_hook(
+            "teammate_quality_check.py",
+            {"teammate_role": "Mio", "teammate_output": output},
+        )
+        assert result["decision"] == "block"
+        assert "PR description review" in result["reason"]
+
+    def test_jun_describe_issue_approves(self) -> None:
+        output = (
+            "## Loaded memory entries\n(no relevant entries)\n\n"
+            "## Issue summary\n"
+            "- sessions/abc-123/issue-summary.md — signup bug triage\n\n"
+            "## Discussion summary\n- reporter sees 500 on empty email\n\n"
+            "## Open questions\n- (none)\n"
+        )
+        result = _run_hook(
+            "teammate_quality_check.py",
+            {"teammate_role": "Jun", "teammate_output": output},
+        )
+        assert result["decision"] == "approve"
+
+    def test_jun_describe_issue_blocks_missing_path(self) -> None:
+        output = (
+            "## Loaded memory entries\n(no relevant entries)\n\n"
+            "## Issue summary\n- signup bug triage\n\n"
+            "## Discussion summary\n- reporter sees 500\n\n"
+            "## Open questions\n- (none)\n"
+        )
+        result = _run_hook(
+            "teammate_quality_check.py",
+            {"teammate_role": "Jun", "teammate_output": output},
+        )
+        assert result["decision"] == "block"
+        assert "issue-summary.md" in result["reason"]
+
     @pytest.mark.parametrize(
         ("role", "output"),
         [

@@ -133,12 +133,40 @@ def test_team_default_pending() -> None:
         ]
 
 
+def test_review_pr_default_pending() -> None:
+    tmp, project, env, sessions = _isolated_env()
+    with tmp:
+        sid = _run(
+            ["init", "--command", "/kon:review-pr", "--task", "review pr for auth changes"],
+            env,
+            project,
+        )
+        data = _load_session(sessions, sid)
+        assert data["command"] == "/kon:review-pr"
+        assert data["steps_pending"] == ["Mio"]
+
+
+def test_describe_issue_default_pending() -> None:
+    tmp, project, env, sessions = _isolated_env()
+    with tmp:
+        sid = _run(
+            ["init", "--command", "/kon:describe-issue", "--task", "summarize issue 42"],
+            env,
+            project,
+        )
+        data = _load_session(sessions, sid)
+        assert data["command"] == "/kon:describe-issue"
+        assert data["steps_pending"] == ["Jun"]
+
+
 @pytest.mark.parametrize(
     ("command", "agent", "task"),
     [
         pytest.param("/kon:ask", "Azusa", "how does X work", id="ask"),
         pytest.param("/kon:research", "Jun", "pytest exit codes", id="research"),
         pytest.param("/kon:review", "Mio", "review diff", id="review"),
+        pytest.param("/kon:review-pr", "Mio", "review pr", id="review-pr"),
+        pytest.param("/kon:describe-issue", "Jun", "summarize issue", id="describe-issue"),
     ],
 )
 def test_ephemeral_auto_completes(command: str, agent: str, task: str) -> None:

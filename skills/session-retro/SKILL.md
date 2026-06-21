@@ -6,7 +6,21 @@ description: This skill should be used by the orchestrator at the end of pipelin
 # Session Retro
 
 **Owner**: orchestrator (no Task subagents)
-**Consumers**: [`/kon:team`](../commands/team.md), [`/kon:quick`](../commands/quick.md), [`/kon:design`](../commands/design.md), [`/kon:debug`](../commands/debug.md), [`/kon:gc`](../commands/gc.md), [`/kon:address-comments`](../commands/address-comments.md), standalone [`/kon:retro`](../commands/retro.md)
+**Consumers**: [`/kon:team`](../commands/team.md), [`/kon:quick`](../commands/quick.md), [`/kon:design`](../commands/design.md), [`/kon:debug`](../commands/debug.md), [`/kon:gc`](../commands/gc.md), [`/kon:address-comments`](../commands/address-comments.md). Optional manual re-run: [`/kon:retro`](../commands/retro.md).
+
+## Save paths
+
+Saving is always:
+
+1. **Mid-session** — Mio/Yui `## Memory propose` → confirm → write
+2. **End of pipeline** — retro (below) → confirm → write
+
+To **browse** stored entries, read the indexes directly:
+
+```bash
+cat ~/.kon/public/memory/MEMORY.md
+cat ~/.kon/projects/<repo-name>/memory/MEMORY.md
+```
 
 ## When to run
 
@@ -53,7 +67,7 @@ Scan conversation + session artefacts:
 ## Path A vs B
 
 - **Path A** — same conversation: use chat + `sessions/<id>/summary.md` + `.kon/plan-*.md`.
-- **Path B** — no context (standalone `/kon:retro` on old session): ask user what to remember, then run step 3.
+- **Path B** — standalone `/kon:retro` when conversation context is thin: ask the user what to save, then run step 3.
 
 ## Orchestrator rules
 

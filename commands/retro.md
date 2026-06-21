@@ -4,18 +4,19 @@ description: Session retro — propose preferences and conventions from the curr
 
 # /kon:retro
 
-Capture what you learned this session before it disappears.
+**Optional escape hatch** — re-run session retro if you skipped it at pipeline close or want another pass.
+Normally retro runs **automatically** after `/kon:summarize` on team/quick/design/debug/gc/address-comments.
+
 Orchestrator proposes candidates; you pick **public** (`~/.kon/public/memory/`) or **repo**
 (`~/.kon/projects/<repo-name>/memory/`) for each save.
 
-Also runs **by default** at the end of `/kon:team`, `/kon:quick`, `/kon:design`, `/kon:debug`,
-`/kon:gc`, and `/kon:address-comments` (after `/kon:summarize`).
+Browse indexes with `cat` on the two `MEMORY.md` files (see [`skills/session-retro`](../skills/session-retro/SKILL.md)).
 
 ## Usage
 
 ```
-/kon:retro
-/kon:retro skip          # explicit no-op when chained after pipeline
+/kon:retro              # re-run retro (e.g. after skip retro at pipeline close)
+/kon:retro skip         # explicit no-op
 ```
 
 ## Flow
@@ -46,5 +47,5 @@ Or reuse the open pipeline session id — do not `init` a second session if one 
 | Item | `/kon:retro` | `/kon:summarize` | `## Memory propose` (mid-session) |
 |------|--------------|------------------|-------------------------------------|
 | Output | Memory files | `summary.md` | Memory files (if confirmed) |
-| Trigger | End of session / manual | End of pipeline | Mio/Yui during team/quick/debug |
+| Trigger | End of session / manual re-run | End of pipeline | Mio/Yui during team/quick/debug |
 | Scope pick | public vs repo | N/A | orchestrator asks scope on save |

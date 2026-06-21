@@ -1,12 +1,14 @@
 ---
 name: memory-propose-confirm
-description: This skill should be used by the kon orchestrator when saving memory — from ## Memory propose (Mio/Yui), session retro, or /kon:remember. Handles scope selection (public vs repo), confirm flow, and index updates. Applies to /kon:team, /kon:quick, /kon:debug, /kon:retro.
+description: This skill should be used by the kon orchestrator when saving memory — from ## Memory propose (Mio/Yui) or session retro at pipeline close. Handles scope selection (public vs repo), confirm flow, and index updates.
 ---
 
 # Memory Propose Confirm Flow
 
 **Owner**: orchestrator
-**Consumers**: [`/kon:team`](../commands/team.md), [`/kon:quick`](../commands/quick.md), [`/kon:debug`](../commands/debug.md), [`/kon:retro`](../commands/retro.md), [`skills/session-retro`](session-retro/SKILL.md)
+**Consumers**: pipeline commands that end with retro (see [`skills/session-retro`](session-retro/SKILL.md)) plus mid-session propose from [`/kon:team`](../commands/team.md), [`/kon:quick`](../commands/quick.md), [`/kon:debug`](../commands/debug.md).
+
+Saving is **propose + retro only** (human confirm each write). Browse stored entries with `cat` on the two `MEMORY.md` indexes.
 
 ## Storage paths
 
@@ -32,7 +34,7 @@ Missing any → skip with one line: "Memory propose detected but format incomple
 
 ## Confirm flow
 
-1. **Format check** (agent propose) or **build candidate** (retro / remember).
+1. **Format check** (agent propose) or **build candidate** (session retro).
 2. **Show both indexes** — print paths to public and repo `MEMORY.md` if they exist.
 3. **Print summary** — type, name, description, rationale; suggest **scope**:
    - `public` — user prefs, cross-repo habits, language, feedback
@@ -86,6 +88,13 @@ Track triple-backtick count from output start; inside a fence (odd count), ignor
 
 ## Relationship to retro
 
-Mid-session `## Memory propose` = immediate capture.
-Session retro = catch-all after summarize; reuses this write flow.
+**Two save paths only (both require human confirm):**
+
+| When | Trigger |
+|------|---------|
+| Mid-session | Mio/Yui `## Memory propose` → this skill |
+| End of pipeline | Session retro (after `/kon:summarize`) → this skill |
+
 Do not re-propose entries the user already saved this session.
+
+Automatic retro at session close is the primary catch-all; propose handles explicit mid-session signals.

@@ -39,7 +39,7 @@ User invokes a **slash command** (kon extension system commands):
 - `/kon:gc` or `/kon:gc <target>` — garbage collect (dead code, comments, docs)
 - `/kon:finish` — mark current session completed
 - `/kon:summarize` — write session summary
-- `/kon:retro` — propose session learnings for public/repo memory (also default after pipeline commands)
+- `/kon:retro` — re-run session retro (optional; runs automatically after pipeline commands)
 
 Append `--yolo` for autonomous mode: `/kon:team --yolo <task>`.
 

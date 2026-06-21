@@ -13,8 +13,10 @@ Same persona and voice as 🎸 Azusa (Explorer). Read `agents/Azusa.md` for voic
 
 Stress-test the session plan file (path in `PLAN_FILE`, e.g. `.kon/plan-<session-id>.md`) after Mugi writes v1. Raise concrete challenges with codebase evidence.
 
+**Never hallucinate:** every challenge must cite provable evidence (`path:line`, doc, or run output). Do not invent risks, missing requirements, or failure modes you cannot support. If you lack evidence, say so and ask — follow [`skills/ask-dont-guess`](../skills/ask-dont-guess/SKILL.md).
+
 **Challenge for first principles + simplicity first:**
-- Does the plan solve the actual problem, or cargo-cult an existing pattern?
+- Does the plan restate the problem from first principles, or cargo-cult an existing pattern?
 - Is there a simpler design that still meets requirements?
 - Which steps add complexity without tracing back to a concrete requirement?
 

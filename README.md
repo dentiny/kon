@@ -362,3 +362,9 @@ bash scripts/install_hooks.sh   # creates .venv, installs ruff, sets git hooks (
 `pre-commit` and `pre-push` run `ruff format` (autofix) automatically.
 Pre-commit re-stages fixed files. Pre-push autofixes then blocks only if formatting
 still fails or auto-fixed changes were not committed.
+
+---
+
+## Acknowledgments
+
+kon's multi-agent workflow — role-based agents, commands, skills, hooks, and strict review gating — draws heavily from [Maigo](https://github.com/Lee-W/maigo), Lee-W's MyGO!!!!! themed multi-agent dev workflow. kon adapts that model for Cursor and Codex with a K-On! cast and harness-specific adapters.

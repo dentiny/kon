@@ -54,6 +54,8 @@ On problem: **do not abort**; append `[schema warn: …]` on that line in `## Lo
 - No relevant entries after ranking → `(no relevant entries)`
 - Never ask the user to create directories — `ensure_project_dir` / `bootstrap_memory.sh` handle that
 
+**Saving** is not this skill's job — entries are written only via mid-session `## Memory propose` or end-of-pipeline retro ([`skills/memory-propose-confirm`](memory-propose-confirm/SKILL.md), [`skills/session-retro`](session-retro/SKILL.md)). Browse indexes with `cat` on the two `MEMORY.md` files.
+
 Bootstrap once:
 
 ```bash

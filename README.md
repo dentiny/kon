@@ -277,7 +277,7 @@ Then in any Codex session:
 | `/kon:ask <question>` | Read-only Q&A — 🎸 Azusa explores the repo, **no repo writes**; session tracked in `~/.kon/projects/` |
 | `/kon:gc` | Garbage collect — remove dead code, simplify comments/docs |
 | `/kon:summarize` | Write a session summary (auto-runs at end of every command) |
-| `/kon:retro` | Propose session learnings for public/repo memory (default after pipeline commands) |
+| `/kon:retro` | Re-run session retro (optional — runs automatically after pipeline commands) |
 | `/kon:finish` | Mark the current session as completed |
 
 ### YOLO mode
@@ -328,13 +328,20 @@ bash $KON_ROOT/scripts/bootstrap_memory.sh
 bash $KON_ROOT/scripts/bootstrap_memory.sh /path/to/repo
 ```
 
-**Saving memory:**
-
-- Mid-session: Mio/Yui `## Memory propose` → [`skills/memory-propose-confirm`](skills/memory-propose-confirm/SKILL.md)
-- End of session: **retro** (default after team/quick/debug/gc) → [`skills/session-retro`](skills/session-retro/SKILL.md)
-- Manual: `/kon:retro`
+Agents load entries via `skills/memory-loading`; saves only via propose + retro (human confirm each write).
 
 Legacy `~/.config/kon/memory/` is merged into public memory on first `ensure_project_dir`.
+
+**Saving:**
+
+| When | How |
+|------|-----|
+| During team/quick/debug | Mio/Yui `## Memory propose` → confirm → [`skills/memory-propose-confirm`](skills/memory-propose-confirm/SKILL.md) |
+| End of pipeline | Retro after summarize → confirm → [`skills/session-retro`](skills/session-retro/SKILL.md) |
+
+Say **skip retro** to close without memory proposals. To re-run retro later: `/kon:retro`.
+
+**Browse entries:** `cat ~/.kon/public/memory/MEMORY.md` and `~/.kon/projects/<repo-name>/memory/MEMORY.md`.
 
 ---
 

@@ -34,6 +34,8 @@ If the user says no → run quick anyway. **Don't ask again.**
 
 ## Flow
 
+Use **Task resume** for the Yui → Mio loop (and Sawako on team): spawn each role once with full agent file (+ `strict-review` for Mio on first review only); on must-fix / re-review, **`resume`** the same Task id — delta prompt only. Store ids with `kon_session.py set-task-agent`. See [`skills/teammate-flow`](../skills/teammate-flow/SKILL.md) **Implementation loop — Task resume**.
+
 1. **🎶 Yui** — implement directly (no Azusa explore, no Mugi plan).
    - Yui reads 1-2 surrounding files to pick up conventions, no broad exploration.
    - No plan file written.

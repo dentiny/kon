@@ -12,9 +12,11 @@ description: This skill should be used when handling failures in pipeline comman
 ### Mio blocks (NEEDS_CHANGES / BLOCKED)
 
 1. **Send Mio's full output to Yui** — must-fix list + pending evidence + specific改法
-2. Yui fixes and reports back with explicit diff/evidence for each must-fix number (not just "fixed them all")
-3. **🧹 Sawako** cleans up after Yui's fixes (same milestone loop)
-4. Re-run Mio's review. Mio checks item-by-item — any uncleared item keeps it BLOCKED.
+2. **Resume 🎶 Yui** (do not respawn with full `agents/Yui.md` if `get-task-agent` has an id) — fix with explicit references to must-fix numbers
+3. **Resume 🧹 Sawako** when applicable — delta prompt only
+4. **Resume 📝 Mio** (do not respawn with full `strict-review` if id exists) — re-review with delta prompt; verify each prior must-fix item-by-item
+
+See [`skills/teammate-flow`](../teammate-flow/SKILL.md) **Implementation loop — Task resume**.
 
 ### Infinite-loop protection
 

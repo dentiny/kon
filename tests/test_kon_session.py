@@ -652,3 +652,36 @@ def test_finish_rejects_already_completed() -> None:
         with pytest.raises(subprocess.CalledProcessError) as exc:
             _run(["finish", "--id", sid], env, project)
         assert "not open" in exc.value.stderr
+
+
+def test_task_agent_set_get_clear() -> None:
+    tmp, project, env, sessions = _isolated_env()
+    with tmp:
+        sid = _run(
+            ["init", "--command", "/kon:team", "--task", "resume loop"],
+            env,
+            project,
+        )
+        _run(
+            [
+                "set-task-agent",
+                "--id",
+                sid,
+                "--agent",
+                "Mio",
+                "--task-id",
+                "abc-123-task",
+            ],
+            env,
+            project,
+        )
+        data = _load_session(sessions, sid)
+        assert data["task_agents"]["impl-loop"]["Mio"] == "abc-123-task"
+        assert (
+            _run(["get-task-agent", "--id", sid, "--agent", "Mio"], env, project)
+            == "abc-123-task"
+        )
+        assert _run(["get-task-agent", "--id", sid, "--agent", "Yui"], env, project) == ""
+        _run(["clear-task-agents", "--id", sid], env, project)
+        data = _load_session(sessions, sid)
+        assert "task_agents" not in data

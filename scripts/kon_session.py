@@ -24,6 +24,8 @@ from _session_paths import (  # noqa: E402
 from _token_estimate import SOURCE as USAGE_SOURCE  # noqa: E402
 
 _BEGIN_COMMAND = "/kon:begin"
+_TASK_AGENT_SCOPE_DEFAULT = "impl-loop"
+_IMPL_LOOP_AGENTS = frozenset({"Yui", "Sawako", "Mio"})
 
 # One-shot commands: auto-complete when the sole agent finishes (no dashboard clutter).
 _EPHEMERAL_COMMANDS = frozenset(
@@ -431,6 +433,57 @@ def cmd_artifact_path(args: argparse.Namespace) -> None:
     print(session_artifact_path(args.project, args.id, args.name))
 
 
+def _task_agent_scope(args: argparse.Namespace) -> str:
+    return (getattr(args, "scope", None) or _TASK_AGENT_SCOPE_DEFAULT).strip()
+
+
+def _task_agent_bucket(data: dict, scope: str, create: bool = False) -> dict[str, str]:
+    if create:
+        task_agents = data.setdefault("task_agents", {})
+        return task_agents.setdefault(scope, {})
+    return (data.get("task_agents") or {}).get(scope, {})
+
+
+def cmd_set_task_agent(args: argparse.Namespace) -> None:
+    """Persist a Cursor Task subagent id for resume within an implementation loop."""
+    agent = args.agent.strip()
+    if agent not in _IMPL_LOOP_AGENTS:
+        raise SystemExit(
+            f"unsupported agent for task-agent tracking: {agent!r} "
+            f"(expected one of {sorted(_IMPL_LOOP_AGENTS)})"
+        )
+    task_id = args.task_id.strip()
+    if not task_id:
+        raise SystemExit("task_id must be non-empty")
+    path, data = _load(args.id, args.project)
+    bucket = _task_agent_bucket(data, _task_agent_scope(args), create=True)
+    bucket[agent] = task_id
+    _save(path, data)
+    print(task_id)
+
+
+def cmd_get_task_agent(args: argparse.Namespace) -> None:
+    """Print stored Task subagent id for resume, or nothing if unset."""
+    path, data = _load(args.id, args.project)
+    task_id = _task_agent_bucket(data, _task_agent_scope(args)).get(args.agent.strip())
+    if task_id:
+        print(task_id)
+
+
+def cmd_clear_task_agents(args: argparse.Namespace) -> None:
+    """Drop stored Task ids for a scope (e.g. after Mio approves a milestone)."""
+    path, data = _load(args.id, args.project)
+    scope = _task_agent_scope(args)
+    task_agents = data.get("task_agents") or {}
+    if scope in task_agents:
+        del task_agents[scope]
+    if task_agents:
+        data["task_agents"] = task_agents
+    else:
+        data.pop("task_agents", None)
+    _save(path, data)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="kon session file helper")
     parser.add_argument("--project", default=None, help="Project directory (default: cwd)")
@@ -518,6 +571,54 @@ def main() -> None:
         help="Artifact filename (e.g. plan.md, review.md, debug.md, summary.md)",
     )
     artifact.set_defaults(func=cmd_artifact_path)
+
+    set_task = sub.add_parser(
+        "set-task-agent",
+        help="Store Cursor Task subagent id for resume (implementation loop)",
+    )
+    set_task.add_argument("--id", required=True)
+    set_task.add_argument(
+        "--agent",
+        required=True,
+        choices=sorted(_IMPL_LOOP_AGENTS),
+        help="Yui, Sawako, or Mio",
+    )
+    set_task.add_argument("--task-id", required=True, help="Task subagent id from first spawn")
+    set_task.add_argument(
+        "--scope",
+        default=_TASK_AGENT_SCOPE_DEFAULT,
+        help=f"Loop scope (default: {_TASK_AGENT_SCOPE_DEFAULT})",
+    )
+    set_task.set_defaults(func=cmd_set_task_agent)
+
+    get_task = sub.add_parser(
+        "get-task-agent",
+        help="Print stored Task subagent id for resume, if any",
+    )
+    get_task.add_argument("--id", required=True)
+    get_task.add_argument(
+        "--agent",
+        required=True,
+        choices=sorted(_IMPL_LOOP_AGENTS),
+    )
+    get_task.add_argument(
+        "--scope",
+        default=_TASK_AGENT_SCOPE_DEFAULT,
+        help=f"Loop scope (default: {_TASK_AGENT_SCOPE_DEFAULT})",
+    )
+    get_task.set_defaults(func=cmd_get_task_agent)
+
+    clear_task = sub.add_parser(
+        "clear-task-agents",
+        help="Clear stored Task ids for a scope (after milestone approved)",
+    )
+    clear_task.add_argument("--id", required=True)
+    clear_task.add_argument(
+        "--scope",
+        default=_TASK_AGENT_SCOPE_DEFAULT,
+        help=f"Loop scope (default: {_TASK_AGENT_SCOPE_DEFAULT})",
+    )
+    clear_task.set_defaults(func=cmd_clear_task_agents)
 
     args = parser.parse_args()
     args.func(args)

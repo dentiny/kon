@@ -654,6 +654,88 @@ def test_finish_rejects_already_completed() -> None:
         assert "not open" in exc.value.stderr
 
 
+def test_wait_for_user_and_user_continued_plan_gate() -> None:
+    tmp, project, env, sessions = _isolated_env()
+    with tmp:
+        sid = _run(
+            ["init", "--command", "/kon:team", "--task", "milestone gates"],
+            env,
+            project,
+        )
+        _run(
+            ["complete-agent", "--id", sid, "--agent", "Mugi", "--summary", "plan ready"],
+            env,
+            project,
+        )
+        _run(
+            [
+                "wait-for-user",
+                "--id",
+                sid,
+                "--after",
+                "plan",
+                "--summary",
+                "Plan ready — approve to start?",
+            ],
+            env,
+            project,
+        )
+        data = _load_session(sessions, sid)
+        assert data["status"] == "waiting"
+        assert data["steps_waiting"] == ["User"]
+        assert data["checkpoint"]["after"] == "plan"
+        assert data["current_agent"] is None
+
+        _run(
+            [
+                "user-continued",
+                "--id",
+                sid,
+                "--summary",
+                "Approved plan",
+            ],
+            env,
+            project,
+        )
+        data = _load_session(sessions, sid)
+        assert data["status"] == "in_progress"
+        assert data["steps_waiting"] == []
+        assert "checkpoint" not in data
+        assert "User" in data["steps_completed"]
+        assert "User" not in data["steps_pending"]
+        assert data["log"][-1]["agent"] == "User"
+
+
+def test_wait_for_user_after_all_milestones() -> None:
+    tmp, project, env, sessions = _isolated_env()
+    with tmp:
+        sid = _run(
+            ["init", "--command", "/kon:team", "--task", "gate after all milestones"],
+            env,
+            project,
+        )
+        _run(
+            [
+                "wait-for-user",
+                "--id",
+                sid,
+                "--after",
+                "milestones",
+                "--milestone",
+                "2",
+                "--summary",
+                "All milestones approved — proceed to summarize?",
+            ],
+            env,
+            project,
+        )
+        data = _load_session(sessions, sid)
+        assert data["status"] == "waiting"
+        assert data["checkpoint"]["after"] == "milestones"
+        assert data["checkpoint"]["milestone"] == 2
+        assert data["steps_waiting"] == ["User"]
+
+
 def test_task_agent_set_get_clear() -> None:
     tmp, project, env, sessions = _isolated_env()
     with tmp:
@@ -678,8 +760,7 @@ def test_task_agent_set_get_clear() -> None:
         data = _load_session(sessions, sid)
         assert data["task_agents"]["impl-loop"]["Mio"] == "abc-123-task"
         assert (
-            _run(["get-task-agent", "--id", sid, "--agent", "Mio"], env, project)
-            == "abc-123-task"
+            _run(["get-task-agent", "--id", sid, "--agent", "Mio"], env, project) == "abc-123-task"
         )
         assert _run(["get-task-agent", "--id", sid, "--agent", "Yui"], env, project) == ""
         _run(["clear-task-agents", "--id", sid], env, project)

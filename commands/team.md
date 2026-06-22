@@ -20,7 +20,7 @@ Hand the task to the full team. From first look to code review, each member hand
 
 Full flow follows [`skills/teammate-flow`](https://github.com/dentiny/kon/blob/main/skills/teammate-flow/SKILL.md) —
 optional **📚 Jun** (external docs, parallel with Azusa) → 🎸 Azusa explores → 🍰 Mugi writes plan →
-**WAIT for user confirmation** → **milestone loop**: 🎶 Yui implements milestone → 🧹 Sawako cleans up → 📝 Mio reviews → if blocked, fix and re-review → if approved, next milestone.
+**WAIT for user confirmation** → **milestone loop** (autonomous): 🎶 Yui → 🧹 Sawako → 📝 Mio per milestone → repeat until all complete → **WAIT for user** → summarize / close.
 
 When the task needs web/docs lookup, spawn Jun per [`skills/external-research`](https://github.com/dentiny/kon/blob/main/skills/external-research/SKILL.md).
 
@@ -28,17 +28,16 @@ When the task needs web/docs lookup, spawn Jun per [`skills/external-research`](
 
 **Milestone-based review loop:**
 - After plan approval, Yui implements ONE milestone at a time
-- After each milestone implementation, Sawako removes dead code and redundant comments
-- Then Mio reviews that milestone's changes only
-- If Mio blocks: Yui fixes → Sawako cleans → Mio re-reviews the same milestone
-- If Mio approves: proceed to next milestone
-- Repeat until all milestones are complete
+- Sawako cleans up, then Mio reviews — runs automatically for every milestone
+- If Mio blocks: Yui fixes → Sawako cleans → Mio re-reviews until approved, then **next milestone immediately**
+- Repeat until **all** milestones complete
+- **After the full loop — STOP for user approval** before summarize/close (`wait-for-user --after milestones`)
 - **Testing is manual** — after all milestones approved, user runs tests themselves
 
 ## Orchestrator rules
 
 - **Model inheritance:** Do NOT pass `model` parameter when spawning subagents — let them inherit parent's model
-- **MANDATORY user confirmation:** After Mugi finishes, STOP and wait for user to approve the plan before spawning Yui (even in `--yolo` mode)
+- **MANDATORY user confirmation:** After Mugi finishes, STOP before Yui (`wait-for-user --after plan`). After **all** milestones complete (impl + cleanup + review), STOP before summarize (`wait-for-user --after milestones`). The milestone loop itself runs autonomously. See [`skills/teammate-flow`](../skills/teammate-flow/SKILL.md).
 - **Milestone-based implementation and review:**
   - Yui implements ONE milestone at a time
   - Sawako cleans up dead code and redundant comments after implementation

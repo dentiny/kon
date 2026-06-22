@@ -86,6 +86,8 @@ For `/kon:todo`: read `commands/todo.md`, run `scripts/kon_todo.py` directly —
    Save the printed session ID. After each agent step:
    ```bash
    python3 $KON_ROOT/scripts/kon_session.py complete-agent --id <sid> --agent Azusa --summary "<one sentence>"
+   python3 $KON_ROOT/scripts/kon_session.py wait-for-user --id <sid> --after plan --summary "<what user approves>"
+   python3 $KON_ROOT/scripts/kon_session.py user-continued --id <sid> --summary "<user reply paraphrase>"
    python3 $KON_ROOT/scripts/kon_session.py finish --project .   # close open session (/kon:finish)
    ```
    Sessions live in `~/.kon/projects/<repo-name>/sessions/`. Path helper: `scripts/kon_session.py`.
@@ -114,7 +116,7 @@ For `/kon:todo`: read `commands/todo.md`, run `scripts/kon_todo.py` directly —
 
 4. Spawn Task subagents. **Explore/plan agents** (Azusa, Mugi, Jun, design debate): new Task each time — pass agent file (+ skill if needed).
 
-   **Implementation loop** (Yui → Sawako → Mio until Mio approves): **spawn once per role per milestone**, then **`resume`** on fix/re-review — do **not** re-pass `agents/*.md` or `skills/*.md`. Persist Task ids via `kon_session.py set-task-agent`; look up with `get-task-agent`. Clear with `clear-task-agents` when Mio approves the milestone. Full rules: `$KON_ROOT/skills/teammate-flow/SKILL.md` (**Implementation loop — Task resume**).
+   **Implementation loop** (Yui → Sawako → Mio per milestone, **fully autonomous** until all milestones done): **spawn once per role per milestone**, then **`resume`** on fix/re-review. After **all** milestones complete, run **`wait-for-user --after milestones`** and **STOP the turn**; then **`user-continued`** before Nodoka/summarize. Full rules: `$KON_ROOT/skills/teammate-flow/SKILL.md`.
 
    | Step | Agent file (first spawn only) |
    |------|-------------------------------|

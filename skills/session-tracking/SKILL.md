@@ -109,6 +109,7 @@ in_progress  →  waiting  →  completed
   "steps_pending":   ["Sawako", "Mio", "Nodoka"],
   "steps_failed":    [],
   "steps_waiting":   [],
+  "checkpoint": null,
   "task_agents": {
     "impl-loop": {
       "Yui": "<cursor-task-subagent-id>",
@@ -133,13 +134,34 @@ python3 $KON_ROOT/scripts/kon_session.py clear-task-agents --id "$SID"
 
 ## When to write
 
+`steps_waiting` — agents paused waiting for human input (e.g., plan approval, milestone gate).
+`checkpoint` — set by `wait-for-user` (`summary`, `after`, optional `milestone`); cleared by `user-continued`. Dashboard shows this while `status=waiting`.
+
+## User approval gates (pipeline commands)
+
+Use **`wait-for-user`** / **`user-continued`** — do not hand-edit `steps_waiting`:
+
+```bash
+# After Mugi plan ready
+python3 $KON_ROOT/scripts/kon_session.py wait-for-user --id "$SID" \
+  --after plan --summary "Plan ready — approve to start?"
+# user confirms in chat, then:
+python3 $KON_ROOT/scripts/kon_session.py user-continued --id "$SID" --summary "Approved plan"
+
+# After all milestones complete (impl + cleanup + review)
+python3 $KON_ROOT/scripts/kon_session.py wait-for-user --id "$SID" \
+  --after milestones --summary "All milestones approved — proceed to summarize and close?"
+```
+
+Orchestrator **must STOP the turn** after `wait-for-user` — do not spawn the next agent until the user replies and you run `user-continued`.
+
 | Event | Action |
 |-------|--------|
 | Command starts | Create file: `status=in_progress`, all agents in `steps_pending` |
 | Before spawning an agent | Move agent to `current_agent`, remove from `steps_pending` |
 | Agent completes normally | Move agent to `steps_completed`, add log entry |
-| Agent needs human input | Move agent to `steps_waiting`, set `status=waiting` |
-| Human responds, agent resumes | Move agent back to `current_agent`, set `status=in_progress` |
+| Agent needs human input | Run `wait-for-user` (sets `steps_waiting`, `checkpoint`, `status=waiting`) |
+| Human responds, agent resumes | Run `user-continued`, then `start-agent` for next agent |
 | Agent blocked / retry limit | Move agent to `steps_failed`, set `status=blocked` |
 | All agents finished (pipeline command) | Set `status=waiting`, `current_agent=null` |
 | All agents finished (`/kon:ask`, `/kon:research`, `/kon:review`, `/kon:review-pr`, `/kon:describe-issue`) | Set `status=completed` |

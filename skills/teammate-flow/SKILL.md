@@ -56,6 +56,71 @@ Follow [`/kon:summarize`](https://github.com/dentiny/kon/blob/main/commands/summ
 
 ### Quality checks
 
+## Implementation loop — Task resume (token savings)
+
+Within each milestone (or the single pass for `/kon:quick` / `/kon:debug`), **🎶 Yui → 🧹 Sawako → 📝 Mio** form one loop until Mio approves. **Do not re-pass agent files or skills on every iteration** — spawn once, then **resume** the same Task subagent.
+
+### Scope
+
+Default scope: `impl-loop`. One set of Task ids per milestone. When Mio **APPROVED** for the current milestone, clear before the next:
+
+```bash
+python3 $KON_ROOT/scripts/kon_session.py clear-task-agents --id "$SID"
+```
+
+### First pass in the loop (new Task)
+
+| Agent | First spawn prompt includes | After Task returns |
+|-------|----------------------------|--------------------|
+| **🎶 Yui** | `agents/Yui.md` + `PLAN_FILE` + milestone steps | `set-task-agent --agent Yui --task-id <id>` |
+| **🧹 Sawako** | `agents/Sawako.md` + files Yui touched | `set-task-agent --agent Sawako --task-id <id>` |
+| **📝 Mio** | `agents/Mio.md` + `skills/strict-review/SKILL.md` + scoped diff + plan excerpt | `set-task-agent --agent Mio --task-id <id>` |
+
+Store ids:
+
+```bash
+python3 $KON_ROOT/scripts/kon_session.py set-task-agent --id "$SID" --agent Yui --task-id "<task-id>"
+python3 $KON_ROOT/scripts/kon_session.py set-task-agent --id "$SID" --agent Mio --task-id "<task-id>"
+```
+
+### Fix / re-review passes (resume only)
+
+Look up id; if present, **Task `resume=<id>`** with a **short delta prompt only** — do **not** re-attach `agents/*.md` or `skills/*.md`.
+
+```bash
+YUI_ID=$(python3 $KON_ROOT/scripts/kon_session.py get-task-agent --id "$SID" --agent Yui)
+MIO_ID=$(python3 $KON_ROOT/scripts/kon_session.py get-task-agent --id "$SID" --agent Mio)
+```
+
+**Yui resume (after Mio must-fix):**
+
+```text
+Resume. You already have agents/Yui.md and the plan.
+Fix must-fix items from sessions/<SID>/review.md — reference each by number.
+PLAN_FILE: …  Milestone: N. Report files changed.
+```
+
+**Mio resume (re-review same milestone):**
+
+```text
+Resume. You already have agents/Mio.md and strict-review.
+Re-review milestone N. Prior must-fix: sessions/<SID>/review.md.
+Verify each item with git diff evidence. Full hook-compliant output.
+```
+
+**Sawako resume (after Yui fix):** same pattern — delta only, no agent file re-pass.
+
+If `get-task-agent` prints nothing, or resume fails → **fresh Task spawn** (full agent + skill once), then `set-task-agent` again.
+
+### When to fresh-spawn (not resume)
+
+- First iteration of the loop for that milestone
+- After `clear-task-agents` (new milestone)
+- Resume error / expired Task id
+- Same must-fix blocked **2 consecutive times** (see failure-handling) — optional fresh Mio
+
+Explore/plan/design agents (**Azusa, Mugi, Jun, Nodoka**) stay **one-shot spawns** — not part of `impl-loop`.
+
 ## Orchestrator rules
 
 ### Narration

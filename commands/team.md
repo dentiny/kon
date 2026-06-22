@@ -45,6 +45,7 @@ When the task needs web/docs lookup, spawn Jun per [`skills/external-research`](
   - Mio reviews each milestone's changes after cleanup
   - Loop continues until all milestones are approved
   - Do NOT implement all milestones before review
+- **Task resume in the impl loop:** Within each milestone, spawn Yui/Sawako/Mio once (full agent + skill), store Task ids in session JSON, **resume** on fix/re-review until Mio approves — then `clear-task-agents`. See [`skills/teammate-flow`](../skills/teammate-flow/SKILL.md) **Implementation loop — Task resume**.
 - Follow [`skills/teammate-flow`](https://github.com/dentiny/kon/blob/main/skills/teammate-flow/SKILL.md) for full execution rules
 - All agents launched via Task tool with no model specification
 

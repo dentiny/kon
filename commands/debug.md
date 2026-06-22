@@ -55,9 +55,11 @@ Examples:
    - Smallest diff that addresses the root cause
    - No drive-by refactors or scope expansion
    - If fix has multiple logical parts: implement incrementally, get review per part
+   - **Task resume:** after first Yui spawn, resume the same Task id on must-fix passes (see [`skills/teammate-flow`](../skills/teammate-flow/SKILL.md) **Implementation loop — Task resume**)
 6. **📝 Mio** — review the fix (full 7-item golden checklist, same as `/kon:team`)
    - For multi-part fixes: review each part after implementation before next part
    - Full review saved to **`sessions/<SESSION_ID>/review.md`** (subagentStop hook; append on each review pass)
+   - **Task resume:** first review = full agent + `strict-review`; re-reviews = `resume` + delta prompt only
 7. **Manual testing** — After Mio approves, user verifies the fix works
 8. **📋 Nodoka** — session summary (auto via [`/kon:summarize`](summarize.md)).
 9. **Retro** — orchestrator runs [`skills/session-retro`](../skills/session-retro/SKILL.md) (user may **skip retro**).

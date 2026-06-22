@@ -8,6 +8,7 @@ from pathlib import Path
 
 from _kon_paths import iter_sessions_dirs, resolve_project_path
 from _session_paths import (
+    ARTIFACT_EXPLORE,
     ARTIFACT_ISSUE_SUMMARY,
     ARTIFACT_PR_REVIEW,
     ARTIFACT_REVIEW,
@@ -16,7 +17,18 @@ from _session_paths import (
     session_artifact_path,
 )
 
-MIO_REVIEW_COMMANDS = frozenset({"/kon:review", "/kon:debug", "/kon:review-pr"})
+MIO_REVIEW_COMMANDS = frozenset({
+    "/kon:review",
+    "/kon:debug",
+    "/kon:review-pr",
+    "/kon:team",
+    "/kon:quick",
+})
+AZUSA_EXPLORE_COMMANDS = frozenset({"/kon:team", "/kon:design"})
+
+
+def _review_append_mode(command: str) -> bool:
+    return command in ("/kon:debug", "/kon:team", "/kon:quick")
 
 
 def review_artifact_path(project: str | Path | None, session_id: str) -> Path:
@@ -246,8 +258,45 @@ def maybe_write_review_from_hook(
         command=command,
         task=str(data.get("task") or ""),
         body=body,
-        append=command == "/kon:debug",
+        append=_review_append_mode(command),
     )
+
+
+def maybe_write_explore_from_hook(
+    project: str | Path | None,
+    *,
+    agent: str,
+    output: str,
+    transcript_path: str | Path | None = None,
+) -> Path | None:
+    """Persist Azusa exploration for team/design sessions."""
+    if agent != "Azusa":
+        return None
+
+    found = find_open_session(project)
+    if found is None:
+        return None
+    session_id, data = found
+    command = str(data.get("command") or "")
+    if command not in AZUSA_EXPLORE_COMMANDS:
+        return None
+
+    body = extract_assistant_markdown(output, transcript_path)
+    if not body:
+        return None
+
+    ensure_session_dir(project, session_id)
+    path = session_artifact_path(project, session_id, ARTIFACT_EXPLORE)
+    path.write_text(
+        _format_artifact_markdown(
+            session_id=session_id,
+            command=command,
+            task=str(data.get("task") or ""),
+            body=body,
+        ),
+        encoding="utf-8",
+    )
+    return path
 
 
 def maybe_write_issue_from_hook(

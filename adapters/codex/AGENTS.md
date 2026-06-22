@@ -114,6 +114,8 @@ For `/kon:todo`: read `commands/todo.md`, run `scripts/kon_todo.py` directly —
 
 8. Narration (🌸 Ui): `$KON_ROOT/skills/narration/SKILL.md`.
 
+9. Orchestrator context (anti-bloat): `$KON_ROOT/skills/orchestrator-context/SKILL.md` — artifacts hold full output; route by file pointer only.
+
 ## Hard rule
 
 **Never run `git commit` or `git push`.** Always present the commit message draft and wait for the user to run it.

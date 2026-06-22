@@ -36,6 +36,7 @@ When the task needs web/docs lookup, spawn Jun per [`skills/external-research`](
 
 ## Orchestrator rules
 
+- Follow [`skills/orchestrator-context`](../skills/orchestrator-context/SKILL.md) — route by artifact pointer; never paste subagent output in chat or spawn prompts.
 - **Model inheritance:** Do NOT pass `model` parameter when spawning subagents — let them inherit parent's model
 - **MANDATORY user confirmation:** After Mugi finishes, STOP before Yui (`wait-for-user --after plan`). After **all** milestones complete (impl + cleanup + review), STOP before summarize (`wait-for-user --after milestones`). The milestone loop itself runs autonomously. See [`skills/teammate-flow`](../skills/teammate-flow/SKILL.md).
 - **Milestone-based implementation and review:**

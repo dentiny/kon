@@ -24,7 +24,11 @@ from _token_estimate import (  # noqa: E402
     estimate_tokens_from_output_text,
     estimate_tokens_from_transcript,
 )
-from _review_artifact import maybe_write_issue_from_hook, maybe_write_review_from_hook  # noqa: E402
+from _review_artifact import (
+    maybe_write_explore_from_hook,
+    maybe_write_issue_from_hook,
+    maybe_write_review_from_hook,
+)  # noqa: E402
 
 # Order matters — more specific roles first.
 _ROLE_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
@@ -208,6 +212,12 @@ def main() -> None:
     transcript = data.get("agent_transcript_path")
     transcript_path = transcript.strip() if isinstance(transcript, str) else None
     maybe_write_review_from_hook(
+        project,
+        agent=agent,
+        output=output,
+        transcript_path=transcript_path,
+    )
+    maybe_write_explore_from_hook(
         project,
         agent=agent,
         output=output,

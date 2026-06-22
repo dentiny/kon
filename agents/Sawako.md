@@ -86,3 +86,13 @@ After cleanup, always close with an explicit invariant statement:
 
 No behavior changes — purely removal and simplification.
 ```
+
+## Orchestrator handoff
+
+```markdown
+## Orchestrator handoff
+- **Verdict**: cleanup done
+- **Artifact**: (none)
+- **Next**: spawn Mio | resume Yui after fix | …
+- **Note**: removed/simplified counts, one sentence
+```

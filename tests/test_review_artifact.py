@@ -16,12 +16,13 @@ sys.path.insert(0, str(ROOT / "hooks"))
 
 from _review_artifact import (  # noqa: E402
     extract_assistant_markdown,
+    maybe_write_explore_from_hook,
     maybe_write_review_from_hook,
     pr_review_artifact_path,
     review_artifact_path,
     write_review_artifact,
 )
-from _session_paths import ARTIFACT_REVIEW, SESSION_JSON  # noqa: E402
+from _session_paths import ARTIFACT_EXPLORE, ARTIFACT_REVIEW, SESSION_JSON  # noqa: E402
 
 
 def test_extract_assistant_markdown_prefers_transcript() -> None:
@@ -155,7 +156,7 @@ def test_maybe_write_review_from_hook_review_command() -> None:
         assert "APPROVED" in path.read_text(encoding="utf-8")
 
 
-def test_maybe_write_review_skips_team_command() -> None:
+def test_maybe_write_review_team_command_writes_artifact() -> None:
     with tempfile.TemporaryDirectory() as tmp:
         tmp_path = Path(tmp)
         project = tmp_path / "repo"
@@ -181,7 +182,7 @@ def test_maybe_write_review_skips_team_command() -> None:
             path = maybe_write_review_from_hook(
                 project,
                 agent="Mio",
-                output="📝 Mio: APPROVED",
+                output="📝 Mio: ## Verdict\nBLOCKED\n",
             )
         finally:
             if old is None:
@@ -189,7 +190,94 @@ def test_maybe_write_review_skips_team_command() -> None:
             else:
                 os.environ["KON_DATA_DIR"] = old
 
-        assert path is None
+        assert path is not None
+        assert path.is_file()
+        assert "BLOCKED" in path.read_text(encoding="utf-8")
+
+
+def test_maybe_write_explore_from_hook_team_command() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_path = Path(tmp)
+        project = tmp_path / "repo"
+        project.mkdir()
+        kon_data = tmp_path / "kon-data"
+        sessions = kon_data / "projects" / "repo" / "sessions"
+        sessions.mkdir(parents=True)
+        sid = "20260619-130000-team-explore"
+        session_root = sessions / sid
+        session_root.mkdir(parents=True)
+        payload = {
+            "id": sid,
+            "task": "feature",
+            "command": "/kon:team",
+            "project_path": str(project.resolve()),
+            "status": "in_progress",
+        }
+        (session_root / SESSION_JSON).write_text(json.dumps(payload), encoding="utf-8")
+
+        old = os.environ.get("KON_DATA_DIR")
+        os.environ["KON_DATA_DIR"] = str(kon_data)
+        try:
+            path = maybe_write_explore_from_hook(
+                project,
+                agent="Azusa",
+                output="🎸 Azusa: ## Relevant locations\n- `auth.py` — entry point\n",
+            )
+        finally:
+            if old is None:
+                os.environ.pop("KON_DATA_DIR", None)
+            else:
+                os.environ["KON_DATA_DIR"] = old
+
+        assert path is not None
+        assert path.name == ARTIFACT_EXPLORE
+        assert "auth.py" in path.read_text(encoding="utf-8")
+
+
+def test_maybe_write_review_team_appends_on_rereview() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_path = Path(tmp)
+        project = tmp_path / "repo"
+        project.mkdir()
+        kon_data = tmp_path / "kon-data"
+        sessions = kon_data / "projects" / "repo" / "sessions"
+        sessions.mkdir(parents=True)
+        sid = "20260619-130000-team-append"
+        session_root = sessions / sid
+        session_root.mkdir(parents=True)
+        payload = {
+            "id": sid,
+            "task": "feature",
+            "command": "/kon:team",
+            "project_path": str(project.resolve()),
+            "status": "in_progress",
+        }
+        (session_root / SESSION_JSON).write_text(json.dumps(payload), encoding="utf-8")
+
+        old = os.environ.get("KON_DATA_DIR")
+        os.environ["KON_DATA_DIR"] = str(kon_data)
+        try:
+            maybe_write_review_from_hook(
+                project,
+                agent="Mio",
+                output="📝 Mio: ## Verdict\nBLOCKED\n",
+            )
+            path = maybe_write_review_from_hook(
+                project,
+                agent="Mio",
+                output="📝 Mio: ## Verdict\nAPPROVED\n",
+            )
+        finally:
+            if old is None:
+                os.environ.pop("KON_DATA_DIR", None)
+            else:
+                os.environ["KON_DATA_DIR"] = old
+
+        assert path is not None
+        text = path.read_text(encoding="utf-8")
+        assert "BLOCKED" in text
+        assert "APPROVED" in text
+        assert "## Update —" in text
 
 
 def _mio_output(verdict: str) -> str:

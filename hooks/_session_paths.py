@@ -8,6 +8,7 @@ Layout::
         session.json
         summary.md
         plan.md
+        explore.md
         review.md
         pr-review.md
         issue-summary.md
@@ -25,6 +26,7 @@ from _kon_paths import iter_sessions_dirs, project_kon_dir, sessions_dir
 
 SESSION_JSON = "session.json"
 ARTIFACT_PLAN = "plan.md"
+ARTIFACT_EXPLORE = "explore.md"
 ARTIFACT_REVIEW = "review.md"
 ARTIFACT_PR_REVIEW = "pr-review.md"
 ARTIFACT_ISSUE_SUMMARY = "issue-summary.md"

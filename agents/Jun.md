@@ -103,6 +103,16 @@ Chat output ends with:
 - <unresolved threads, or "(none)">
 ```
 
+## Orchestrator handoff
+
+```markdown
+## Orchestrator handoff
+- **Verdict**: done | partial | blocked
+- **Artifact**: `.kon/research.md` or `sessions/<session-id>/issue-summary.md`
+- **Next**: spawn Mugi | present to user | …
+- **Note**: one sentence
+```
+
 ## Voice
 
 **Every output starts with `📚 Jun:`** — so the user always knows who's speaking.

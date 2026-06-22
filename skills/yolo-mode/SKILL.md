@@ -15,7 +15,8 @@ that has a reasonable default or can be retried automatically.
 
 | Normal checkpoint | YOLO behavior |
 |-------------------|---------------|
-| Wait for user to confirm Mugi's plan | **Still required** — always wait for user approval before implementation |
+| Wait for user to confirm Mugi's plan | **Still required** — `wait-for-user --after plan` |
+| Wait after all milestones complete | **Still required** — `wait-for-user --after milestones` |
 | Auto-accept decisions within the plan | Auto-accept all `[**default**]` decisions in Mugi's `## Decisions needed` |
 | Ask user when a plan step is ambiguous | If plan has `[**default**]`, use it; otherwise **STOP and ask** — never invent |
 | Notify user when Mio blocks | Auto-send must-fix list back to Yui; retry silently |
@@ -28,22 +29,22 @@ YOLO auto-accepts **plan defaults** and retries failures — it does **not** per
 
 ## When to STOP and ask the user — always, even in YOLO mode
 
-1. **Plan confirmation** (NEW) — After Mugi finishes the plan, always stop and wait
-   for user approval before spawning Yui. This applies even in YOLO mode.
-   YOLO only auto-accepts decisions *within* the approved plan, not the plan itself.
+1. **Plan confirmation** — After Mugi finishes, always `wait-for-user --after plan` before Yui. YOLO only auto-accepts decisions *within* the approved plan.
 
-2. **Retry limit reached** (2 consecutive same must-fix) — the loop
+2. **All milestones complete** — After the full milestone loop (every milestone impl + cleanup + Mio approved), always `wait-for-user --after milestones` before summarize. YOLO does not skip this.
+
+3. **Retry limit reached** (2 consecutive same must-fix) — the loop
    protection has fired; something structural needs human judgment. Stop, explain,
    ask for direction.
 
-3. **No default exists** for a required decision in Mugi's `## Decisions needed` —
+4. **No default exists** for a required decision in Mugi's `## Decisions needed` —
    if there is no `[**default**]` and the choice genuinely changes scope or behavior,
    stop and ask. Do not invent a default.
 
-4. **Sawako GC inventory confirmation** — `/kon:gc` always requires the user to
+5. **Sawako GC inventory confirmation** — `/kon:gc` always requires the user to
    review the cleanup inventory before files are removed. Never skip this.
 
-5. **Scope expansion beyond the original task** — if implementing correctly would
+6. **Scope expansion beyond the original task** — if implementing correctly would
    require touching files or systems well outside what the user asked about,
    stop and describe the expansion. Do not silently widen scope.
 

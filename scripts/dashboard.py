@@ -99,6 +99,7 @@ h1 small { color: #8b949e; font-size: 14px; font-weight: 400; margin-left: 10px;
 .dot.failed  { background: #da3633; }
 .dot.pending { background: #30363d; }
 .cur-agent { font-size: 14px; color: #8b949e; flex-shrink: 0; min-width: 80px; text-align: right; }
+.checkpoint { color: #d4a72c; font-size: 12px; }
 .close-btn { background: none; border: 1px solid #238636; cursor: pointer; color: #56d364;
              font-size: 13px; padding: 2px 8px; border-radius: 4px; flex-shrink: 0;
              line-height: 1; transition: all .15s; }
@@ -163,7 +164,50 @@ h1 small { color: #8b949e; font-size: 14px; font-weight: 400; margin-left: 10px;
 <div id="todo-root"></div>
 </div>
 <script>
-const EM = {Azusa:'🎸',Jun:'📚',Mugi:'🍰',Yui:'🎶',Mio:'📝',Sawako:'🧹',Nodoka:'📋'};
+const EM = {Azusa:'🎸',Jun:'📚',Mugi:'🍰',Yui:'🎶',Mio:'📝',Sawako:'🧹',Nodoka:'📋',User:'👤'};
+const PIPELINE_ORDER = {
+  '/kon:team':  ['Azusa','Jun','Mugi','User','Yui','Sawako','Mio','Nodoka'],
+  '/kon:debug': ['Azusa','Mugi','User','Yui','Sawako','Mio','Nodoka'],
+  '/kon:design': ['Azusa','Mugi','User'],
+  '/kon:quick': ['Yui','Mio','Nodoka'],
+};
+
+function pipelineAgents(s) {
+  const order = PIPELINE_ORDER[s.command];
+  if (!order) return null;
+  const seen = new Set();
+  const agents = [];
+  for (const a of order) {
+    if (seen.has(a)) continue;
+    seen.add(a);
+    agents.push(a);
+  }
+  return agents;
+}
+
+function dotClass(s, agent) {
+  const waiting = s.steps_waiting || [];
+  const done = s.steps_completed || [];
+  const failed = s.steps_failed || [];
+  const cur = s.current_agent;
+  const pend = s.steps_pending || [];
+  if (waiting.includes(agent)) return 'waiting';
+  if (agent === cur) return s.status === 'waiting' ? 'waiting' : 'active';
+  if (failed.includes(agent)) return 'failed';
+  if (done.includes(agent) && !pend.includes(agent) && agent !== cur) return 'done';
+  if (pend.includes(agent)) return 'pending';
+  if (done.includes(agent)) return 'done';
+  return 'pending';
+}
+
+function fmtCheckpoint(s) {
+  const cp = s.checkpoint;
+  if (!cp || s.status !== 'waiting') return '';
+  const ms = cp.milestone != null ? `M${cp.milestone}` : '';
+  const after = cp.after ? ` after ${cp.after}` : '';
+  const text = cp.summary || 'Waiting for you';
+  return `<span class="checkpoint" title="${text}">⏸ ${ms}${after ? ' ·' + after : ''} ${text}</span>`;
+}
 const open_ids = new Set();
 let currentTab = 'all';
 let currentView = 'sessions';
@@ -240,6 +284,16 @@ function renderSession(s) {
       return `<div class="dot ${cls}" data-label="${label}"></div>`;
     }).join('');
   } else {
+    const agents = pipelineAgents(s);
+    if (agents) {
+      dots = agents.map(a => {
+        const cls = dotClass(s, a);
+        const label = a === 'User' && (s.steps_waiting||[]).includes('User') && s.checkpoint
+          ? `👤 User — ${s.checkpoint.summary||'approve to continue'}`
+          : `${EM[a]||''} ${a}`;
+        return `<div class="dot ${cls}" data-label="${label}"></div>`;
+      }).join('');
+    } else {
     const pend    = s.steps_pending   || [];
     const failed  = s.steps_failed    || [];
     const waiting = s.steps_waiting   || [];
@@ -247,18 +301,20 @@ function renderSession(s) {
     const all     = [...done, ...failed, ...waiting, ...(cur ? [cur] : []), ...pend];
     dots = all.map(a => {
       let cls;
-      if (done.includes(a))    cls = 'done';
+      if (waiting.includes(a))    cls = 'waiting';
       else if (failed.includes(a))  cls = 'failed';
-      else if (waiting.includes(a)) cls = 'waiting';
+      else if (done.includes(a))    cls = 'done';
       else if (a === cur)      cls = (s.status === 'waiting' ? 'waiting' : 'active');
       else                     cls = 'pending';
       return `<div class="dot ${cls}" data-label="${EM[a]||''} ${a}"></div>`;
     }).join('');
+    }
   }
+  const cpHint = fmtCheckpoint(s);
   const curLabel = cur
     ? `${EM[cur]||''} ${cur}`
     : (s.status==='completed' ? '✓ done'
-    : s.status==='waiting'   ? '⏸ waiting'
+    : s.status==='waiting'   ? (cpHint ? cpHint.replace(/<[^>]+>/g,'') : '⏸ waiting')
     : s.status==='blocked'   ? '✗ blocked' : '—');
   const isOpen   = open_ids.has(s.id);
   const canClose = s.status === 'in_progress' || s.status === 'waiting';

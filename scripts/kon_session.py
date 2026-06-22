@@ -395,6 +395,59 @@ def cmd_set_status(args: argparse.Namespace) -> None:
     _save(path, data)
 
 
+_WAIT_AFTER_CHOICES = ("plan", "milestones")
+
+
+def cmd_wait_for_user(args: argparse.Namespace) -> None:
+    """Pause pipeline until the user approves the next stage (dashboard shows waiting)."""
+    path, data = _load(args.id, args.project)
+    data["status"] = "waiting"
+    data["current_agent"] = None
+    waiting = list(data.get("steps_waiting") or [])
+    if "User" not in waiting:
+        waiting.append("User")
+    data["steps_waiting"] = waiting
+    checkpoint: dict = {
+        "summary": args.summary.strip(),
+        "after": args.after,
+        "ts": _ts(),
+    }
+    if args.milestone is not None:
+        checkpoint["milestone"] = int(args.milestone)
+    data["checkpoint"] = checkpoint
+    _save(path, data)
+
+
+def cmd_user_continued(args: argparse.Namespace) -> None:
+    """Resume after wait-for-user — user approved proceeding to the next stage."""
+    path, data = _load(args.id, args.project)
+    checkpoint = data.get("checkpoint") or {}
+    after = checkpoint.get("after")
+    summary = (args.summary or "User approved — continuing.").strip()
+
+    waiting = list(data.get("steps_waiting") or [])
+    if "User" in waiting:
+        waiting.remove("User")
+    data["steps_waiting"] = waiting
+    data.pop("checkpoint", None)
+    data["status"] = "in_progress"
+
+    completed = list(data.get("steps_completed") or [])
+    pending = list(data.get("steps_pending") or [])
+    if after == "plan":
+        if "User" in pending:
+            pending.remove("User")
+        if "User" not in completed:
+            completed.append("User")
+    data["steps_completed"] = completed
+    data["steps_pending"] = pending
+
+    log = data.get("log") or []
+    log.append({"ts": _ts(), "agent": "User", "summary": summary})
+    data["log"] = log
+    _save(path, data)
+
+
 def _close_session(path: Path, data: dict, *, summary: str) -> None:
     data["status"] = "completed"
     data["current_agent"] = None
@@ -558,6 +611,42 @@ def main() -> None:
         "--status", required=True, choices=["in_progress", "waiting", "completed", "blocked"]
     )
     status.set_defaults(func=cmd_set_status)
+
+    wait_user = sub.add_parser(
+        "wait-for-user",
+        help="Pause for user approval before the next pipeline stage",
+    )
+    wait_user.add_argument("--id", required=True)
+    wait_user.add_argument(
+        "--summary",
+        required=True,
+        help="What the user is approving (shown in dashboard)",
+    )
+    wait_user.add_argument(
+        "--after",
+        required=True,
+        choices=_WAIT_AFTER_CHOICES,
+        help="Stage just finished: plan (Mugi), milestones (all milestones impl+cleanup+review done)",
+    )
+    wait_user.add_argument(
+        "--milestone",
+        type=int,
+        default=None,
+        help="Optional milestone count (informational, for --after milestones)",
+    )
+    wait_user.set_defaults(func=cmd_wait_for_user)
+
+    user_cont = sub.add_parser(
+        "user-continued",
+        help="Resume after user approved wait-for-user checkpoint",
+    )
+    user_cont.add_argument("--id", required=True)
+    user_cont.add_argument(
+        "--summary",
+        default=None,
+        help='Log line (default: "User approved — continuing.")',
+    )
+    user_cont.set_defaults(func=cmd_user_continued)
 
     session_dir_cmd = sub.add_parser("session-dir", help="Print session artifact directory")
     session_dir_cmd.add_argument("--id", required=True)

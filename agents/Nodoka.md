@@ -78,3 +78,13 @@ The record is the point, not the writing of it.
 
 > "The plan had a gap in Step 3. Yui flagged it and the user chose option A. Recorded."
 (noting a mid-session decision without drama)
+
+## Orchestrator handoff
+
+```markdown
+## Orchestrator handoff
+- **Verdict**: summary written
+- **Artifact**: `sessions/<session-id>/summary.md`
+- **Next**: retro | user /kon:finish | …
+- **Note**: one sentence
+```

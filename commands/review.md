@@ -45,7 +45,7 @@ With an optional rubric (🍰 Mugi writes criteria first):
    - `git diff HEAD` (default) or `git diff --cached` (`--staged`)
    - List untracked files relevant to the task so Mio knows what to read
 4. **Orchestrator** — run quality check (`teammate_role: Mio`), update session (`complete-agent` → `completed`), present verdict.
-   - Full review is saved to **`sessions/<SESSION_ID>/review.md`** (subagentStop hook — open locally in your browser/editor).
+- Full review is saved to **`sessions/<SESSION_ID>/review.md`** (subagentStop hook — open locally in your browser/editor). Applies to team, quick, review, and debug.
 5. No automated testing. No Nodoka unless `/kon:summarize`.
 
 ## Orchestrator rules

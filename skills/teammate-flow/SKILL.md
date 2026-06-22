@@ -11,6 +11,8 @@ Teammate-flow defines the shared workflow skeleton for the kon team —
 from exploration to implementation to review.
 Each agent owns their segment; the orchestrator strings them together.
 
+**Orchestrator context:** follow [`skills/orchestrator-context`](orchestrator-context/SKILL.md) — artifacts hold full output; orchestrator routes by file pointer only.
+
 **Highest priority across design, implementation, and review:** think from **first principles**; keep solutions **simple, easy to understand, and straightforward**. When in doubt, choose the simpler correct path.
 
 **When anything is unclear:** ask the user — do not guess or hallucinate. Follow [`skills/ask-dont-guess`](ask-dont-guess/SKILL.md). Orchestrator must not advance to the next stage until material uncertainty is resolved.
@@ -73,8 +75,8 @@ python3 $KON_ROOT/scripts/kon_session.py clear-task-agents --id "$SID"
 | Agent | First spawn prompt includes | After Task returns |
 |-------|----------------------------|--------------------|
 | **🎶 Yui** | `agents/Yui.md` + `PLAN_FILE` + milestone steps | `set-task-agent --agent Yui --task-id <id>` |
-| **🧹 Sawako** | `agents/Sawako.md` + files Yui touched | `set-task-agent --agent Sawako --task-id <id>` |
-| **📝 Mio** | `agents/Mio.md` + `skills/strict-review/SKILL.md` + scoped diff + plan excerpt | `set-task-agent --agent Mio --task-id <id>` |
+| **🧹 Sawako** | `agents/Sawako.md` + files Yui touched (paths only) | `set-task-agent --agent Sawako --task-id <id>` |
+| **📝 Mio** | `agents/Mio.md` + `skills/strict-review/SKILL.md` + scoped diff pointer + plan excerpt path | `set-task-agent --agent Mio --task-id <id>` |
 
 Store ids:
 
@@ -123,6 +125,8 @@ Explore/plan/design agents (**Azusa, Mugi, Jun, Nodoka**) stay **one-shot spawns
 
 ## Orchestrator rules
 
+Follow [`skills/orchestrator-context`](orchestrator-context/SKILL.md) for artifact pointers and anti-bloat rules.
+
 ### Narration
 
 When the orchestrator speaks to the user, use 🌸 Ui's narrator voice —
@@ -143,7 +147,8 @@ Follow [`skills/narration`](https://github.com/dentiny/kon/blob/main/skills/narr
   2. Yui implements milestone → Sawako cleans up → Mio reviews → if blocked, Yui fixes (then Sawako cleans again) → repeat until Mio approves
   3. Only after Mio approves current milestone, proceed to next milestone
   4. Do NOT implement all milestones then review — review incrementally
-- After each agent finishes, give the user one-line summary (not a full paste).
+- **Context contract:** never paste or restate subagent Task output in assistant messages or in spawn/resume prompts — use artifact paths (see orchestrator-context).
+- After each agent finishes, give the user **one line** (verdict + artifact path if any) — not a full paste.
 - No skipping steps. Even for small tasks, every step runs.
 - At the end, give a final summary: which files changed, any unresolved issues.
 - **Pass `PLAN_FILE` to every agent that reads or writes the plan** (Mugi, Yui, Nodoka,

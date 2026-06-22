@@ -20,7 +20,8 @@ Each run gets one directory — delete the folder (dashboard 🗑) and all artif
   session.json          # status, log, pipeline steps
   summary.md            # Nodoka debrief (optional)
   plan.md               # Mugi plan
-  review.md             # Mio review (/kon:review, /kon:debug)
+  explore.md            # Azusa exploration (/kon:team, /kon:design)
+  review.md             # Mio review (team, quick, review, debug)
   pr-review.md          # Mio holistic PR review (/kon:review-pr)
   issue-summary.md      # Jun issue summary (/kon:describe-issue)
   debug.md              # Azusa/Mugi debug notes (/kon:debug)

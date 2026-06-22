@@ -289,3 +289,15 @@ These are blocking. User can say "go" to accept all defaults.
 
 **Format:** append `## Memory propose` at the very end of the turn output,
 following the schema in the memory reference.
+
+## Orchestrator handoff
+
+On `/kon:team` and `/kon:design`, read **`sessions/<session-id>/explore.md`** (and `.kon/research.md` if present) — the orchestrator does not paste Azusa/Jun output into your spawn prompt.
+
+```markdown
+## Orchestrator handoff
+- **Verdict**: plan ready | needs decisions | …
+- **Artifact**: `PLAN_FILE` path
+- **Next**: wait for user approval | …
+- **Note**: step/milestone count, one sentence
+```

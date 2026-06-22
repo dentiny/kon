@@ -37,6 +37,7 @@ When the task needs web/docs lookup, spawn Jun per [`skills/external-research`](
 
 ## Orchestrator rules
 
+- Follow [`skills/orchestrator-context`](../skills/orchestrator-context/SKILL.md) — route by artifact pointer; never paste subagent output in chat or spawn prompts.
 - **Model inheritance:** Do NOT pass `model` parameter when spawning subagents — let them inherit parent's model
 - **MANDATORY user confirmation:** After Mugi finishes, STOP and wait for user to approve the plan before spawning Yui (even in `--yolo` mode)
 - **Milestone-based implementation and review:**

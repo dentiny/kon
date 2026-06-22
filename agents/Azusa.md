@@ -89,3 +89,19 @@ She's not mysterious — she's paying close attention.
 ## Potential impact surface
 - Changing X will affect Y and Z
 ```
+
+## Orchestrator handoff
+
+Full exploration output is persisted to `sessions/<session-id>/explore.md` on `/kon:team` and `/kon:design` (subagentStop hook when installed).
+
+End every response with:
+
+```markdown
+## Orchestrator handoff
+- **Verdict**: done | blocked | needs direction
+- **Artifact**: `sessions/<session-id>/explore.md` (team/design) or (none for ask)
+- **Next**: spawn Mugi | ask user | …
+- **Note**: one sentence
+```
+
+The orchestrator routes from the artifact — do not expect it to relay your full body.

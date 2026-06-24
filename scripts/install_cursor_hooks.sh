@@ -31,6 +31,7 @@ kon_root = Path(sys.argv[2]).resolve()
 # Canonical kon Cursor hooks (keep in sync with hooks/ and README).
 KON_HOOK_SCRIPTS = [
     "ensure_project_dir.py",
+    "start_dashboard.py",
     "init_kon_session.py",
     "log_begin_prompt.py",
     "no_git_write.py",
@@ -49,6 +50,7 @@ managed_res = [re.compile(rf"/hooks/{re.escape(name)}(?:\s|$)") for name in MANA
 
 entries = [
     ("sessionStart", "ensure_project_dir.py"),
+    ("sessionStart", "start_dashboard.py"),
     ("beforeSubmitPrompt", "init_kon_session.py"),
     ("beforeSubmitPrompt", "log_begin_prompt.py"),
     ("beforeShellExecution", "no_git_write.py"),

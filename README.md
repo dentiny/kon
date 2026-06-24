@@ -33,6 +33,8 @@ python3 $KON_ROOT/scripts/dashboard.py --open   # http://localhost:9090
 python3 $KON_ROOT/scripts/dashboard.py --project /path/to/repo --open  # one project only
 ```
 
+**Auto-start:** With Cursor hooks installed, `start_dashboard.py` runs on **`sessionStart`**, tries to start the dashboard on port **9090**, and **silently continues** if that port is already in use (no crash, no duplicate tab). Disable with `KON_DASHBOARD_AUTO_START=0` or `"dashboard_auto_start": false` in `~/.kon/config.json`.
+
 **Sessions** tab — active/past agent runs. **Todos** tab — open items from `.kon/todos.json` (mark done, reopen, delete). Add todos with `/kon:todo <task>`.
 
 Project working files (plans, reviews, debug notes) and session metadata live together under
@@ -120,6 +122,7 @@ This merges into `~/.cursor/hooks.json`:
 | Hook event | Script | Purpose |
 |------------|--------|---------|
 | `sessionStart` | `ensure_project_dir.py` | create `~/.kon/projects/<repo>/`, record current workspace in `~/.kon/last_workspace.json` |
+| `sessionStart` | `start_dashboard.py` | start dashboard at `http://localhost:9090` if not already running |
 | `beforeSubmitPrompt` | `init_kon_session.py` | auto-create session JSON when you send `/kon:*` (debug log at `~/.kon/logs/init_kon_session.log`) |
 | `beforeSubmitPrompt` | `log_begin_prompt.py` | auto-log each user message into an open `/kon:begin` session |
 | `afterAgentResponse` | `log_begin_response.py` | auto-log orchestrator replies into an open `/kon:begin` session |

@@ -16,6 +16,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import errno
 import json
 import re
 import shutil
@@ -778,7 +779,12 @@ def main() -> None:
     if args.open:
         webbrowser.open(url)
 
-    server = HTTPServer(("", args.port), _Handler)
+    try:
+        server = HTTPServer(("", args.port), _Handler)
+    except OSError as exc:
+        if exc.errno == errno.EADDRINUSE:
+            sys.exit(0)
+        raise
     try:
         server.serve_forever()
     except KeyboardInterrupt:

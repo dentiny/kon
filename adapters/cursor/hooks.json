@@ -5,6 +5,9 @@
     "sessionStart": [
       {
         "command": "python3 $KON_ROOT/hooks/ensure_project_dir.py"
+      },
+      {
+        "command": "python3 $KON_ROOT/hooks/start_dashboard.py"
       }
     ],
     "beforeSubmitPrompt": [

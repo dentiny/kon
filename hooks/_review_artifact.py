@@ -17,13 +17,15 @@ from _session_paths import (
     session_artifact_path,
 )
 
-MIO_REVIEW_COMMANDS = frozenset({
-    "/kon:review",
-    "/kon:debug",
-    "/kon:review-pr",
-    "/kon:team",
-    "/kon:quick",
-})
+MIO_REVIEW_COMMANDS = frozenset(
+    {
+        "/kon:review",
+        "/kon:debug",
+        "/kon:review-pr",
+        "/kon:team",
+        "/kon:quick",
+    }
+)
 AZUSA_EXPLORE_COMMANDS = frozenset({"/kon:team", "/kon:design"})
 
 

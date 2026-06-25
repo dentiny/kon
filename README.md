@@ -30,6 +30,7 @@ Run a live dashboard to see agent sessions and project todos:
 
 ```bash
 python3 $KON_ROOT/scripts/dashboard.py --open   # http://localhost:9090
+python3 $KON_ROOT/scripts/dashboard.py --restart --open   # stop stale server, load fresh UI
 python3 $KON_ROOT/scripts/dashboard.py --project /path/to/repo --open  # one project only
 ```
 

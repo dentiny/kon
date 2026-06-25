@@ -18,9 +18,13 @@ from __future__ import annotations
 import argparse
 import errno
 import json
+import os
 import re
 import shutil
+import signal
+import subprocess
 import sys
+import time
 import webbrowser
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
@@ -850,10 +854,59 @@ def _load_sessions() -> list[dict]:
     return sessions
 
 
+def _pids_on_port(port: int) -> list[int]:
+    try:
+        out = subprocess.check_output(
+            ["lsof", "-t", "-i", f":{port}"],
+            text=True,
+            stderr=subprocess.DEVNULL,
+        )
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return []
+    pids: list[int] = []
+    for line in out.strip().splitlines():
+        try:
+            pids.append(int(line.strip()))
+        except ValueError:
+            continue
+    return pids
+
+
+def _process_command(pid: int) -> str:
+    try:
+        out = subprocess.check_output(
+            ["ps", "-p", str(pid), "-o", "command="],
+            text=True,
+            stderr=subprocess.DEVNULL,
+        )
+        return out.strip()
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return ""
+
+
+def kill_kon_dashboard_on_port(port: int) -> list[int]:
+    """Stop kon dashboard.py listeners on ``port``. Returns killed PIDs."""
+    killed: list[int] = []
+    for pid in _pids_on_port(port):
+        if "dashboard.py" not in _process_command(pid):
+            continue
+        try:
+            os.kill(pid, signal.SIGTERM)
+            killed.append(pid)
+        except ProcessLookupError:
+            continue
+    return killed
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="kon session dashboard")
     parser.add_argument("--port", type=int, default=9090, help="Port (default: 9090)")
     parser.add_argument("--open", action="store_true", help="Open browser automatically")
+    parser.add_argument(
+        "--restart",
+        action="store_true",
+        help="Stop any kon dashboard already on this port, then start fresh",
+    )
     parser.add_argument(
         "--project",
         type=str,
@@ -881,6 +934,15 @@ def main() -> None:
     else:
         print(f"Data dir: {kon_data_dir()}")
     print("Ctrl+C to stop.\n")
+
+    # --open / --restart must load fresh HTML; a stale listener on :9090 exits 0 silently
+    # unless we stop it first (common footgun after code changes).
+    if args.restart or args.open:
+        killed = kill_kon_dashboard_on_port(args.port)
+        if killed:
+            print(f"Stopped previous dashboard (pid(s): {', '.join(map(str, killed))})")
+            time.sleep(0.3)
+
     if args.open:
         webbrowser.open(url)
 
@@ -888,7 +950,13 @@ def main() -> None:
         server = HTTPServer(("", args.port), _Handler)
     except OSError as exc:
         if exc.errno == errno.EADDRINUSE:
-            sys.exit(0)
+            print(
+                f"Port {args.port} is already in use.\n"
+                f"Run: python3 scripts/dashboard.py --restart --port {args.port}"
+                + (" --open" if args.open else ""),
+                file=sys.stderr,
+            )
+            sys.exit(1)
         raise
     try:
         server.serve_forever()

@@ -166,6 +166,34 @@ def test_is_user_waiting_requires_checkpoint_ts() -> None:
     assert not dashboard.is_user_waiting({"status": "in_progress", "checkpoint": {"ts": "t"}})
 
 
+def test_kill_kon_dashboard_on_port_only_targets_dashboard_py(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[int] = []
+
+    def fake_pids(port: int) -> list[int]:
+        assert port == 9090
+        return [111, 222]
+
+    def fake_cmd(pid: int) -> str:
+        return (
+            "/usr/bin/python3 /tmp/kon/scripts/dashboard.py --port 9090"
+            if pid == 111
+            else "/usr/bin/python3 /some/other/server.py"
+        )
+
+    def fake_kill(pid: int, sig: int) -> None:
+        calls.append(pid)
+
+    monkeypatch.setattr(dashboard, "_pids_on_port", fake_pids)
+    monkeypatch.setattr(dashboard, "_process_command", fake_cmd)
+    monkeypatch.setattr(dashboard.os, "kill", fake_kill)
+
+    killed = dashboard.kill_kon_dashboard_on_port(9090)
+    assert killed == [111]
+    assert calls == [111]
+
+
 def test_dashboard_html_includes_waiting_queue_ui() -> None:
     assert 'id="waiting-panel"' in dashboard._HTML
     assert "function renderWaiting(" in dashboard._HTML

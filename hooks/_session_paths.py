@@ -13,6 +13,7 @@ Layout::
         pr-review.md
         issue-summary.md
         debug.md
+        hunt.md
         design-debate.md
         review-rubric.md
 """
@@ -30,6 +31,7 @@ ARTIFACT_EXPLORE = "explore.md"
 ARTIFACT_REVIEW = "review.md"
 ARTIFACT_PR_REVIEW = "pr-review.md"
 ARTIFACT_ISSUE_SUMMARY = "issue-summary.md"
+ARTIFACT_HUNT = "hunt.md"
 
 
 def session_dir(project: Path | str | None, session_id: str) -> Path:

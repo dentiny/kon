@@ -31,6 +31,7 @@ _IMPL_LOOP_AGENTS = frozenset({"Yui", "Sawako", "Mio"})
 _EPHEMERAL_COMMANDS = frozenset(
     {
         "/kon:ask",
+        "/kon:hunt",
         "/kon:research",
         "/kon:review",
         "/kon:review-pr",
@@ -78,6 +79,8 @@ def _normalize_command(command: str) -> str:
 def _default_pending(command: str) -> list[str]:
     c = _normalize_command(command)
     if c == "/kon:ask":
+        return ["Azusa"]
+    if c == "/kon:hunt":
         return ["Azusa"]
     if c == "/kon:research":
         return ["Jun"]

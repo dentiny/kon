@@ -138,6 +138,14 @@ h1 small { color: #8b949e; font-size: 14px; font-weight: 400; margin-left: 10px;
 .todo-btn.done-btn { border-color: #238636; color: #56d364; }
 .todo-btn.done-btn:hover { background: #1a4f2a; }
 .todo-btn.del-btn:hover { border-color: #f85149; color: #f85149; }
+.waiting-card { background: #161b22; border: 1px solid rgba(210, 153, 34, 0.35);
+                border-radius: 10px; margin-bottom: 12px; overflow: hidden; }
+.waiting-card .hdr { cursor: pointer; }
+.waiting-pos { font-size: 20px; font-weight: 700; color: #d4a72c; flex-shrink: 0;
+               width: 36px; text-align: center; }
+.waiting-since { color: #d4a72c; font-size: 12px; flex-shrink: 0; white-space: nowrap; }
+.waiting-summary { flex: 1; min-width: 0; font-size: 14px; color: #e6edf3; line-height: 1.4; }
+.waiting-meta { color: #8b949e; font-size: 12px; flex-shrink: 0; }
 .panel { display: none; }
 .panel.active { display: block; }
 </style>
@@ -145,8 +153,12 @@ h1 small { color: #8b949e; font-size: 14px; font-weight: 400; margin-left: 10px;
 <body>
 <h1>🎸 kon dashboard <small id="ts"></small></h1>
 <div class="view-tabs">
+  <button class="view-tab" onclick="setView('waiting')" id="view-waiting">Waiting</button>
   <button class="view-tab active" onclick="setView('sessions')" id="view-sessions">Sessions</button>
   <button class="view-tab" onclick="setView('todos')" id="view-todos">Todos</button>
+</div>
+<div id="waiting-panel" class="panel">
+<div id="waiting-root"></div>
 </div>
 <div id="sessions-panel" class="panel active">
 <div class="tabs">
@@ -216,12 +228,29 @@ let currentTodoTab = 'open';
 let allSessions = [];
 let allTodos = [];
 
+function waitingSinceTs(s) {
+  return (s.checkpoint && s.checkpoint.ts) || '';
+}
+
+function isUserWaiting(s) {
+  return s.status === 'waiting' && !!(s.checkpoint && s.checkpoint.ts);
+}
+
+function waitingSessionsFifo(sessions) {
+  return sessions.filter(isUserWaiting).sort((a, b) => {
+    const ta = waitingSinceTs(a);
+    const tb = waitingSinceTs(b);
+    if (ta === tb) return (a.id || '').localeCompare(b.id || '');
+    return ta.localeCompare(tb);
+  });
+}
+
 function setView(view) {
   currentView = view;
-  document.getElementById('view-sessions').classList.toggle('active', view === 'sessions');
-  document.getElementById('view-todos').classList.toggle('active', view === 'todos');
-  document.getElementById('sessions-panel').classList.toggle('active', view === 'sessions');
-  document.getElementById('todos-panel').classList.toggle('active', view === 'todos');
+  ['waiting','sessions','todos'].forEach(v => {
+    document.getElementById('view-'+v).classList.toggle('active', v === view);
+    document.getElementById(v+'-panel').classList.toggle('active', v === view);
+  });
   refresh();
 }
 
@@ -262,6 +291,52 @@ function projectBadge(path) {
   if (!path) return '';
   const name = fmtProject(path);
   return `<span class="project-badge" title="${path}">${name}</span>`;
+}
+
+function renderWaitingCard(s, pos) {
+  const cp = s.checkpoint || {};
+  const ms = cp.milestone != null ? `M${cp.milestone}` : '';
+  const after = cp.after ? `after ${cp.after}` : '';
+  const summary = cp.summary || 'Waiting for your approval';
+  const since = waitingSinceTs(s);
+  const isOpen = open_ids.has(s.id);
+  const logRows = (s.log||[]).map(e =>
+    `<div class="log-row">
+      <span class="ts">${fmtTime(e.ts)}</span>
+      <span class="agent">${EM[e.agent]||''} ${e.agent}</span>
+      <span class="summary">${e.summary}</span>
+      ${fmtUsageBadge(e.usage, 'row', '', ' tok (est.)')}
+    </div>`).join('');
+  return `
+    <div class="waiting-card session" data-session-id="${s.id}">
+      <div class="hdr">
+        <span class="waiting-pos">#${pos}</span>
+        <span class="chevron${isOpen?' open':''}">▶</span>
+        <span class="badge waiting">waiting</span>
+        ${projectBadge(s.project_path)}
+        <span class="task" title="${s.task}">${s.task}</span>
+        <span class="cmd">${s.command}</span>
+        <span class="waiting-meta">${ms}${ms && after ? ' · ' : ''}${after}</span>
+        <span class="waiting-since" title="${since}">since ${fmtWhen(since)}</span>
+        <button type="button" class="close-btn" title="Mark as done">✓</button>
+        <button type="button" class="del-btn" title="Delete session">🗑</button>
+      </div>
+      <div style="padding: 0 20px 14px 56px; border-bottom: 1px solid #21262d;">
+        <span class="waiting-summary">⏸ ${summary}</span>
+      </div>
+      <div class="log${isOpen?' open':''}" id="log-${s.id}">
+        ${logRows || '<div class="log-row"><span class="summary" style="color:#484f58">No log entries yet.</span></div>'}
+      </div>
+    </div>`;
+}
+
+function renderWaiting(sessions) {
+  const queue = waitingSessionsFifo(sessions);
+  document.getElementById('view-waiting').innerHTML =
+    `Waiting <span class="count">${queue.length}</span>`;
+  document.getElementById('waiting-root').innerHTML = queue.length
+    ? queue.map((s, i) => renderWaitingCard(s, i + 1)).join('')
+    : `<p class="empty">No sessions waiting for you — approve checkpoints in Cursor chat when agents pause.</p>`;
 }
 
 function setTab(tab) {
@@ -383,6 +458,8 @@ async function closeSession(id, event) {
       const s = allSessions.find(s => s.id === id);
       if (s) { s.status = 'completed'; s.current_agent = null; }
       render(allSessions);
+      open_ids.delete(id);
+      renderWaiting(allSessions);
     }
   } catch (_) {}
 }
@@ -395,6 +472,7 @@ async function deleteSession(id, event) {
       allSessions = allSessions.filter(s => s.id !== id);
       open_ids.delete(id);
       render(allSessions);
+      renderWaiting(allSessions);
     } else {
       const msg = await r.text();
       alert('Delete failed (' + r.status + '): ' + msg);
@@ -404,7 +482,10 @@ async function deleteSession(id, event) {
   }
 }
 
-document.getElementById('root').addEventListener('click', (e) => {
+document.getElementById('root').addEventListener('click', sessionClickHandler);
+document.getElementById('waiting-root').addEventListener('click', sessionClickHandler);
+
+function sessionClickHandler(e) {
   const delBtn = e.target.closest('.del-btn');
   if (delBtn) {
     e.stopPropagation();
@@ -424,7 +505,7 @@ document.getElementById('root').addEventListener('click', (e) => {
     const id = hdr.closest('.session')?.dataset.sessionId;
     if (id) toggle(id);
   }
-});
+}
 
 function setTodoTab(tab) {
   currentTodoTab = tab;
@@ -512,6 +593,7 @@ async function refresh() {
     allTodos = await todosResp.json();
     document.getElementById('ts').textContent = 'refreshed ' + fmtTime(new Date().toISOString());
     render(allSessions);
+    renderWaiting(allSessions);
     renderTodos(allTodos);
   } catch (_) {}
 }
@@ -541,6 +623,12 @@ class _Handler(BaseHTTPRequestHandler):
             self._send(200, "text/html; charset=utf-8", html.encode())
         elif self.path == "/sessions":
             body = json.dumps(_load_sessions(), ensure_ascii=False).encode()
+            self._send(200, "application/json", body)
+        elif self.path == "/sessions/waiting":
+            body = json.dumps(
+                waiting_sessions_fifo(_load_sessions()),
+                ensure_ascii=False,
+            ).encode()
             self._send(200, "application/json", body)
         elif self.path == "/todos":
             body = json.dumps(
@@ -706,6 +794,23 @@ def delete_session(session_id: str) -> list[str]:
     if deleted:
         _SESSION_FILES.pop(session_id, None)
     return deleted
+
+
+def is_user_waiting(data: dict) -> bool:
+    """True when wait-for-user set a checkpoint (FIFO queue membership)."""
+    if data.get("status") != "waiting":
+        return False
+    checkpoint = data.get("checkpoint") or {}
+    return bool(checkpoint.get("ts"))
+
+
+def waiting_sessions_fifo(sessions: list[dict]) -> list[dict]:
+    """Sessions waiting for user input, oldest checkpoint first (FIFO)."""
+    waiting = [s for s in sessions if is_user_waiting(s)]
+    waiting.sort(
+        key=lambda s: (str((s.get("checkpoint") or {}).get("ts") or ""), s.get("id") or "")
+    )
+    return waiting
 
 
 def _load_sessions() -> list[dict]:

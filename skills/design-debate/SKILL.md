@@ -134,7 +134,7 @@ Log summaries distinguish rounds:
 - `"Challenge R1 — 5 issues raised"`
 - `"Plan v2 — 4/5 accepted, 1 deferred to user"`
 
-After Mugi revise, move `User` to `steps_waiting`, set `status=waiting`.
+After Mugi revise, run `wait-for-user --after plan` (do not hand-edit `steps_waiting`).
 
 ### Quality checks
 

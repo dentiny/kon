@@ -52,7 +52,12 @@ python3 $KON_ROOT/scripts/kon_session.py init \
 Update after **every** agent spawn (including repeat Azusa/Mugi debate rounds).
 Follow [`skills/session-tracking`](https://github.com/dentiny/kon/blob/main/skills/session-tracking/SKILL.md).
 
-When plan is ready for user review: set `steps_waiting: ["User"]`, `status=waiting`.
+When plan is ready for user review:
+
+```bash
+python3 $KON_ROOT/scripts/kon_session.py wait-for-user --id "$SID" \
+  --after plan --summary "Design complete — review plan?"
+```
 
 ## Orchestrator rules
 
@@ -60,7 +65,7 @@ When plan is ready for user review: set `steps_waiting: ["User"]`, `status=waiti
 - **Spawn Task subagents** for explore, plan, challenge, and revise — never play both sides yourself.
 - **Model inheritance:** Do NOT pass `model` parameter when spawning subagents — let them inherit parent's model
 - **No unit tests** — automated testing does not run in design phase. Tests are manual in `/kon:team`.
-- **Design stops after debate** — After Mugi's final revision, present summary and STOP. Set `status=waiting`. Do NOT proceed to implementation. User must explicitly run `/kon:team` to implement.
+- **Design stops after debate** — After Mugi's final revision, present summary and STOP. Run `wait-for-user --after plan`. Do NOT proceed to implementation. User must explicitly run `/kon:team` to implement.
 - After Azusa challenge and Mugi revise, run `teammate_quality_check.py` with roles `Azusa-challenge` and `Mugi-revise`.
 - Present the user a short summary: challenge count, accepted/rejected/deferred, open decisions.
 - Do **not** run `git commit` or `git push`.

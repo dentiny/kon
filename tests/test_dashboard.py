@@ -130,3 +130,43 @@ def test_dashboard_html_includes_token_usage_ui() -> None:
     assert "function fmtUsageBadge(" in dashboard._HTML
     assert "tok (est.)" in dashboard._HTML
     assert "usage-chip" in dashboard._HTML
+
+
+def test_waiting_sessions_fifo_orders_by_checkpoint_ts() -> None:
+    sessions = [
+        {
+            "id": "b",
+            "status": "waiting",
+            "checkpoint": {"ts": "2026-06-20T12:05:00Z", "summary": "later"},
+        },
+        {
+            "id": "a",
+            "status": "waiting",
+            "checkpoint": {"ts": "2026-06-20T12:00:00Z", "summary": "earlier"},
+        },
+        {
+            "id": "c",
+            "status": "waiting",
+            "steps_waiting": ["User"],
+            "started_at": "2026-06-20T11:00:00Z",
+        },
+        {"id": "d", "status": "in_progress"},
+        {"id": "e", "status": "waiting"},
+    ]
+    ordered = dashboard.waiting_sessions_fifo(sessions)
+    assert [s["id"] for s in ordered] == ["a", "b"]
+
+
+def test_is_user_waiting_requires_checkpoint_ts() -> None:
+    assert dashboard.is_user_waiting(
+        {"status": "waiting", "checkpoint": {"ts": "2026-06-20T12:00:00Z"}}
+    )
+    assert not dashboard.is_user_waiting({"status": "waiting", "checkpoint": {"summary": "no ts"}})
+    assert not dashboard.is_user_waiting({"status": "waiting", "steps_waiting": ["User"]})
+    assert not dashboard.is_user_waiting({"status": "in_progress", "checkpoint": {"ts": "t"}})
+
+
+def test_dashboard_html_includes_waiting_queue_ui() -> None:
+    assert 'id="waiting-panel"' in dashboard._HTML
+    assert "function renderWaiting(" in dashboard._HTML
+    assert "function waitingSessionsFifo(" in dashboard._HTML

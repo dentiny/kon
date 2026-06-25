@@ -47,8 +47,12 @@ Examples:
 4. **User confirms fix approach** (MANDATORY):
    - Orchestrator presents Mugi's proposals
    - **STOP and wait for user to select approach** (or suggest alternative)
-   - Update session: set `steps_waiting: ["User"]`, `status=waiting`
-   - Only proceed after user approval (even in `--yolo` mode)
+   - Update session (dashboard Waiting queue):
+     ```bash
+     python3 $KON_ROOT/scripts/kon_session.py wait-for-user --id "$SID" \
+       --after decision --summary "Select fix approach to implement?"
+     ```
+   - Only proceed after user approval and `user-continued` (even in `--yolo` mode)
 5. **🎶 Yui** — **reproduce first** (mandatory), document evidence, then implement approved fix.
    - Run repro steps; capture command + exit code + relevant output
    - Implement the user-approved approach only

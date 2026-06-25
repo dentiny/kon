@@ -30,6 +30,7 @@ Run a live dashboard to see agent sessions and project todos:
 
 ```bash
 python3 $KON_ROOT/scripts/dashboard.py --open   # http://localhost:9090
+python3 $KON_ROOT/scripts/dashboard.py --restart --open   # stop stale server, load fresh UI
 python3 $KON_ROOT/scripts/dashboard.py --project /path/to/repo --open  # one project only
 ```
 
@@ -131,7 +132,9 @@ This merges into `~/.cursor/hooks.json`:
 
 **Token usage (estimated):** After each Task subagent finishes (Azusa, Mugi, Yui, Sawako, Mio, Jun, Nodoka, …), `on_subagent_stop.py` writes a session log row with estimated tokens from the subagent transcript (fallback: output text length). Dashboard shows per-step badges and session Σ total. The orchestrator's later `complete-agent` call dedupes — it won't double-count. **Not tracked:** main orchestrator chat (only Task subagents).
 
-Each session card shows: status badge, task, project name (when viewing all), agent pipeline dots (🟢 done / 🔵 running / 🟡 waiting / 🔴 failed / ⚫ pending), checkpoint text when waiting for your approval (plan / all milestones done), timestamp, and current agent.
+Each session card shows: status badge, task, project name (when viewing all), agent pipeline dots (🟢 done / 🔵 running / 🟡 waiting / 🔴 failed / ⚫ pending), checkpoint text when waiting for your approval (plan / milestone gate), timestamp, and current agent.
+
+**Waiting tab** — FIFO queue of sessions at a `wait-for-user` checkpoint, sorted by `checkpoint.ts` only.
 **Click** to expand the step-by-step log. **✓** to close a session. **🗑** to delete it.
 Auto-refreshes every 3 seconds. Filter by **All / Active / Past** tabs.
 

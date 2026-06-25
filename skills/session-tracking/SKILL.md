@@ -141,7 +141,7 @@ python3 $KON_ROOT/scripts/kon_session.py clear-task-agents --id "$SID"
 
 ## User approval gates (pipeline commands)
 
-Use **`wait-for-user`** / **`user-continued`** — do not hand-edit `steps_waiting`:
+**Waiting tab (dashboard):** only sessions with `checkpoint.ts` from `wait-for-user` — sorted FIFO by that timestamp. Do not hand-edit `steps_waiting`; always use `wait-for-user` / `user-continued`.
 
 ```bash
 # After Mugi plan ready
@@ -240,7 +240,7 @@ Design runs explore → plan → debate rounds → user confirm (no Yui/Mio/Sawa
 
 - On create: `command: "/kon:design"`, `steps_pending: ["Azusa", "Mugi", "User"]`
 - Log **each** agent spawn including repeat Azusa/Mugi debate passes (same agent name is OK — log carries round detail)
-- After Mugi revise: `steps_waiting: ["User"]`, `status=waiting`
+- After Mugi revise: `wait-for-user --after plan`
 - Do **not** auto-set `completed` until user runs `/kon:finish` or approves and closes
 
 Write the file with `scripts/kon_session.py` (preferred) or a single `python3 -c` call:

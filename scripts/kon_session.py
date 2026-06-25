@@ -398,7 +398,7 @@ def cmd_set_status(args: argparse.Namespace) -> None:
     _save(path, data)
 
 
-_WAIT_AFTER_CHOICES = ("plan", "milestone", "milestones")
+_WAIT_AFTER_CHOICES = ("plan", "milestone", "milestones", "decision")
 
 
 def cmd_wait_for_user(args: argparse.Namespace) -> None:
@@ -439,7 +439,7 @@ def cmd_user_continued(args: argparse.Namespace) -> None:
 
     completed = list(data.get("steps_completed") or [])
     pending = list(data.get("steps_pending") or [])
-    if after in {"plan", "milestone", "milestones"}:
+    if after in {"plan", "milestone", "milestones", "decision"}:
         if "User" in pending:
             pending.remove("User")
         if "User" not in completed:
@@ -631,7 +631,7 @@ def main() -> None:
         "--after",
         required=True,
         choices=_WAIT_AFTER_CHOICES,
-        help="Stage just finished: plan (Mugi), milestone (Mio approved one milestone), milestones (legacy: all done)",
+        help="Stage just finished: plan, milestone (requires --milestone), decision (generic user gate), milestones (legacy)",
     )
     wait_user.add_argument(
         "--milestone",

@@ -33,6 +33,7 @@ When the task needs web/docs lookup, spawn Jun per [`skills/external-research`](
 - Repeat until **all** milestones complete
 - **After the full loop — STOP for user approval** before summarize/close (`wait-for-user --after milestones`)
 - **Testing is manual** — after all milestones approved, user runs tests themselves
+- **No build during the loop** — Yui/Mio do not run compile/build steps during the milestone loop; see [`skills/teammate-flow`](../skills/teammate-flow/SKILL.md) **No build/compile during the loop**
 
 ## Orchestrator rules
 

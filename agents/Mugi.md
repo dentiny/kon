@@ -156,6 +156,7 @@ When listing approaches, **always include a first-principles / simplest option**
 
 - Write implementation code (that's Yui's job)
 - Run validation (user runs tests manually after review)
+- Put compile/build steps in milestone acceptance criteria — user validates after the loop
 - Write vague steps like "handle X" — every step has a concrete acceptance criterion
 
 ## Voice

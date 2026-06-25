@@ -57,18 +57,19 @@ These steps are required in order for `/kon:team`:
    - **📝 Mio** — review changes for this milestone only
      - Follow `skills/strict-review` on the diff from this milestone
      - If BLOCKED/NEEDS_CHANGES → Yui fixes → Sawako cleans → Mio re-reviews (repeat until approved)
-     - If APPROVED → `clear-task-agents`, proceed to the **next milestone immediately** (no user gate between milestones)
-   - Repeat loop until all milestones complete
-   - **User confirms (MANDATORY)** — only after **all** milestones are implemented, cleaned, and Mio-approved:
-     - Present a summary: milestone count, files changed, any open issues
-     - **STOP** — do NOT spawn Nodoka or run summarize until the user approves
-     - Update session (dashboard shows ⏸ waiting):
-       ```bash
-       python3 $KON_ROOT/scripts/kon_session.py wait-for-user --id "$SID" \
-         --after milestones --summary "All milestones approved — proceed to summarize and close?"
-       ```
-     - After user confirms: `user-continued`, then continue to step 5
-5. **Manual testing** — After user confirms, user runs tests themselves.
+     - If APPROVED → `clear-task-agents`, then **user gate (MANDATORY)** before the next milestone or summarize:
+       - Present milestone summary: what changed, Mio verdict, open issues if any
+       - **STOP** — do NOT spawn the next milestone or Nodoka until the user approves
+       - Update session (dashboard shows ⏸ waiting):
+         ```bash
+         python3 $KON_ROOT/scripts/kon_session.py wait-for-user --id "$SID" \
+           --after milestone --milestone N \
+           --summary "Milestone N approved by Mio — proceed to milestone N+1?" 
+         ```
+         (Last milestone: summary text like "Milestone N approved — proceed to summarize?")
+       - After user confirms: `user-continued`, then next milestone or step 5
+   - Repeat until all milestones complete (each followed by user gate)
+5. **Manual testing** — After the last milestone gate, user runs tests themselves.
    - User verifies the implementation works in their environment
 
 After review passes, always call **📋 Nodoka** as the final step to write the session summary.
@@ -172,14 +173,14 @@ Follow [`skills/narration`](https://github.com/dentiny/kon/blob/main/skills/narr
   2. Run `wait-for-user --after plan` (see step 3 above)
   3. STOP and wait for explicit user confirmation (even in `--yolo` mode)
   4. Run `user-continued`, then spawn Yui
-- **CRITICAL: Never auto-proceed after the milestone loop** — the full loop (Yui → Sawako → Mio per milestone) runs **autonomously**; only when **all** milestones are complete:
-  1. Present overall summary
-  2. Run `wait-for-user --after milestones`
-  3. STOP until user confirms, then `user-continued`, then Nodoka/summarize
+- **CRITICAL: Never auto-proceed after Mio approves a milestone** — after each milestone is Mio-approved:
+  1. Present milestone summary
+  2. Run `wait-for-user --after milestone --milestone N`
+  3. STOP until user confirms, then `user-continued`, then next milestone or Nodoka/summarize (last milestone)
 - **Milestone-based review loop:**
   1. If plan has milestones: implement and review ONE milestone at a time
   2. Yui implements milestone → Sawako cleans up → Mio reviews → if blocked, Yui fixes (then Sawako cleans again) → repeat until Mio approves
-  3. After Mio approves a milestone, proceed to the next milestone immediately — **no user gate per milestone**
+  3. After Mio approves: `clear-task-agents`, **user gate**, then next milestone (or summarize if last)
   4. Do NOT implement all milestones then review — review incrementally
 - **Context contract:** never paste or restate subagent Task output in assistant messages or in spawn/resume prompts — use artifact paths (see orchestrator-context).
 - After each agent finishes, give the user **one line** (verdict + artifact path if any) — not a full paste.

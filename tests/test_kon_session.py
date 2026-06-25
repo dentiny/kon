@@ -706,11 +706,11 @@ def test_wait_for_user_and_user_continued_plan_gate() -> None:
         assert data["log"][-1]["agent"] == "User"
 
 
-def test_wait_for_user_after_all_milestones() -> None:
+def test_wait_for_user_after_milestone_gate() -> None:
     tmp, project, env, sessions = _isolated_env()
     with tmp:
         sid = _run(
-            ["init", "--command", "/kon:team", "--task", "gate after all milestones"],
+            ["init", "--command", "/kon:team", "--task", "gate after each milestone"],
             env,
             project,
         )
@@ -720,20 +720,55 @@ def test_wait_for_user_after_all_milestones() -> None:
                 "--id",
                 sid,
                 "--after",
-                "milestones",
+                "milestone",
                 "--milestone",
                 "2",
                 "--summary",
-                "All milestones approved — proceed to summarize?",
+                "Milestone 2 approved — proceed to milestone 3?",
             ],
             env,
             project,
         )
         data = _load_session(sessions, sid)
         assert data["status"] == "waiting"
-        assert data["checkpoint"]["after"] == "milestones"
+        assert data["checkpoint"]["after"] == "milestone"
         assert data["checkpoint"]["milestone"] == 2
         assert data["steps_waiting"] == ["User"]
+
+        _run(
+            ["user-continued", "--id", sid, "--summary", "Approved milestone 2"],
+            env,
+            project,
+        )
+        data = _load_session(sessions, sid)
+        assert data["status"] == "in_progress"
+        assert "checkpoint" not in data
+        assert "User" in data["steps_completed"]
+
+
+def test_wait_for_user_milestone_requires_number() -> None:
+    tmp, project, env, sessions = _isolated_env()
+    with tmp:
+        sid = _run(
+            ["init", "--command", "/kon:team", "--task", "milestone gate validation"],
+            env,
+            project,
+        )
+        with pytest.raises(subprocess.CalledProcessError) as exc:
+            _run(
+                [
+                    "wait-for-user",
+                    "--id",
+                    sid,
+                    "--after",
+                    "milestone",
+                    "--summary",
+                    "Missing milestone number",
+                ],
+                env,
+                project,
+            )
+        assert "--milestone" in exc.value.stderr
 
 
 def test_task_agent_set_get_clear() -> None:

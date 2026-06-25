@@ -79,7 +79,7 @@ For `/kon:todo`: read `commands/todo.md`, run `scripts/kon_todo.py` directly —
 
 3. Read `$KON_ROOT/skills/teammate-flow/SKILL.md` — **skip for `/kon:ask`, `/kon:hunt`, `/kon:research`, `/kon:review`, `/kon:review-pr`, `/kon:address-comments` (triage only), `/kon:retro`, and `/kon:describe-issue`**. For `/kon:debug`, follow `commands/debug.md`. For `/kon:design`, also read design-debate. For team/design external lookup, read `skills/external-research/SKILL.md`.
 
-4. For each agent step, spawn a subagent. **Implementation loop** (Yui → Sawako → Mio per milestone, autonomous; **user gate only after all milestones complete**): spawn once, **resume** until Mio approves each milestone — then **`wait-for-user --after milestones` / `user-continued`** before summarize; **STOP the turn** at that gate. Store Task ids with `kon_session.py set-task-agent`. See `$KON_ROOT/skills/teammate-flow/SKILL.md`. Explore/plan agents: new spawn each time.
+4. For each agent step, spawn a subagent. **Implementation loop** (Yui → Sawako → Mio per milestone): spawn once, **resume** until Mio approves — then **`wait-for-user --after milestone --milestone N` / `user-continued`** before next milestone or summarize; **STOP the turn** at each milestone gate. Store Task ids with `kon_session.py set-task-agent`. See `$KON_ROOT/skills/teammate-flow/SKILL.md`. Explore/plan agents: new spawn each time.
 
    | Step | Agent file (first spawn only) |
    |------|-------------------------------|

@@ -29,9 +29,9 @@ When the task needs web/docs lookup, spawn Jun per [`skills/external-research`](
 **Milestone-based review loop:**
 - After plan approval, Yui implements ONE milestone at a time
 - Sawako cleans up, then Mio reviews — runs automatically for every milestone
-- If Mio blocks: Yui fixes → Sawako cleans → Mio re-reviews until approved, then **next milestone immediately**
+- If Mio blocks: Yui fixes → Sawako cleans → Mio re-reviews until approved
+- **After each Mio approval — STOP for user approval** before the next milestone or summarize (`wait-for-user --after milestone --milestone N`)
 - Repeat until **all** milestones complete
-- **After the full loop — STOP for user approval** before summarize/close (`wait-for-user --after milestones`)
 - **Testing is manual** — after all milestones approved, user runs tests themselves
 - **No build during the loop** — Yui/Mio do not run compile/build steps during the milestone loop; see [`skills/teammate-flow`](../skills/teammate-flow/SKILL.md) **No build/compile during the loop**
 
@@ -39,7 +39,7 @@ When the task needs web/docs lookup, spawn Jun per [`skills/external-research`](
 
 - Follow [`skills/orchestrator-context`](../skills/orchestrator-context/SKILL.md) — route by artifact pointer; never paste subagent output in chat or spawn prompts.
 - **Model inheritance:** Do NOT pass `model` parameter when spawning subagents — let them inherit parent's model
-- **MANDATORY user confirmation:** After Mugi finishes, STOP before Yui (`wait-for-user --after plan`). After **all** milestones complete (impl + cleanup + review), STOP before summarize (`wait-for-user --after milestones`). The milestone loop itself runs autonomously. See [`skills/teammate-flow`](../skills/teammate-flow/SKILL.md).
+- **MANDATORY user confirmation:** After Mugi finishes, STOP before Yui (`wait-for-user --after plan`). After **each** milestone is Mio-approved, STOP before the next milestone or summarize (`wait-for-user --after milestone --milestone N`). The inner Yui → Sawako → Mio fix loop runs autonomously until Mio approves. See [`skills/teammate-flow`](../skills/teammate-flow/SKILL.md).
 - **Milestone-based implementation and review:**
   - Yui implements ONE milestone at a time
   - Sawako cleans up dead code and redundant comments after implementation

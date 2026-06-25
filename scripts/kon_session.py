@@ -398,11 +398,13 @@ def cmd_set_status(args: argparse.Namespace) -> None:
     _save(path, data)
 
 
-_WAIT_AFTER_CHOICES = ("plan", "milestones")
+_WAIT_AFTER_CHOICES = ("plan", "milestone", "milestones")
 
 
 def cmd_wait_for_user(args: argparse.Namespace) -> None:
     """Pause pipeline until the user approves the next stage (dashboard shows waiting)."""
+    if args.after == "milestone" and args.milestone is None:
+        raise SystemExit("--milestone N is required when --after milestone")
     path, data = _load(args.id, args.project)
     data["status"] = "waiting"
     data["current_agent"] = None
@@ -437,7 +439,7 @@ def cmd_user_continued(args: argparse.Namespace) -> None:
 
     completed = list(data.get("steps_completed") or [])
     pending = list(data.get("steps_pending") or [])
-    if after == "plan":
+    if after in {"plan", "milestone", "milestones"}:
         if "User" in pending:
             pending.remove("User")
         if "User" not in completed:
@@ -629,13 +631,13 @@ def main() -> None:
         "--after",
         required=True,
         choices=_WAIT_AFTER_CHOICES,
-        help="Stage just finished: plan (Mugi), milestones (all milestones impl+cleanup+review done)",
+        help="Stage just finished: plan (Mugi), milestone (Mio approved one milestone), milestones (legacy: all done)",
     )
     wait_user.add_argument(
         "--milestone",
         type=int,
         default=None,
-        help="Optional milestone count (informational, for --after milestones)",
+        help="Milestone number (required for --after milestone; optional for --after milestones)",
     )
     wait_user.set_defaults(func=cmd_wait_for_user)
 

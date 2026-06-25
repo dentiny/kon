@@ -150,9 +150,9 @@ python3 $KON_ROOT/scripts/kon_session.py wait-for-user --id "$SID" \
 # user confirms in chat, then:
 python3 $KON_ROOT/scripts/kon_session.py user-continued --id "$SID" --summary "Approved plan"
 
-# After all milestones complete (impl + cleanup + review)
+# After Mio approves milestone N (before next milestone or summarize)
 python3 $KON_ROOT/scripts/kon_session.py wait-for-user --id "$SID" \
-  --after milestones --summary "All milestones approved — proceed to summarize and close?"
+  --after milestone --milestone N --summary "Milestone N approved — proceed?"
 ```
 
 Orchestrator **must STOP the turn** after `wait-for-user` — do not spawn the next agent until the user replies and you run `user-continued`.

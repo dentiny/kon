@@ -16,7 +16,7 @@ that has a reasonable default or can be retried automatically.
 | Normal checkpoint | YOLO behavior |
 |-------------------|---------------|
 | Wait for user to confirm Mugi's plan | **Still required** — `wait-for-user --after plan` |
-| Wait after all milestones complete | **Still required** — `wait-for-user --after milestones` |
+| Wait after each milestone Mio-approved | **Still required** — `wait-for-user --after milestone --milestone N` |
 | Auto-accept decisions within the plan | Auto-accept all `[**default**]` decisions in Mugi's `## Decisions needed` |
 | Ask user when a plan step is ambiguous | If plan has `[**default**]`, use it; otherwise **STOP and ask** — never invent |
 | Notify user when Mio blocks | Auto-send must-fix list back to Yui; retry silently |
@@ -31,7 +31,7 @@ YOLO auto-accepts **plan defaults** and retries failures — it does **not** per
 
 1. **Plan confirmation** — After Mugi finishes, always `wait-for-user --after plan` before Yui. YOLO only auto-accepts decisions *within* the approved plan.
 
-2. **All milestones complete** — After the full milestone loop (every milestone impl + cleanup + Mio approved), always `wait-for-user --after milestones` before summarize. YOLO does not skip this.
+2. **Each milestone approved** — After Mio approves each milestone, always `wait-for-user --after milestone --milestone N` before the next milestone or summarize. YOLO does not skip this.
 
 3. **Retry limit reached** (2 consecutive same must-fix) — the loop
    protection has fired; something structural needs human judgment. Stop, explain,

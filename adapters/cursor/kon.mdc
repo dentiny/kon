@@ -120,7 +120,7 @@ For `/kon:todo`: read `commands/todo.md`, run `scripts/kon_todo.py` directly —
 
 4. Spawn Task subagents. **Explore/plan agents** (Azusa, Mugi, Jun, design debate): new Task each time — pass agent file (+ skill if needed).
 
-   **Implementation loop** (Yui → Sawako → Mio per milestone, **fully autonomous** until all milestones done): **spawn once per role per milestone**, then **`resume`** on fix/re-review. After **all** milestones complete, run **`wait-for-user --after milestones`** and **STOP the turn**; then **`user-continued`** before Nodoka/summarize. Full rules: `$KON_ROOT/skills/teammate-flow/SKILL.md`.
+   **Implementation loop** (Yui → Sawako → Mio per milestone): **spawn once per role per milestone**, then **`resume`** on fix/re-review until Mio approves. After **each** milestone Mio-approved, run **`wait-for-user --after milestone --milestone N`** and **STOP the turn**; then **`user-continued`** before next milestone or Nodoka/summarize. Full rules: `$KON_ROOT/skills/teammate-flow/SKILL.md`.
 
    | Step | Agent file (first spawn only) |
    |------|-------------------------------|

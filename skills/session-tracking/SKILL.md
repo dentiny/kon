@@ -24,6 +24,7 @@ Each run gets one directory — delete the folder (dashboard 🗑) and all artif
   review.md             # Mio review (team, quick, review, debug)
   pr-review.md          # Mio holistic PR review (/kon:review-pr)
   issue-summary.md      # Jun issue summary (/kon:describe-issue)
+  hunt.md              # Azusa bug hunt (/kon:hunt)
   debug.md              # Azusa/Mugi debug notes (/kon:debug)
   design-debate.md      # design debate (/kon:design)
   review-rubric.md      # Mugi rubric (/kon:review --rubric)
@@ -91,7 +92,7 @@ in_progress  →  waiting  →  completed
 
 **Never auto-set `completed` for pipeline commands** (`/kon:team`, `/kon:quick`, `/kon:debug`, `/kon:gc`, `/kon:design`). When their agents finish, set `status=waiting`.
 
-**Auto-complete one-shot commands** when the sole agent finishes: `/kon:ask`, `/kon:research`, `/kon:review`, `/kon:review-pr`, `/kon:describe-issue` → set `status=completed` (via `complete-agent`).
+**Auto-complete one-shot commands** when the sole agent finishes: `/kon:ask`, `/kon:hunt`, `/kon:research`, `/kon:review`, `/kon:review-pr`, `/kon:describe-issue` → set `status=completed` (via `complete-agent`).
 
 **Supersede on new run:** when `init` creates a session, any other `in_progress` or `waiting` session for the same `project_path` is auto-closed as `completed` with log `Superseded by new session <id>.` — at most one open pipeline session per project.
 
@@ -165,7 +166,7 @@ Orchestrator **must STOP the turn** after `wait-for-user` — do not spawn the n
 | Human responds, agent resumes | Run `user-continued`, then `start-agent` for next agent |
 | Agent blocked / retry limit | Move agent to `steps_failed`, set `status=blocked` |
 | All agents finished (pipeline command) | Set `status=waiting`, `current_agent=null` |
-| All agents finished (`/kon:ask`, `/kon:research`, `/kon:review`, `/kon:review-pr`, `/kon:describe-issue`) | Set `status=completed` |
+| All agents finished (`/kon:ask`, `/kon:hunt`, `/kon:research`, `/kon:review`, `/kon:review-pr`, `/kon:describe-issue`) | Set `status=completed` |
 | `init` creates a new session | Supersede other open sessions for same project → `completed` |
 | `/kon:finish` or dashboard ✓ | `python3 scripts/kon_session.py finish` → `status=completed`, log User row |
 
@@ -209,6 +210,14 @@ Issue thread summary — Jun fetches issue + all comments via `gh`:
 - On create: `command: "/kon:describe-issue"`, `steps_pending: ["Jun"]`
 - After Jun finishes: `steps_completed: ["Jun"]`, `status=completed` (via `complete-agent`), log one-liner
 - Artifact: `sessions/<id>/issue-summary.md`
+
+### `/kon:hunt` variant
+
+Read-only bug analysis — Azusa only:
+
+- On create: `command: "/kon:hunt"`, `steps_pending: ["Azusa"]`
+- After Azusa finishes: `steps_completed: ["Azusa"]`, `status=completed` (via `complete-agent`)
+- Artifact: `sessions/<id>/hunt.md` (subagentStop hook when installed)
 
 ### `/kon:ask` variant
 

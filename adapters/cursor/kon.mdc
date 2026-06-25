@@ -29,6 +29,7 @@ User invokes a **slash command** (kon extension system commands):
 - `/kon:design <task>` — explore → plan → multi-agent design debate → user confirms (no implementation)
 - `/kon:quick <task>` — skip explore/plan, lightweight review
 - `/kon:debug <bug>` — investigate root cause, propose fixes, user approves, then minimal fix
+- `/kon:hunt <bug>` — read-only bug analysis from source + best-effort repro SQL/tests (no fixes)
 - `/kon:research <question>` — external lookup (📚 Jun, writes `.kon/research.md`)
 - `/kon:review` — code review only (📝 Mio on uncommitted/staged diff)
 - `/kon:review-pr` — holistic PR review (📝 Mio: diff + body + comments + linked issues)
@@ -52,9 +53,11 @@ Create one session; reuse its id for all plain-text follow-ups — **never `init
 
 If the user message has **no** `/kon:` prefix and `kon_session.py active` prints an id → treat as interactive follow-up (read interactive-session, route intent).
 
-### `/kon:ask` — read-only repo, session tracked
+### `/kon:ask` / `/kon:hunt` — read-only repo, session tracked
 
 For `/kon:ask`: **create session JSON first**, then read `$KON_ROOT/commands/ask.md`. Spawn Azusa read-only only — no code edits, no plan file, no mutating shell. Update session after Azusa. Do not read `teammate-flow`.
+
+For `/kon:hunt`: same read-only rules as ask — read `$KON_ROOT/commands/hunt.md` + `$KON_ROOT/skills/bug-hunt/SKILL.md`. Spawn Azusa with hunt output format; artifact `sessions/<id>/hunt.md`. Skip teammate-flow.
 
 ### `/kon:research` / `/kon:review` — skip teammate-flow
 
@@ -81,7 +84,7 @@ For `/kon:todo`: read `commands/todo.md`, run `scripts/kon_todo.py` directly —
    When `active` is empty:
    ```bash
    python3 $KON_ROOT/scripts/kon_session.py init --command "/kon:ask" --task "<question>"
-   # other commands: --command "/kon:team" | "/kon:design" | "/kon:quick" | "/kon:debug" | "/kon:gc" | "/kon:review-pr" | "/kon:address-comments" | "/kon:describe-issue"
+   # other commands: --command "/kon:team" | "/kon:design" | "/kon:quick" | "/kon:debug" | "/kon:hunt" | "/kon:gc" | ...
    ```
    Save the printed session ID. After each agent step:
    ```bash
@@ -108,11 +111,12 @@ For `/kon:todo`: read `commands/todo.md`, run `scripts/kon_todo.py` directly —
    - `/kon:describe-issue` → `$KON_ROOT/commands/describe-issue.md`
    - `/kon:todo` → `$KON_ROOT/commands/todo.md`
    - `/kon:ask` → `$KON_ROOT/commands/ask.md`
+   - `/kon:hunt` → `$KON_ROOT/commands/hunt.md` + `$KON_ROOT/skills/bug-hunt/SKILL.md`
    - `/kon:gc` → `$KON_ROOT/commands/gc.md`
    - `/kon:finish` → `$KON_ROOT/commands/finish.md`
    - `/kon:summarize` → `$KON_ROOT/commands/summarize.md`
 
-3. Read `$KON_ROOT/skills/teammate-flow/SKILL.md` for orchestration rules — **skip for `/kon:ask`, `/kon:research`, `/kon:review`, `/kon:review-pr`, `/kon:address-comments` (triage only), `/kon:retro`, and `/kon:describe-issue`**. For `/kon:debug`, follow `commands/debug.md`. For `/kon:design`, also read `$KON_ROOT/skills/design-debate/SKILL.md`. For external lookup in team/design, also read `$KON_ROOT/skills/external-research/SKILL.md`.
+3. Read `$KON_ROOT/skills/teammate-flow/SKILL.md` for orchestration rules — **skip for `/kon:ask`, `/kon:hunt`, `/kon:research`, `/kon:review`, `/kon:review-pr`, `/kon:address-comments` (triage only), `/kon:retro`, and `/kon:describe-issue`**. For `/kon:debug`, follow `commands/debug.md`. For `/kon:design`, also read `$KON_ROOT/skills/design-debate/SKILL.md`. For external lookup in team/design, also read `$KON_ROOT/skills/external-research/SKILL.md`.
 
 4. Spawn Task subagents. **Explore/plan agents** (Azusa, Mugi, Jun, design debate): new Task each time — pass agent file (+ skill if needed).
 

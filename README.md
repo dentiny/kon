@@ -271,6 +271,7 @@ Then in any Codex session:
 | `/kon:design <task>` | Design-only: explore → plan → Azusa↔Mugi debate → user confirms (no code) |
 | `/kon:quick <task>` | Skip explore/plan, lightweight 3-item review |
 | `/kon:debug <bug>` | Bug investigation — root cause, fix proposals, user approves, then minimal fix |
+| `/kon:hunt <bug>` | Read-only bug hunt — 🎸 Azusa analyzes source, best-effort repro SQL/tests, **no fixes** |
 | `/kon:research <question>` | External lookup — 📚 Jun searches docs/web, writes `.kon/research.md` |
 | `/kon:review` | Code review only — 📝 Mio strict-review on uncommitted/staged diff |
 | `/kon:review-pr` | Holistic PR review — 📝 Mio on diff + PR body + review comments + linked issues |
@@ -300,7 +301,7 @@ Pipeline commands (`/kon:team`, `/kon:debug`, …) stay **open** after agents fi
 
 **Interactive mode:** `/kon:begin` opens one session; follow-up messages need no `/kon:` prefix — the orchestrator routes by intent. Close with `/kon:finish`.
 
-One-shot commands (`/kon:ask`, `/kon:research`, `/kon:review`) auto-complete when done. Starting a new `/kon:begin` or pipeline command supersedes other open sessions.
+One-shot commands (`/kon:ask`, `/kon:hunt`, `/kon:research`, `/kon:review`) auto-complete when done. Starting a new `/kon:begin` or pipeline command supersedes other open sessions.
 
 ```
 in_progress (blue) → waiting (yellow) → completed (green)

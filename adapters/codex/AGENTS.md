@@ -18,7 +18,7 @@ All paths below use `$KON_ROOT/...`.
 When the user invokes a **slash command**:
 
 - `/kon:begin [goal]`
-- `/kon:team <task>`, `/kon:design <task>`, `/kon:quick <task>`, `/kon:debug <bug>`
+- `/kon:team <task>`, `/kon:design <task>`, `/kon:quick <task>`, `/kon:debug <bug>`, `/kon:hunt <bug>`
 - `/kon:research <question>`
 - `/kon:review`
 - `/kon:review-pr`
@@ -39,9 +39,11 @@ For `/kon:begin`: read `commands/begin.md` + `skills/interactive-session/SKILL.m
 Create one session; reuse its id for all plain-text follow-ups — **never `init` again** until `/kon:finish`.
 Run `kon_session.py active` to get the session id.
 
-### `/kon:ask` — read-only repo, session tracked
+### `/kon:ask` / `/kon:hunt` — read-only repo, session tracked
 
 For `/kon:ask`: create session JSON first (step 1), then read `commands/ask.md`. Spawn Azusa read-only — no code edits, no plan file, no mutating shell. Update session after Azusa. Skip teammate-flow.
+
+For `/kon:hunt`: read `commands/hunt.md` + `skills/bug-hunt/SKILL.md`. Azusa only — bug analysis + best-effort repro SQL/tests; artifact `hunt.md`. Skip teammate-flow.
 
 ### `/kon:research` / `/kon:review` — skip teammate-flow
 
@@ -72,9 +74,10 @@ For `/kon:todo`: read `commands/todo.md`, run `scripts/kon_todo.py` directly —
    - `/kon:describe-issue` → `$KON_ROOT/commands/describe-issue.md`
    - `/kon:todo` → `$KON_ROOT/commands/todo.md`
    - `/kon:ask` → `$KON_ROOT/commands/ask.md`
+   - `/kon:hunt` → `$KON_ROOT/commands/hunt.md` + `$KON_ROOT/skills/bug-hunt/SKILL.md`
    - `/kon:gc` → `$KON_ROOT/commands/gc.md`
 
-3. Read `$KON_ROOT/skills/teammate-flow/SKILL.md` — **skip for `/kon:ask`, `/kon:research`, `/kon:review`, `/kon:review-pr`, `/kon:address-comments` (triage only), `/kon:retro`, and `/kon:describe-issue`**. For `/kon:debug`, follow `commands/debug.md` (no Mugi; Mio only). For `/kon:design`, also read design-debate. For team/design external lookup, read `skills/external-research/SKILL.md`.
+3. Read `$KON_ROOT/skills/teammate-flow/SKILL.md` — **skip for `/kon:ask`, `/kon:hunt`, `/kon:research`, `/kon:review`, `/kon:review-pr`, `/kon:address-comments` (triage only), `/kon:retro`, and `/kon:describe-issue`**. For `/kon:debug`, follow `commands/debug.md`. For `/kon:design`, also read design-debate. For team/design external lookup, read `skills/external-research/SKILL.md`.
 
 4. For each agent step, spawn a subagent. **Implementation loop** (Yui → Sawako → Mio per milestone, autonomous; **user gate only after all milestones complete**): spawn once, **resume** until Mio approves each milestone — then **`wait-for-user --after milestones` / `user-continued`** before summarize; **STOP the turn** at that gate. Store Task ids with `kon_session.py set-task-agent`. See `$KON_ROOT/skills/teammate-flow/SKILL.md`. Explore/plan agents: new spawn each time.
 

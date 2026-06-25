@@ -26,6 +26,7 @@ from _token_estimate import (  # noqa: E402
 )
 from _review_artifact import (
     maybe_write_explore_from_hook,
+    maybe_write_hunt_from_hook,
     maybe_write_issue_from_hook,
     maybe_write_review_from_hook,
 )  # noqa: E402
@@ -218,6 +219,12 @@ def main() -> None:
         transcript_path=transcript_path,
     )
     maybe_write_explore_from_hook(
+        project,
+        agent=agent,
+        output=output,
+        transcript_path=transcript_path,
+    )
+    maybe_write_hunt_from_hook(
         project,
         agent=agent,
         output=output,

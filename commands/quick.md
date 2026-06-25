@@ -40,7 +40,7 @@ Use **Task resume** for the Yui → Mio loop (and Sawako on team): spawn each ro
    - Yui reads 1-2 surrounding files to pick up conventions, no broad exploration.
    - No plan file written.
 2. **📝 Mio** — lightweight review, 3-item subset only.
-3. **Manual testing** — user runs tests themselves after Mio approves.
+3. **Manual testing** — user runs tests themselves after Mio approves (no compile/build during the Yui → Mio loop).
 4. **Orchestrator** — draft a commit message from the diff
    following [`skills/commit-message`](https://github.com/dentiny/kon/blob/main/skills/commit-message/SKILL.md) and attach to final summary.
    **Do not run `git commit` automatically.**
@@ -63,8 +63,7 @@ Orchestrator must explicitly pass `mode=quick` and the subset to Mio when launch
 In Mio's checklist output, items in the subset use `[x]` / `[ ]` normally;
 items outside the subset use `[—]` with reason `skipped by mode=quick`.
 
-**Note on item 3 (correctness proven):** Required in quick mode for basic correctness verification.
-User still manually runs full test suite after Mio approves.
+**Note on item 3 (correctness proven):** Required in quick mode for basic correctness verification via diff + static analysis. No compile/build during the loop. User runs full validation manually after Mio approves.
 
 ## Failure handling
 

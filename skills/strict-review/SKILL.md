@@ -58,6 +58,8 @@ Changed logic produces correct output; verify with concrete evidence.
 - No functionality bugs in the implementation
 - Output matches expected behavior
 
+**Implementation loop** (`/kon:team` milestones, `/kon:quick`, `/kon:debug` fix pass): static analysis + diff reasoning is enough. Accept targeted pytest output when Yui added/changed tests. Do **not** require or block on missing full project build/compile output — user validates manually after the loop.
+
 ### 4. Edge cases handled
 Boundary conditions and failure paths are covered.
 - `None` / empty / boundary values handled
@@ -204,6 +206,7 @@ Walk through the previous round's must-fix and evidence-pending **one by one**.
 | `/kon:review --mode=design-preview` | Run items 1 + 2 only; mark rest as `[—]` with reason `skipped by mode=design-preview` |
 | `/kon:review --mode=compliance-only` | Run item 7 only; mark rest as `[—]` with reason `skipped by mode=compliance-only` |
 | `/kon:quick` (quick mode) | Run items 2/3/7; mark rest as `[—]` with reason `skipped by mode=quick` |
+| Implementation loop (team / quick / debug fix) | Item 3: diff + static analysis; targeted test output if tests changed. No build/compile required — see teammate-flow **No build/compile during the loop** |
 
 ## Recurring must-fix patterns
 

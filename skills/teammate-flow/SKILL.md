@@ -80,6 +80,18 @@ Follow [`/kon:summarize`](https://github.com/dentiny/kon/blob/main/commands/summ
 
 Within each milestone (or the single pass for `/kon:quick` / `/kon:debug`), **🎶 Yui → 🧹 Sawako → 📝 Mio** form one loop until Mio approves. **Do not re-pass agent files or skills on every iteration** — spawn once, then **resume** the same Task subagent.
 
+### No build/compile during the loop
+
+During the implementation loop, **do not run project compile or build steps** — no `npm run build`, `cargo build`, `go build`, `tsc`, bundlers, or equivalent full source builds.
+
+| Agent | During loop |
+|-------|-------------|
+| **🎶 Yui** | Edit code only. May run **targeted** pytest for tests added/changed this turn (`pytest path::test -xvs`). No full test suite, no compile/build. |
+| **🧹 Sawako** | Cleanup only — no build/compile. |
+| **📝 Mio** | Review via diff + static analysis. Do not require or block on missing build output. Accept targeted test output when Yui added tests. |
+
+**User validates manually** after all milestones are approved (existing policy). `/kon:debug` is the exception: Yui runs repro commands from `debug.md` (not a full project build).
+
 ### Scope
 
 Default scope: `impl-loop`. One set of Task ids per milestone. When Mio **APPROVED** for the current milestone, clear before the next:

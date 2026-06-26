@@ -13,6 +13,7 @@ from _session_paths import (
     ARTIFACT_ISSUE_SUMMARY,
     ARTIFACT_PR_REVIEW,
     ARTIFACT_REVIEW,
+    ARTIFACT_UNDERSTAND_EXPLORE,
     ensure_session_dir,
     iter_session_json_paths,
     session_artifact_path,
@@ -29,6 +30,7 @@ MIO_REVIEW_COMMANDS = frozenset(
 )
 AZUSA_EXPLORE_COMMANDS = frozenset({"/kon:team", "/kon:design"})
 AZUSA_HUNT_COMMANDS = frozenset({"/kon:hunt"})
+AZUSA_UNDERSTAND_COMMANDS = frozenset({"/kon:understand-codebase"})
 
 
 def _review_append_mode(command: str) -> bool:
@@ -330,6 +332,43 @@ def maybe_write_hunt_from_hook(
 
     ensure_session_dir(project, session_id)
     path = session_artifact_path(project, session_id, ARTIFACT_HUNT)
+    path.write_text(
+        _format_artifact_markdown(
+            session_id=session_id,
+            command=command,
+            task=str(data.get("task") or ""),
+            body=body,
+        ),
+        encoding="utf-8",
+    )
+    return path
+
+
+def maybe_write_understand_explore_from_hook(
+    project: str | Path | None,
+    *,
+    agent: str,
+    output: str,
+    transcript_path: str | Path | None = None,
+) -> Path | None:
+    """Persist Azusa exploration for /kon:understand-codebase sessions."""
+    if agent != "Azusa":
+        return None
+
+    found = find_open_session(project)
+    if found is None:
+        return None
+    session_id, data = found
+    command = str(data.get("command") or "")
+    if command not in AZUSA_UNDERSTAND_COMMANDS:
+        return None
+
+    body = extract_assistant_markdown(output, transcript_path)
+    if not body:
+        return None
+
+    ensure_session_dir(project, session_id)
+    path = session_artifact_path(project, session_id, ARTIFACT_UNDERSTAND_EXPLORE)
     path.write_text(
         _format_artifact_markdown(
             session_id=session_id,

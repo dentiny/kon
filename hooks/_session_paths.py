@@ -14,6 +14,9 @@ Layout::
         issue-summary.md
         debug.md
         hunt.md
+        understand-explore.md
+        understand-guide.md
+        understand-study.json
         design-debate.md
         review-rubric.md
 """
@@ -32,6 +35,9 @@ ARTIFACT_REVIEW = "review.md"
 ARTIFACT_PR_REVIEW = "pr-review.md"
 ARTIFACT_ISSUE_SUMMARY = "issue-summary.md"
 ARTIFACT_HUNT = "hunt.md"
+ARTIFACT_UNDERSTAND_EXPLORE = "understand-explore.md"
+ARTIFACT_UNDERSTAND_GUIDE = "understand-guide.md"
+ARTIFACT_UNDERSTAND_STUDY = "understand-study.json"
 
 
 def session_dir(project: Path | str | None, session_id: str) -> Path:

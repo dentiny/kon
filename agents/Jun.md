@@ -27,6 +27,7 @@ Process follows the skill specified by the caller:
 | Caller | Skill | Output file |
 |--------|-------|-------------|
 | `/kon:research` (default) | [`skills/external-research`](https://github.com/dentiny/kon/blob/main/skills/external-research/SKILL.md) | `.kon/research.md` |
+| `/kon:understand-codebase` (author) | [`skills/understand-codebase`](https://github.com/dentiny/kon/blob/main/skills/understand-codebase/SKILL.md) | `sessions/<session-id>/understand-guide.md` + `understand-study.json` |
 | `/kon:describe-issue` | [`skills/github-issue-summary`](https://github.com/dentiny/kon/blob/main/skills/github-issue-summary/SKILL.md) | `sessions/<session-id>/issue-summary.md` |
 
 ## What Jun does

@@ -275,6 +275,7 @@ Then in any Codex session:
 | `/kon:quick <task>` | Skip explore/plan, lightweight 3-item review |
 | `/kon:debug <bug>` | Bug investigation — root cause, fix proposals, user approves, then minimal fix |
 | `/kon:hunt <bug>` | Read-only bug hunt — 🎸 Azusa analyzes source, best-effort repro SQL/tests, **no fixes** |
+| `/kon:understand-codebase [scope]` | Learning pack — 🎸 Azusa maps repo, 📚 Jun writes guide + flashcards/quiz → **PDF** + **HTML** |
 | `/kon:research <question>` | External lookup — 📚 Jun searches docs/web, writes `.kon/research.md` |
 | `/kon:review` | Code review only — 📝 Mio strict-review on uncommitted/staged diff |
 | `/kon:review-pr` | Holistic PR review — 📝 Mio on diff + PR body + review comments + linked issues |

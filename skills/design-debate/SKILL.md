@@ -103,6 +103,7 @@ Mugi MUST:
 - Respond to **every** challenge ID in the response table
 - Verdict per row: `accepted` | `rejected` | `deferred` (deferred → move to `## Decisions needed`)
 - Update the plan file (`PLAN_FILE`) for all `accepted` items
+- Keep **`## Current status`** accurate — update as-is / evidence if a challenge changes the baseline
 - Append `## Debate revisions` summarizing accepted changes
 - Write the response table under `## Round N — Mugi responses`
 

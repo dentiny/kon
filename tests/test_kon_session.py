@@ -159,6 +159,25 @@ def test_describe_issue_default_pending() -> None:
         assert data["steps_pending"] == ["Jun"]
 
 
+def test_understand_codebase_default_pending() -> None:
+    tmp, project, env, sessions = _isolated_env()
+    with tmp:
+        sid = _run(
+            [
+                "init",
+                "--command",
+                "/kon:understand-codebase",
+                "--task",
+                "hooks and session tracking",
+            ],
+            env,
+            project,
+        )
+        data = _load_session(sessions, sid)
+        assert data["command"] == "/kon:understand-codebase"
+        assert data["steps_pending"] == ["Azusa", "Jun"]
+
+
 @pytest.mark.parametrize(
     ("command", "agent", "task"),
     [

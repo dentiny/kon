@@ -1,0 +1,40 @@
+{
+  "title": "Codebase study: <project name>",
+  "flashcards": [
+    {
+      "id": "fc-1",
+      "front": "What is a <concept> in this codebase?",
+      "back": "<definition>. See `path:line`.",
+      "tags": ["concept"]
+    },
+    {
+      "id": "fc-2",
+      "front": "Where is <behaviour> implemented?",
+      "back": "`path:line` — <one-line explanation>.",
+      "tags": ["implementation"]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q-1",
+      "question": "What is the deployment topology?",
+      "choices": [
+        "Single-node CLI with local HTTP dashboard",
+        "Kubernetes microservices mesh",
+        "Serverless-only",
+        "Browser extension only"
+      ],
+      "answer": 0,
+      "explanation": "Evidence: …",
+      "tags": ["concept", "architecture"]
+    },
+    {
+      "id": "q-2",
+      "question": "Which file defines wait-for-user?",
+      "choices": ["scripts/dashboard.py", "scripts/kon_session.py", "hooks/init_kon_session.py", "agents/Mugi.md"],
+      "answer": 1,
+      "explanation": "`cmd_wait_for_user` in kon_session.py sets checkpoint.ts.",
+      "tags": ["implementation"]
+    }
+  ]
+}

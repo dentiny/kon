@@ -82,6 +82,8 @@ def _default_pending(command: str) -> list[str]:
         return ["Azusa"]
     if c == "/kon:hunt":
         return ["Azusa"]
+    if c == "/kon:understand-codebase":
+        return ["Azusa", "Jun"]
     if c == "/kon:research":
         return ["Jun"]
     if c == "/kon:review":

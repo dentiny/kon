@@ -13,7 +13,7 @@ Turn a repository into study materials: **key concepts**, **architecture**, **fl
 
 | Output | Contents |
 |--------|----------|
-| `understand-guide.pdf` | Key concepts (glossary) + architecture |
+| `understand-guide.pdf` | Key concepts + architecture + **FAQ** |
 | `understand-study.html` | Interactive flashcards + quiz (open locally in browser) |
 | `understand-guide.html` | Same guide as PDF, with mermaid diagrams rendered |
 
@@ -85,6 +85,7 @@ Must include:
 - Mermaid diagram(s) when relationships are non-obvious (component map, request flow, state machine)
 - `## Architecture` — explicit **Topology**: `single-node` | `distributed` | `hybrid` with evidence
 - Subsections: Components, Data flow, Boundaries, Operational notes
+- `## FAQ` — 5–10 Q&A pairs for newcomer confusion (concepts + architecture); cite evidence; no fabricated behaviour
 
 ### `understand-study.json` schema
 
@@ -109,5 +110,6 @@ Every flashcard/quiz item must trace to explore evidence — no fabricated APIs.
 
 - **Concepts**: precise definitions a new contributor can use in conversation
 - **Architecture**: answer "single laptop CLI" vs "multi-service" explicitly
+- **FAQ**: practical questions with short, grounded answers — not a repeat of the glossary verbatim
 - **Flashcards**: front = prompt; back = concise answer with optional `path:line`
 - **Quiz**: plausible distractors; `explanation` teaches on miss

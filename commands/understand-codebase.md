@@ -10,7 +10,7 @@ Build **study materials** from a repository: glossary, architecture, flashcards,
 
 | File | Format | Contents |
 |------|--------|----------|
-| `understand-guide.pdf` | PDF | Key concepts + architecture |
+| `understand-guide.pdf` | PDF | Key concepts + architecture + **FAQ** |
 | `understand-study.html` | Local HTML | Flashcards + quiz (open in browser) |
 | `understand-guide.html` | Local HTML | Guide with mermaid diagrams |
 

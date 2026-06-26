@@ -60,6 +60,22 @@ sequenceDiagram
 - Config / env vars
 - Extension points
 
+## FAQ
+
+Common questions a new contributor would ask — **concepts and architecture only** (implementation how-tos belong in flashcards/quiz, not here).
+
+*(Aim for 5–10 Q&A pairs.)*
+
+### Q: <question a newcomer would ask>
+
+<Answer in 2–4 sentences. Cite `path:line` or architecture evidence when helpful.>
+
+### Q: <another question>
+
+<Answer.>
+
+*Good FAQ topics: naming that confuses people, "why is X separate from Y?", startup order, where state lives, what is *not* in this repo, single-node vs distributed implications.*
+
 ## Sources
 
 Based on `understand-explore.md` from this session. Evidence paths cited inline.

@@ -172,13 +172,13 @@ def check_mugi(out: str) -> None:
             "Write the plan / rubric there and report it.",
         )
     if not re.search(
-        r"##\s+(Goal|Steps|Rubric|Acceptance|Category)",
+        r"##\s+(Current status|Goal|Steps|Rubric|Acceptance|Category)",
         out,
     ):
         emit(
             "block",
             "Mugi (Planner) output is missing required structure "
-            "(## Goal / ## Steps / ## Rubric / ## Acceptance / ## Category).",
+            "(## Current status / ## Goal / ## Steps / ## Rubric / ## Acceptance / ## Category).",
         )
     emit("approve", "Mugi (Planner) output structure is complete")
 

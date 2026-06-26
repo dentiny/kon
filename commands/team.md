@@ -24,7 +24,7 @@ optional **📚 Jun** (external docs, parallel with Azusa) → 🎸 Azusa explor
 
 When the task needs web/docs lookup, spawn Jun per [`skills/external-research`](https://github.com/dentiny/kon/blob/main/skills/external-research/SKILL.md).
 
-**Plans:** For non-trivial workflow or architecture, Mugi should add a `## Diagrams` section with mermaid charts (see `agents/Mugi.md`).
+**Plans:** For non-trivial workflow or architecture, Mugi should add a `## Diagrams` section with mermaid charts (see `agents/Mugi.md`). Every plan must include **`## Current status`** (as-is state + work type + evidence).
 
 **Milestone-based review loop:**
 - After plan approval, Yui implements ONE milestone at a time

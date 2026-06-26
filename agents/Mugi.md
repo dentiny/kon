@@ -84,6 +84,7 @@ Only embed entries that actually change the steps. Others can be listed as refer
   If a step would exceed this, split it. Include a rough line estimate per step.
 - Write to the plan file path from `PLAN_FILE` in the task prompt (create the directory if it doesn't exist: `mkdir -p .kon`)
 - Surface hidden requirements (things the user didn't say but obviously need)
+- **`## Current status` (mandatory)** — describe the as-is state before any change (see plan template); applies to every work type
 - If `.kon/research.md` exists, add `## External context` summarizing Jun's findings (link the file; don't paste raw URLs)
 - Collect decisions that need user confirmation in `## Decisions needed` — each with a `[**default**]` that Mugi has already reasoned through, so the user can say "go" to accept all defaults
 - **Include diagrams when the plan involves non-trivial workflow or architecture** — see "Diagrams in plans" below
@@ -195,6 +196,23 @@ Then write the plan to the path from `PLAN_FILE` (e.g. `.kon/plan-<session-id>.m
 
 ## Goal
 <why this needs doing — one or two sentences>
+
+## Current status
+
+**Mandatory.** Illustrate the **as-is state** before this plan changes anything — for bug fixes, new features, refactors, and chores alike.
+
+| Field | Content |
+|-------|---------|
+| **Work type** | `bug fix` · `new feature` · `refactor` · `chore` · `performance` · `docs` · `other` |
+| **As-is** | What exists or happens **today** — symptoms, missing capability, debt, or baseline behaviour |
+| **Evidence** | Proof from exploration — `path:line`, repro command/output, or link to `explore.md` / `debug.md` / `hunt.md` |
+
+*Examples (adapt to the task):*
+- **Bug fix:** empty email → API 500; `auth.py:42` never validates input
+- **New feature:** no per-milestone user gate; loop runs until all milestones done
+- **Refactor:** session JSON lives in two legacy path layouts; callers duplicate lookup logic
+
+Do not invent as-is facts — tie to Azusa/Jun/debug/hunt evidence, or mark unknown and add to `## Decisions needed`.
 
 ## Honoured memory (optional — only when relevant project/user entries exist)
 - User prefers integration tests over mocks (project) → Step 3 instructs Yui not to use mocks

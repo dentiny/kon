@@ -377,6 +377,16 @@ still fails or auto-fixed changes were not committed.
 
 ---
 
+## Disclaimer
+
+kon is a **fan-inspired** multi-agent dev workflow. Character names and emoji personas reference *K-On!* / Ho-kago Tea Time **nominatively** as role labels only.
+
+kon is **not affiliated with, endorsed by, or sponsored by** Kyoto Animation, Lantis, or any *K-On!* rights holder. The [MIT License](LICENSE) covers this repository's code and docs only — not third-party trademarks or franchise IP.
+
+See [DISCLAIMER.md](DISCLAIMER.md) for the full statement (Maigo influence, Cursor/third-party tools, rebrand policy).
+
+---
+
 ## Acknowledgments
 
 kon's multi-agent workflow — role-based agents, commands, skills, hooks, and strict review gating — draws heavily from [Maigo](https://github.com/Lee-W/maigo), Lee-W's MyGO!!!!! themed multi-agent dev workflow. kon adapts that model for Cursor and Codex with a K-On! cast and harness-specific adapters.

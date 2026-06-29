@@ -950,13 +950,13 @@ def main() -> None:
         server = HTTPServer(("", args.port), _Handler)
     except OSError as exc:
         if exc.errno == errno.EADDRINUSE:
+            # Port taken — treat as success (autostart hook, second manual launch).
             print(
-                f"Port {args.port} is already in use.\n"
-                f"Run: python3 scripts/dashboard.py --restart --port {args.port}"
+                f"Port {args.port} is already in use — another dashboard may be running."
+                f" Run: python3 scripts/dashboard.py --restart --port {args.port}"
                 + (" --open" if args.open else ""),
-                file=sys.stderr,
             )
-            sys.exit(1)
+            sys.exit(0)
         raise
     try:
         server.serve_forever()

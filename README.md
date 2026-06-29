@@ -361,6 +361,10 @@ Say **skip retro** to close without memory proposals. To re-run retro later: `/k
 
 ---
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, conventions, and pull request expectations.
+
 ## Development setup
 
 ```bash

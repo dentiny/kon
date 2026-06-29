@@ -5,28 +5,11 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from _transcript_text import content_text
+
 CHARS_PER_TOKEN = 4
 SOURCE = "transcript_estimate"
 OUTPUT_SOURCE = "output_estimate"
-
-
-def _content_text(content: object) -> str:
-    if isinstance(content, str):
-        return content
-    if isinstance(content, list):
-        parts: list[str] = []
-        for block in content:
-            if isinstance(block, dict):
-                if block.get("type") == "text" and "text" in block:
-                    parts.append(str(block["text"]))
-                else:
-                    parts.append(json.dumps(block, ensure_ascii=False))
-            else:
-                parts.append(str(block))
-        return "\n".join(parts)
-    if content is None:
-        return ""
-    return json.dumps(content, ensure_ascii=False)
 
 
 def estimate_tokens_from_transcript(path: str | Path) -> dict | None:
@@ -48,7 +31,7 @@ def estimate_tokens_from_transcript(path: str | Path) -> dict | None:
                 continue
             role = row.get("role")
             message = row.get("message") or {}
-            text = _content_text(message.get("content"))
+            text = content_text(message.get("content"))
             if role == "user":
                 input_chars += len(text)
             elif role == "assistant":

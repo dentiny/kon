@@ -26,7 +26,30 @@ Narrated by 🌸 Ui.
 
 ## Dashboard
 
-Run a live dashboard to see agent sessions and project todos:
+kon ships a **local web UI** at `http://localhost:9090` so you can see every `/kon:*` run at a glance — no digging through chat history.
+
+**Active sessions** — status badges, pipeline dots, expandable agent logs:
+
+![kon dashboard — active sessions](docs/images/dashboard-sessions.png)
+
+**Waiting for you** — FIFO queue when a run hits a plan or milestone gate; checkpoint text tells you what to approve in Cursor:
+
+![kon dashboard — waiting tab with plan approval gate](docs/images/dashboard-waiting.png)
+
+### What you can do in the UI
+
+| View | What it shows |
+|------|----------------|
+| **Waiting** | Sessions paused for **your** approval (plan gate, milestone gate) — FIFO queue with checkpoint summary (“Plan ready — approve to start milestone 1?”) |
+| **Sessions → Active** | In-progress and waiting runs across projects — status badge, task, command, **agent pipeline dots**, estimated token usage |
+| **Sessions → All / Past** | Full history — completed and blocked sessions |
+| **Todos** | Project todo list from `.kon/todos.json` — open, done, or all; mark done, reopen, delete |
+
+**Per session card:** expand to read the step-by-step **agent log** (🎸 Azusa, 🍰 Mugi, …), see who is running now, and use **✓** to close or **🗑** to delete. Pipeline dots: 🟢 done · 🔵 running · 🟡 waiting · 🔴 failed · ⚫ pending.
+
+Add todos from chat with `/kon:todo <task>`. The UI auto-refreshes every **3 seconds**.
+
+### Run the dashboard
 
 ```bash
 python3 $KON_ROOT/scripts/dashboard.py --open   # http://localhost:9090
@@ -35,8 +58,6 @@ python3 $KON_ROOT/scripts/dashboard.py --project /path/to/repo --open  # one pro
 ```
 
 **Auto-start:** With Cursor hooks installed, `start_dashboard.py` runs on **`sessionStart`**, tries to start the dashboard on port **9090**, and **silently continues** if that port is already in use (no crash, no duplicate tab). Disable with `KON_DASHBOARD_AUTO_START=0` or `"dashboard_auto_start": false` in `~/.kon/config.json`.
-
-**Sessions** tab — active/past agent runs. **Todos** tab — open items from `.kon/todos.json` (mark done, reopen, delete). Add todos with `/kon:todo <task>`.
 
 Project working files (plans, reviews, debug notes) and session metadata live together under
 `~/.kon/projects/<repo-name>/sessions/<session-id>/` (override root with `KON_DATA_DIR`).
@@ -130,13 +151,7 @@ This merges into `~/.cursor/hooks.json`:
 | `beforeShellExecution` | `no_git_write.py` | block `git commit` / `git push` |
 | `subagentStop` | `on_subagent_stop.py` | validate Task subagent output; log step + **estimated token usage** per agent |
 
-**Token usage (estimated):** After each Task subagent finishes (Azusa, Mugi, Yui, Sawako, Mio, Jun, Nodoka, …), `on_subagent_stop.py` writes a session log row with estimated tokens from the subagent transcript (fallback: output text length). Dashboard shows per-step badges and session Σ total. The orchestrator's later `complete-agent` call dedupes — it won't double-count. **Not tracked:** main orchestrator chat (only Task subagents).
-
-Each session card shows: status badge, task, project name (when viewing all), agent pipeline dots (🟢 done / 🔵 running / 🟡 waiting / 🔴 failed / ⚫ pending), checkpoint text when waiting for your approval (plan / milestone gate), timestamp, and current agent.
-
-**Waiting tab** — FIFO queue of sessions at a `wait-for-user` checkpoint, sorted by `checkpoint.ts` only.
-**Click** to expand the step-by-step log. **✓** to close a session. **🗑** to delete it.
-Auto-refreshes every 3 seconds. Filter by **All / Active / Past** tabs.
+**Token usage (estimated):** After each Task subagent finishes (Azusa, Mugi, Yui, Sawako, Mio, Jun, Nodoka, …), `on_subagent_stop.py` writes a session log row with estimated tokens from the subagent transcript (fallback: output text length). The **dashboard** shows per-step badges and session Σ totals (see **Dashboard** above). The orchestrator's later `complete-agent` call dedupes — it won't double-count. **Not tracked:** main orchestrator chat (only Task subagents).
 
 ---
 

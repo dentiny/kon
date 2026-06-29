@@ -1,0 +1,16 @@
+# Dependabot keeps GitHub Actions pinned in workflow files up to date.
+# https://docs.github.com/en/code-security/dependabot/working-with-dependabot
+
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+    commit-message:
+      prefix: deps
+      include: scope

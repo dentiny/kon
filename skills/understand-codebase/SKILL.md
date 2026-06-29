@@ -13,9 +13,9 @@ Turn a repository into study materials: **key concepts**, **architecture**, **fl
 
 | Output | Contents |
 |--------|----------|
-| `understand-guide.pdf` | Key concepts + architecture + **FAQ** |
-| `understand-study.html` | Interactive flashcards + quiz (open locally in browser) |
-| `understand-guide.html` | Same guide as PDF, with mermaid diagrams rendered |
+| `understand-guide.pdf` | Key concepts + **reference code** + architecture + FAQ (links in PDF when pandoc) |
+| `understand-study.html` | Flashcards + quiz with **snippets** + **clickable source links** |
+| `understand-guide.html` | Same as PDF; mermaid + **`vscode://` / `cursor://` links** open files in IDE |
 
 All files live under `sessions/<session-id>/`. Orchestrator runs `build_understand_codebase.py` after Jun finishes.
 
@@ -81,11 +81,14 @@ Follow [`templates/understand-guide.md`](../../templates/understand-guide.md).
 
 Must include:
 
-- `## Key concepts` — glossary entries with **Definition**, **Usage**, **See also** (`path:line`)
+- `## Key concepts` — each entry: **Definition**, **Usage**, **Source** (`path:line` link), **Reference code** (fenced block — copy real source, ≤ 30 lines)
+- Use citation fences exactly: ` ```startLine:endLine:relative/path` ` (content pasted from Read output)
 - Mermaid diagram(s) when relationships are non-obvious (component map, request flow, state machine)
-- `## Architecture` — explicit **Topology**: `single-node` | `distributed` | `hybrid` with evidence
+- `## Architecture` — explicit **Topology**: `single-node` | `distributed` | `hybrid` with evidence; include **Source** + snippet for key entry points where helpful
 - Subsections: Components, Data flow, Boundaries, Operational notes
-- `## FAQ` — 5–10 Q&A pairs for newcomer confusion (concepts + architecture); cite evidence; no fabricated behaviour
+- `## FAQ` — 5–10 Q&A pairs; optional **Source** + snippet per answer
+
+**Reference code rules:** Read the file, paste the actual lines — do not paraphrase code. Snippet must match the cited `path:line` range.
 
 ### `understand-study.json` schema
 
@@ -94,9 +97,13 @@ Follow [`templates/understand-study.json`](../../templates/understand-study.json
 | Field | Rules |
 |-------|--------|
 | `flashcards` | ≥ 8 cards; mix `concept` and `implementation` tags |
+| `flashcards[].refs` | **Required** for `implementation` cards; optional for concept — `{path, line, endLine?}` repo-relative |
+| `flashcards[].code` | **Required** for `implementation` cards when a short snippet helps (≤ 20 lines) |
 | `quiz` | ≥ 6 questions; mix concept + code; 4 choices each; `answer` is 0-based index |
+| `quiz[].refs` | At least one ref on implementation-tagged questions |
+| `quiz[].code` | Optional snippet shown in quiz review |
 
-Every flashcard/quiz item must trace to explore evidence — no fabricated APIs.
+Build script injects `project_path` from session JSON and turns refs into **clickable IDE links** (`vscode://` / `cursor://`).
 
 ## Orchestrator rules
 
@@ -111,5 +118,5 @@ Every flashcard/quiz item must trace to explore evidence — no fabricated APIs.
 - **Concepts**: precise definitions a new contributor can use in conversation
 - **Architecture**: answer "single laptop CLI" vs "multi-service" explicitly
 - **FAQ**: practical questions with short, grounded answers — not a repeat of the glossary verbatim
-- **Flashcards**: front = prompt; back = concise answer with optional `path:line`
-- **Quiz**: plausible distractors; `explanation` teaches on miss
+- **Flashcards**: front = prompt; back = concise answer; **`refs` + `code`** for implementation cards
+- **Quiz**: plausible distractors; `explanation` + optional **`refs` / `code`**

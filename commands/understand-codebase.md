@@ -10,9 +10,9 @@ Build **study materials** from a repository: glossary, architecture, flashcards,
 
 | File | Format | Contents |
 |------|--------|----------|
-| `understand-guide.pdf` | PDF | Key concepts + architecture + **FAQ** |
-| `understand-study.html` | Local HTML | Flashcards + quiz (open in browser) |
-| `understand-guide.html` | Local HTML | Guide with mermaid diagrams |
+| `understand-guide.pdf` | PDF | Key concepts + **reference code** + architecture + FAQ |
+| `understand-study.html` | Local HTML | Flashcards + quiz with snippets + **clickable `vscode://` source links** |
+| `understand-guide.html` | Local HTML | Guide + mermaid; source links open in Cursor/VS Code |
 
 Artifacts: `~/.kon/projects/<repo>/sessions/<session-id>/`
 
@@ -55,6 +55,8 @@ Pass `SESSION_DIR` (from `kon_session.py session-dir --id "$SID"`) to both agent
 ## PDF note
 
 Build uses **pandoc** when installed (`brew install pandoc basictex`). Without pandoc, open `understand-guide.html` → Print → Save as PDF.
+
+**Source links:** build injects `vscode://file/...:line:1` links from `path:line` refs (opens in Cursor/VS Code from HTML). Requires `project_path` in session JSON (set automatically on `init`).
 
 ## Comparison
 

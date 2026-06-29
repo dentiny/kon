@@ -54,7 +54,7 @@ Project-local `.kon/todos.json` stays in the repo.
 On each machine you use Cursor on, run **once** from your kon clone:
 
 ```bash
-git clone <your-kon-repo-url> ~/kon    # or any path you prefer
+git clone https://github.com/dentiny/kon.git ~/kon    # or any path you prefer
 bash ~/kon/scripts/setup_cursor.sh
 ```
 
@@ -186,7 +186,7 @@ Each harness needs only a thin adapter that defines:
 **New machine — one command:**
 
 ```bash
-git clone <your-kon-repo-url> ~/kon
+git clone https://github.com/dentiny/kon.git ~/kon
 bash ~/kon/scripts/setup_cursor.sh
 ```
 

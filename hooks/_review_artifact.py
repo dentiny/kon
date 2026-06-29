@@ -18,6 +18,7 @@ from _session_paths import (
     iter_session_json_paths,
     session_artifact_path,
 )
+from _transcript_text import content_text
 
 MIO_REVIEW_COMMANDS = frozenset(
     {
@@ -67,25 +68,6 @@ def _title_for_command(command: str) -> str:
     return "Code review"
 
 
-def _content_text(content: object) -> str:
-    if isinstance(content, str):
-        return content
-    if isinstance(content, list):
-        parts: list[str] = []
-        for block in content:
-            if isinstance(block, dict):
-                if block.get("type") == "text" and "text" in block:
-                    parts.append(str(block["text"]))
-                else:
-                    parts.append(json.dumps(block, ensure_ascii=False))
-            else:
-                parts.append(str(block))
-        return "\n".join(parts)
-    if content is None:
-        return ""
-    return json.dumps(content, ensure_ascii=False)
-
-
 def _assistant_parts_from_jsonl(text: str) -> list[str]:
     parts: list[str] = []
     for line in text.splitlines():
@@ -99,7 +81,7 @@ def _assistant_parts_from_jsonl(text: str) -> list[str]:
         if row.get("role") != "assistant":
             continue
         message = row.get("message") or {}
-        body = _content_text(message.get("content")).strip()
+        body = content_text(message.get("content")).strip()
         if body:
             parts.append(body)
     return parts
@@ -237,6 +219,57 @@ def write_review_artifact(
     )
 
 
+def _maybe_write_agent_artifact(
+    project: str | Path | None,
+    *,
+    agent: str,
+    expected_agent: str,
+    allowed_commands: frozenset[str],
+    output: str,
+    transcript_path: str | Path | None = None,
+    artifact_basename: str | None = None,
+    append_reviews: bool = False,
+) -> Path | None:
+    if agent != expected_agent:
+        return None
+
+    found = find_open_session(project)
+    if found is None:
+        return None
+    session_id, data = found
+    command = str(data.get("command") or "")
+    if command not in allowed_commands:
+        return None
+
+    body = extract_assistant_markdown(output, transcript_path)
+    if not body:
+        return None
+
+    task = str(data.get("task") or "")
+    if artifact_basename is None:
+        return write_session_artifact(
+            project,
+            session_id,
+            command=command,
+            task=task,
+            body=body,
+            append=append_reviews or _review_append_mode(command),
+        )
+
+    ensure_session_dir(project, session_id)
+    path = session_artifact_path(project, session_id, artifact_basename)
+    path.write_text(
+        _format_artifact_markdown(
+            session_id=session_id,
+            command=command,
+            task=task,
+            body=body,
+        ),
+        encoding="utf-8",
+    )
+    return path
+
+
 def maybe_write_review_from_hook(
     project: str | Path | None,
     *,
@@ -245,28 +278,13 @@ def maybe_write_review_from_hook(
     transcript_path: str | Path | None = None,
 ) -> Path | None:
     """Persist Mio output for review / review-pr / debug sessions."""
-    if agent != "Mio":
-        return None
-
-    found = find_open_session(project)
-    if found is None:
-        return None
-    session_id, data = found
-    command = str(data.get("command") or "")
-    if command not in MIO_REVIEW_COMMANDS:
-        return None
-
-    body = extract_assistant_markdown(output, transcript_path)
-    if not body:
-        return None
-
-    return write_session_artifact(
+    return _maybe_write_agent_artifact(
         project,
-        session_id,
-        command=command,
-        task=str(data.get("task") or ""),
-        body=body,
-        append=_review_append_mode(command),
+        agent=agent,
+        expected_agent="Mio",
+        allowed_commands=MIO_REVIEW_COMMANDS,
+        output=output,
+        transcript_path=transcript_path,
     )
 
 
@@ -278,33 +296,15 @@ def maybe_write_explore_from_hook(
     transcript_path: str | Path | None = None,
 ) -> Path | None:
     """Persist Azusa exploration for team/design sessions."""
-    if agent != "Azusa":
-        return None
-
-    found = find_open_session(project)
-    if found is None:
-        return None
-    session_id, data = found
-    command = str(data.get("command") or "")
-    if command not in AZUSA_EXPLORE_COMMANDS:
-        return None
-
-    body = extract_assistant_markdown(output, transcript_path)
-    if not body:
-        return None
-
-    ensure_session_dir(project, session_id)
-    path = session_artifact_path(project, session_id, ARTIFACT_EXPLORE)
-    path.write_text(
-        _format_artifact_markdown(
-            session_id=session_id,
-            command=command,
-            task=str(data.get("task") or ""),
-            body=body,
-        ),
-        encoding="utf-8",
+    return _maybe_write_agent_artifact(
+        project,
+        agent=agent,
+        expected_agent="Azusa",
+        allowed_commands=AZUSA_EXPLORE_COMMANDS,
+        artifact_basename=ARTIFACT_EXPLORE,
+        output=output,
+        transcript_path=transcript_path,
     )
-    return path
 
 
 def maybe_write_hunt_from_hook(
@@ -315,33 +315,15 @@ def maybe_write_hunt_from_hook(
     transcript_path: str | Path | None = None,
 ) -> Path | None:
     """Persist Azusa bug-hunt analysis for /kon:hunt sessions."""
-    if agent != "Azusa":
-        return None
-
-    found = find_open_session(project)
-    if found is None:
-        return None
-    session_id, data = found
-    command = str(data.get("command") or "")
-    if command not in AZUSA_HUNT_COMMANDS:
-        return None
-
-    body = extract_assistant_markdown(output, transcript_path)
-    if not body:
-        return None
-
-    ensure_session_dir(project, session_id)
-    path = session_artifact_path(project, session_id, ARTIFACT_HUNT)
-    path.write_text(
-        _format_artifact_markdown(
-            session_id=session_id,
-            command=command,
-            task=str(data.get("task") or ""),
-            body=body,
-        ),
-        encoding="utf-8",
+    return _maybe_write_agent_artifact(
+        project,
+        agent=agent,
+        expected_agent="Azusa",
+        allowed_commands=AZUSA_HUNT_COMMANDS,
+        artifact_basename=ARTIFACT_HUNT,
+        output=output,
+        transcript_path=transcript_path,
     )
-    return path
 
 
 def maybe_write_understand_explore_from_hook(
@@ -352,33 +334,15 @@ def maybe_write_understand_explore_from_hook(
     transcript_path: str | Path | None = None,
 ) -> Path | None:
     """Persist Azusa exploration for /kon:understand-codebase sessions."""
-    if agent != "Azusa":
-        return None
-
-    found = find_open_session(project)
-    if found is None:
-        return None
-    session_id, data = found
-    command = str(data.get("command") or "")
-    if command not in AZUSA_UNDERSTAND_COMMANDS:
-        return None
-
-    body = extract_assistant_markdown(output, transcript_path)
-    if not body:
-        return None
-
-    ensure_session_dir(project, session_id)
-    path = session_artifact_path(project, session_id, ARTIFACT_UNDERSTAND_EXPLORE)
-    path.write_text(
-        _format_artifact_markdown(
-            session_id=session_id,
-            command=command,
-            task=str(data.get("task") or ""),
-            body=body,
-        ),
-        encoding="utf-8",
+    return _maybe_write_agent_artifact(
+        project,
+        agent=agent,
+        expected_agent="Azusa",
+        allowed_commands=AZUSA_UNDERSTAND_COMMANDS,
+        artifact_basename=ARTIFACT_UNDERSTAND_EXPLORE,
+        output=output,
+        transcript_path=transcript_path,
     )
-    return path
 
 
 def maybe_write_issue_from_hook(
@@ -389,24 +353,11 @@ def maybe_write_issue_from_hook(
     transcript_path: str | Path | None = None,
 ) -> Path | None:
     """Persist Jun output for describe-issue sessions."""
-    if agent != "Jun":
-        return None
-
-    found = find_open_session(project)
-    if found is None:
-        return None
-    session_id, data = found
-    if str(data.get("command") or "") != "/kon:describe-issue":
-        return None
-
-    body = extract_assistant_markdown(output, transcript_path)
-    if not body:
-        return None
-
-    return write_session_artifact(
+    return _maybe_write_agent_artifact(
         project,
-        session_id,
-        command="/kon:describe-issue",
-        task=str(data.get("task") or ""),
-        body=body,
+        agent=agent,
+        expected_agent="Jun",
+        allowed_commands=frozenset({"/kon:describe-issue"}),
+        output=output,
+        transcript_path=transcript_path,
     )

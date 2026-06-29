@@ -9,6 +9,8 @@ from pathlib import Path
 
 import pytest
 
+from conftest import mio_output, run_hook
+
 ROOT = Path(__file__).resolve().parent.parent
 HOOKS = ROOT / "hooks"
 
@@ -31,44 +33,6 @@ def _list_session_files(sessions_dir: Path) -> list[Path]:
     return files
 
 
-def _mio_output(
-    verdict: str,
-    *,
-    checklist_marks: list[str] | None = None,
-    extra: str = "",
-) -> str:
-    labels = [
-        "1. simplest correct implementation",
-        "2. requirement coverage",
-        "3. correctness proven",
-        "4. edge cases handled",
-        "5. no regression",
-        "6. no performance issue",
-        "7. consistent, safe, and tested",
-    ]
-    if checklist_marks is None:
-        checklist_marks = ["x"] * len(labels)
-    checklist = "\n".join(f"- [{mark}] {label}" for mark, label in zip(checklist_marks, labels))
-    return (
-        "## Loaded memory entries\n(no relevant entries)\n\n"
-        f"## Verdict\n{verdict}\n\n"
-        f"## Checklist\n{checklist}\n"
-        f"{extra}"
-    )
-
-
-def _run_hook(script: str, payload: dict) -> dict:
-    proc = subprocess.run(
-        [sys.executable, str(HOOKS / script)],
-        input=json.dumps(payload),
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-    out = proc.stdout.strip()
-    return json.loads(out) if out else {}
-
-
 class TestHookIo:
     def test_shell_deny(self) -> None:
         payload = format_payload("block", "nope", event="beforeShellExecution")
@@ -86,7 +50,7 @@ class TestHookIo:
 
 class TestNoGitWrite:
     def test_blocks_commit(self) -> None:
-        result = _run_hook(
+        result = run_hook(
             "no_git_write.py",
             {
                 "hook_event_name": "beforeShellExecution",
@@ -108,7 +72,7 @@ class TestNoGitWrite:
         assert is_git_write_blocked(command)
 
     def test_allows_status(self) -> None:
-        result = _run_hook(
+        result = run_hook(
             "no_git_write.py",
             {
                 "hook_event_name": "beforeShellExecution",
@@ -138,7 +102,7 @@ class TestOnSubagentStop:
         assert role == "Mio"
 
     def test_blocks_missing_verdict(self) -> None:
-        result = _run_hook(
+        result = run_hook(
             "on_subagent_stop.py",
             {
                 "hook_event_name": "subagentStop",
@@ -216,7 +180,7 @@ class TestOnSubagentStop:
             encoding="utf-8",
         )
 
-        _run_hook(
+        run_hook(
             "on_subagent_stop.py",
             {
                 "hook_event_name": "subagentStop",
@@ -282,7 +246,7 @@ class TestOnSubagentStop:
             encoding="utf-8",
         )
 
-        _run_hook(
+        run_hook(
             "on_subagent_stop.py",
             {
                 "hook_event_name": "subagentStop",
@@ -323,9 +287,9 @@ class TestOnSubagentStop:
 
 class TestTeammateQualityCheck:
     def test_mio_approved(self) -> None:
-        result = _run_hook(
+        result = run_hook(
             "teammate_quality_check.py",
-            {"teammate_role": "Mio", "teammate_output": _mio_output("APPROVED")},
+            {"teammate_role": "Mio", "teammate_output": mio_output("APPROVED")},
         )
         assert result["decision"] == "approve"
 
@@ -335,7 +299,7 @@ class TestTeammateQualityCheck:
             "## Verdict\nAPPROVED\n\n"
             "## Checklist\n- [x] item 1\n- [x] item 2\n"
         )
-        result = _run_hook(
+        result = run_hook(
             "teammate_quality_check.py",
             {"teammate_role": "Mio", "teammate_output": output},
         )
@@ -344,22 +308,22 @@ class TestTeammateQualityCheck:
 
     def test_mio_rejects_approved_with_unchecked_item(self) -> None:
         marks = ["x"] * 6 + [" "]
-        result = _run_hook(
+        result = run_hook(
             "teammate_quality_check.py",
             {
                 "teammate_role": "Mio",
-                "teammate_output": _mio_output("APPROVED", checklist_marks=marks),
+                "teammate_output": mio_output("APPROVED", checklist_marks=marks),
             },
         )
         assert result["decision"] == "block"
         assert "unchecked" in result["reason"].lower() or "[ ]" in result["reason"]
 
     def test_mio_rejects_approved_with_must_fix_section(self) -> None:
-        result = _run_hook(
+        result = run_hook(
             "teammate_quality_check.py",
             {
                 "teammate_role": "Mio",
-                "teammate_output": _mio_output(
+                "teammate_output": mio_output(
                     "APPROVED",
                     extra="## Must-fix\n- `foo.py:1` — problem\n",
                 ),
@@ -373,7 +337,7 @@ class TestTeammateQualityCheck:
             "## Research summary\n- `.kon/research.md` — Cursor stop hook docs\n\n"
             "## Sources\n- https://cursor.com/docs/hooks — hook events\n"
         )
-        result = _run_hook(
+        result = run_hook(
             "teammate_quality_check.py",
             {"teammate_role": "Jun", "teammate_output": output},
         )
@@ -390,7 +354,7 @@ class TestTeammateQualityCheck:
             "## Linked issues\nFixes #42 — requirements met partially.\n\n"
             "## Must-fix\n- Add empty-email test\n"
         )
-        result = _run_hook(
+        result = run_hook(
             "teammate_quality_check.py",
             {"teammate_role": "Mio", "teammate_output": output},
         )
@@ -403,7 +367,7 @@ class TestTeammateQualityCheck:
             "## PR overview\nAuth email validation PR.\n\n"
             "## Code review\n- [ ] edge case missing\n"
         )
-        result = _run_hook(
+        result = run_hook(
             "teammate_quality_check.py",
             {"teammate_role": "Mio", "teammate_output": output},
         )
@@ -418,7 +382,7 @@ class TestTeammateQualityCheck:
             "## Discussion summary\n- reporter sees 500 on empty email\n\n"
             "## Open questions\n- (none)\n"
         )
-        result = _run_hook(
+        result = run_hook(
             "teammate_quality_check.py",
             {"teammate_role": "Jun", "teammate_output": output},
         )
@@ -431,7 +395,7 @@ class TestTeammateQualityCheck:
             "## Discussion summary\n- reporter sees 500\n\n"
             "## Open questions\n- (none)\n"
         )
-        result = _run_hook(
+        result = run_hook(
             "teammate_quality_check.py",
             {"teammate_role": "Jun", "teammate_output": output},
         )
@@ -500,7 +464,7 @@ class TestTeammateQualityCheck:
         ],
     )
     def test_session_plan_patterns_approve(self, role: str, output: str) -> None:
-        result = _run_hook(
+        result = run_hook(
             "teammate_quality_check.py",
             {"teammate_role": role, "teammate_output": output},
         )
@@ -527,7 +491,7 @@ class TestInitKonSession:
         monkeypatch.setenv("KON_DATA_DIR", str(data_root))
         monkeypatch.setenv("KON_ROOT", str(ROOT))
 
-        result = _run_hook(
+        result = run_hook(
             "init_kon_session.py",
             {
                 "prompt": "/kon:review check dashboard session tracking",
@@ -551,7 +515,7 @@ class TestInitKonSession:
         monkeypatch.setenv("KON_DATA_DIR", str(data_root))
         monkeypatch.setenv("KON_ROOT", str(ROOT))
 
-        result = _run_hook(
+        result = run_hook(
             "init_kon_session.py",
             {"prompt": "fix the bug in dashboard.py", "cwd": str(project)},
         )
@@ -566,7 +530,7 @@ class TestInitKonSession:
         monkeypatch.setenv("KON_DATA_DIR", str(data_root))
         monkeypatch.setenv("KON_ROOT", str(ROOT))
 
-        result = _run_hook(
+        result = run_hook(
             "init_kon_session.py",
             {"prompt": "/kon:todo add rate limiting", "cwd": str(project)},
         )
@@ -592,7 +556,7 @@ class TestInitKonSession:
             encoding="utf-8",
         )
 
-        result = _run_hook(
+        result = run_hook(
             "init_kon_session.py",
             {"prompt": "/kon:review just diff", "attachments": []},
         )
@@ -629,7 +593,7 @@ class TestInitKonSession:
             check=True,
         )
 
-        result = _run_hook(
+        result = run_hook(
             "init_kon_session.py",
             {
                 "prompt": "/kon:team implement feature",
@@ -654,7 +618,7 @@ class TestInitKonSession:
         monkeypatch.setenv("KON_DATA_DIR", str(data_root))
         monkeypatch.setenv("KON_ROOT", str(ROOT))
 
-        result = _run_hook(
+        result = run_hook(
             "ensure_project_dir.py",
             {"cwd": str(project)},
         )
@@ -696,7 +660,7 @@ class TestBeginAutoLog:
         monkeypatch.setenv("KON_ROOT", str(ROOT))
         sid = self._init_begin(project, data_root)
 
-        result = _run_hook(
+        result = run_hook(
             "log_begin_prompt.py",
             {"prompt": "can you check the failing test?", "cwd": str(project)},
         )
@@ -718,7 +682,7 @@ class TestBeginAutoLog:
         monkeypatch.setenv("KON_DATA_DIR", str(data_root))
         monkeypatch.setenv("KON_ROOT", str(ROOT))
 
-        result = _run_hook(
+        result = run_hook(
             "log_begin_prompt.py",
             {"prompt": "plain chat", "cwd": str(project)},
         )
@@ -736,7 +700,7 @@ class TestBeginAutoLog:
         monkeypatch.setenv("KON_ROOT", str(ROOT))
         sid = self._init_begin(project, data_root)
 
-        result = _run_hook(
+        result = run_hook(
             "log_begin_response.py",
             {
                 "text": "The test fails because KUBECONFIG is unset in CI.\n\nNext steps: …",

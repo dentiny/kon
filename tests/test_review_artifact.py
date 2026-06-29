@@ -11,6 +11,8 @@ from pathlib import Path
 
 import pytest
 
+from conftest import mio_output, run_hook
+
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "hooks"))
 
@@ -280,36 +282,6 @@ def test_maybe_write_review_team_appends_on_rereview() -> None:
         assert "## Update —" in text
 
 
-def _mio_output(verdict: str) -> str:
-    labels = [
-        "1. simplest correct implementation",
-        "2. requirement coverage",
-        "3. correctness proven",
-        "4. edge cases handled",
-        "5. no regression",
-        "6. no performance issue",
-        "7. consistent, safe, and tested",
-    ]
-    checklist = "\n".join(f"- [x] {label}" for label in labels)
-    return (
-        "## Loaded memory entries\n(no relevant entries)\n\n"
-        f"## Verdict\n{verdict}\n\n"
-        f"## Checklist\n{checklist}\n"
-    )
-
-
-def _run_hook(script: str, payload: dict) -> dict:
-    proc = subprocess.run(
-        [sys.executable, str(ROOT / "hooks" / script)],
-        input=json.dumps(payload),
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-    out = proc.stdout.strip()
-    return json.loads(out) if out else {}
-
-
 def test_hook_writes_review_file_for_review_command(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -336,15 +308,15 @@ def test_hook_writes_review_file_for_review_command(
         check=True,
     ).stdout.strip()
 
-    mio_output = _mio_output("APPROVED")
-    _run_hook(
+    review_body = mio_output("APPROVED")
+    run_hook(
         "on_subagent_stop.py",
         {
             "hook_event_name": "subagentStop",
             "status": "completed",
             "cwd": str(project),
             "task": "Mio reviewer agents/Mio.md",
-            "summary": mio_output,
+            "summary": review_body,
         },
     )
 

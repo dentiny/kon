@@ -11,6 +11,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from conftest import run_hook
+
 ROOT = Path(__file__).resolve().parent.parent
 HOOKS = ROOT / "hooks"
 
@@ -25,17 +27,6 @@ def _free_port() -> int:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.bind(("127.0.0.1", 0))
         return int(sock.getsockname()[1])
-
-
-def _run_hook(script: str, payload: dict | None = None) -> dict:
-    proc = subprocess.run(
-        [sys.executable, str(HOOKS / script)],
-        input=json.dumps(payload or {}),
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-    return json.loads(proc.stdout.strip())
 
 
 class TestDashboardAutostart:
@@ -99,7 +90,7 @@ class TestDashboardAutostart:
         monkeypatch.delenv("KON_DATA_DIR", raising=False)
         monkeypatch.delenv("KON_DASHBOARD_AUTO_START", raising=False)
 
-        result = _run_hook("start_dashboard.py")
+        result = run_hook("start_dashboard.py")
         assert result["ok"] is True
         assert result["dashboard"]["reason"] == "disabled"
 

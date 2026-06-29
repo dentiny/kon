@@ -13,7 +13,13 @@ Glossary of domain and technical terms used in this codebase.
 |---|---|
 | **Definition** | <precise meaning in this repo> |
 | **Usage** | <where/how it appears in practice> |
-| **See also** | `path:line`, related terms |
+| **Source** | [`path/to/file.py:42`](path/to/file.py:42) — clickable after build |
+
+**Reference code** — copy the real implementation from the repo (≤ 30 lines):
+
+```42:58:path/to/file.py
+<paste actual source here — must match path:line above>
+```
 
 *(Repeat for each concept — aim for 6–15 entries.)*
 
@@ -68,7 +74,13 @@ Common questions a new contributor would ask — **concepts and architecture onl
 
 ### Q: <question a newcomer would ask>
 
-<Answer in 2–4 sentences. Cite `path:line` or architecture evidence when helpful.>
+<Answer in 2–4 sentences.>
+
+**Source:** [`path/to/file.py:10`](path/to/file.py:10) (optional snippet below)
+
+```10:18:path/to/file.py
+<optional supporting code>
+```
 
 ### Q: <another question>
 

@@ -35,6 +35,152 @@ GUIDE_HTML = "understand-guide.html"
 GUIDE_PDF = "understand-guide.pdf"
 STUDY_HTML = "understand-study.html"
 
+_SOURCE_EXT = r"(?:py|md|json|sh|yaml|yml|tsx?|jsx?|rs|go|toml|mdc)"
+_PATH_LINE_RE = re.compile(
+    rf"(?P<path>[\w./-]+\.{_SOURCE_EXT})(?::(?P<line>\d+)(?:-(?P<end>\d+))?)?"
+)
+_MD_LINK_REF_RE = re.compile(
+    rf"\[([^\]]*)\]\((?P<path>[\w./-]+\.{_SOURCE_EXT}):(?P<line>\d+)(?:-(?P<end>\d+))?\)"
+)
+_BACKTICK_REF_RE = re.compile(
+    rf"`(?P<path>[\w./-]+\.{_SOURCE_EXT}):(?P<line>\d+)(?:-(?P<end>\d+))?`"
+)
+_FENCE_CITATION_RE = re.compile(
+    rf"^```(?P<start>\d+):(?P<end>\d+):(?P<path>[\w./-]+\.{_SOURCE_EXT})\s*$"
+)
+
+
+def _project_root_from_session(session_directory: Path) -> Path | None:
+    session_json = session_directory / "session.json"
+    if not session_json.is_file():
+        return None
+    try:
+        data = json.loads(session_json.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return None
+    raw = data.get("project_path")
+    if not raw:
+        return None
+    path = Path(str(raw)).expanduser()
+    return path.resolve() if path.is_dir() else None
+
+
+def ide_open_url(project_root: Path, rel_path: str, line: int) -> str:
+    """Open file at line in VS Code / Cursor."""
+    abs_path = (project_root / rel_path).resolve()
+    return f"vscode://file/{abs_path}:{line}:1"
+
+
+def _read_snippet(project_root: Path, rel_path: str, start: int, end: int) -> str | None:
+    source = (project_root / rel_path).resolve()
+    if not source.is_file():
+        return None
+    try:
+        lines = source.read_text(encoding="utf-8", errors="replace").splitlines()
+    except OSError:
+        return None
+    if start < 1 or start > len(lines):
+        return None
+    end = min(end, len(lines))
+    return "\n".join(lines[start - 1 : end])
+
+
+def enrich_markdown_snippets(md: str, project_root: Path | None) -> str:
+    """Insert reference code fences after Source lines when Jun omitted the snippet."""
+    if project_root is None:
+        return md
+    lines = md.splitlines()
+    out: list[str] = []
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        out.append(line)
+        match = _BACKTICK_REF_RE.search(line) or _MD_LINK_REF_RE.search(line)
+        if match and "Reference code" not in line:
+            path = match.group("path")
+            start = int(match.group("line"))
+            end = int(match.group("end") or start)
+            j = i + 1
+            while j < len(lines) and lines[j].strip() == "":
+                j += 1
+            has_fence = j < len(lines) and lines[j].strip().startswith("```")
+            if not has_fence:
+                snippet = _read_snippet(project_root, path, start, end)
+                if snippet:
+                    out.append("")
+                    out.append(f"```{start}:{end}:{path}")
+                    out.append(snippet)
+                    out.append("```")
+        i += 1
+    return "\n".join(out)
+
+
+def linkify_markdown_refs(md: str, project_root: Path | None) -> str:
+    """Turn path:line markdown links into vscode:// URLs for PDF/HTML."""
+    if project_root is None:
+        return md
+
+    def md_link_repl(match: re.Match[str]) -> str:
+        label, path, line_s, end_s = (
+            match.group(1),
+            match.group("path"),
+            match.group("line"),
+            match.group("end"),
+        )
+        line = int(line_s)
+        display = label.strip() or f"{path}:{line}" + (f"-{end_s}" if end_s else "")
+        url = ide_open_url(project_root, path, line)
+        return f"[{display}]({url})"
+
+    parts: list[str] = []
+    in_fence = False
+    for line in md.splitlines():
+        if line.strip().startswith("```"):
+            in_fence = not in_fence
+            parts.append(line)
+            continue
+        if in_fence:
+            parts.append(line)
+            continue
+        line = _MD_LINK_REF_RE.sub(md_link_repl, line)
+
+        def backtick_repl(m: re.Match[str]) -> str:
+            path, line_s, end_s = m.group("path"), m.group("line"), m.group("end")
+            line = int(line_s)
+            label = f"{path}:{line}" + (f"-{end_s}" if end_s else "")
+            return f"[`{label}`]({ide_open_url(project_root, path, line)})"
+
+        line = _BACKTICK_REF_RE.sub(backtick_repl, line)
+        parts.append(line)
+    return "\n".join(parts)
+
+
+def linkify_html_refs(content: str, project_root: Path | None) -> str:
+    """Add clickable IDE links to path:line mentions in generated HTML."""
+    if project_root is None:
+        return content
+
+    def repl(match: re.Match[str]) -> str:
+        path, line_s, end_s = match.group("path"), match.group("line"), match.group("end")
+        if not line_s:
+            return match.group(0)
+        line = int(line_s)
+        label = f"{path}:{line}" + (f"-{end_s}" if end_s else "")
+        url = html.escape(ide_open_url(project_root, path, line), quote=True)
+        return f'<a class="code-ref" href="{url}">{html.escape(label)}</a>'
+
+    # Inside <code> tags
+    def code_repl(match: re.Match[str]) -> str:
+        inner = match.group(1)
+        linked = _PATH_LINE_RE.sub(repl, inner)
+        if linked == inner:
+            return match.group(0)
+        return f"<code>{linked}</code>"
+
+    content = re.sub(r"<code>([^<]+)</code>", code_repl, content)
+    return content
+
+
 _STUDY_HTML_TEMPLATE = """\
 <!DOCTYPE html>
 <html lang="en">
@@ -80,6 +226,13 @@ button.primary { background: #1f3a5f; border-color: #388bfd; color: #79c0ff; }
 .choice.disabled { pointer-events: none; opacity: 0.85; }
 .explanation { margin-top: 16px; padding: 12px; border-radius: 8px;
                background: #21262d; color: #8b949e; font-size: 14px; }
+.snippet { margin-top: 12px; padding: 12px; border-radius: 8px; font-size: 12px;
+           font-family: ui-monospace, monospace; background: #0d1117; color: #e6edf3;
+           border: 1px solid #30363d; overflow-x: auto; white-space: pre-wrap; text-align: left; }
+.refs { margin-top: 10px; font-size: 12px; }
+.refs a { color: #79c0ff; text-decoration: none; }
+.refs a:hover { text-decoration: underline; }
+.card-back-wrap { width: 100%; text-align: left; }
 .score { font-size: 20px; font-weight: 600; margin: 16px 0; color: #79c0ff; }
 .filter { margin-bottom: 12px; }
 select { background: #21262d; color: #e6edf3; border: 1px solid #30363d;
@@ -121,6 +274,30 @@ select { background: #21262d; color: #e6edf3; border: 1px solid #30363d;
 </main>
 <script>
 const DATA = __DATA_JSON__;
+const PROJECT_ROOT = DATA.project_path || null;
+
+function ideUrl(path, line) {
+  if (!PROJECT_ROOT || !path || !line) return '#';
+  const abs = PROJECT_ROOT.replace(/\\/$/, '') + '/' + path.replace(/^\\/+/, '');
+  return 'vscode://file/' + abs + ':' + line + ':1';
+}
+
+function refLabel(r) {
+  return r.path + ':' + r.line + (r.endLine ? '-' + r.endLine : '');
+}
+
+function renderRefs(refs) {
+  if (!refs || !refs.length) return '';
+  return '<div class="refs">' + refs.map(r =>
+    '<a href="' + ideUrl(r.path, r.line) + '" target="_blank" rel="noopener">' + refLabel(r) + '</a>'
+  ).join(' · ') + '</div>';
+}
+
+function renderCode(code) {
+  if (!code) return '';
+  return '<pre class="snippet">' + code.replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</pre>';
+}
+
 const cards = DATA.flashcards || [];
 let fcList = [...cards];
 let fcIdx = 0;
@@ -142,7 +319,14 @@ function renderFc() {
   const c = list[fcIdx];
   const el = document.getElementById('fc-card');
   el.className = 'card' + (fcFlipped ? ' back' : '');
-  el.textContent = fcFlipped ? c.back : c.front;
+  if (fcFlipped) {
+    el.innerHTML = '<div class="card-back-wrap"><div>' + c.back + '</div>'
+      + renderRefs(c.refs) + renderCode(c.code) + '</div>';
+    el.style.cursor = 'default';
+  } else {
+    el.textContent = c.front;
+    el.style.cursor = 'pointer';
+  }
   document.getElementById('fc-progress').textContent = (fcIdx + 1) + ' / ' + list.length;
   document.getElementById('fc-tags').innerHTML = (c.tags || []).map(t =>
     '<span class="tag">' + t + '</span>').join('');
@@ -196,7 +380,8 @@ function renderQuiz() {
       });
       const ex = document.getElementById('qz-explain');
       ex.style.display = 'block';
-      ex.textContent = q.explanation || (correct ? 'Correct.' : 'Incorrect.');
+      ex.innerHTML = (q.explanation || (correct ? 'Correct.' : 'Incorrect.'))
+        + renderRefs(q.refs) + renderCode(q.code);
       document.getElementById('qz-next').style.display = 'inline-block';
     };
   });
@@ -247,8 +432,11 @@ table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 14px;
 th, td { border: 1px solid #d0d7de; padding: 8px 12px; text-align: left; }
 th { background: #f6f8fa; }
 code { background: #f6f8fa; padding: 2px 6px; border-radius: 4px; font-size: 90%; }
-pre { background: #f6f8fa; padding: 16px; overflow-x: auto; border-radius: 8px; }
+pre { background: #f6f8fa; padding: 16px; overflow-x: auto; border-radius: 8px;
+     border-left: 3px solid #0969da; }
 pre code { background: none; padding: 0; }
+a.code-ref { color: #0969da; text-decoration: none; }
+a.code-ref:hover { text-decoration: underline; }
 .mermaid { margin: 16px 0; }
 </style>
 </head>
@@ -404,9 +592,11 @@ def _pandoc_pdf(md_path: Path, pdf_path: Path, title: str) -> bool:
     return False
 
 
-def build_study_html(study_path: Path, out_path: Path) -> None:
+def build_study_html(study_path: Path, out_path: Path, project_root: Path | None) -> None:
     data = json.loads(study_path.read_text(encoding="utf-8"))
     title = str(data.get("title") or "Codebase study")
+    if project_root is not None:
+        data["project_path"] = str(project_root)
     for card in data.get("flashcards") or []:
         if "front" not in card or "back" not in card:
             raise SystemExit(f"flashcard missing front/back: {card!r}")
@@ -423,18 +613,25 @@ def build_study_html(study_path: Path, out_path: Path) -> None:
     out_path.write_text(page, encoding="utf-8")
 
 
-def build_guide_html(md_path: Path, out_path: Path) -> str:
-    md = md_path.read_text(encoding="utf-8")
+def build_guide_html(md_path: Path, out_path: Path, project_root: Path | None) -> str:
+    raw_md = md_path.read_text(encoding="utf-8")
+    md = linkify_markdown_refs(enrich_markdown_snippets(raw_md, project_root), project_root)
+    enriched_path = md_path.parent / "understand-guide.enriched.md"
+    enriched_path.write_text(md, encoding="utf-8")
     title = _extract_title(md, "Codebase guide")
-    if not _pandoc_html(md_path, out_path, title):
-        body = _md_to_html_simple(md)
+    if not _pandoc_html(enriched_path, out_path, title):
+        body = linkify_html_refs(_md_to_html_simple(md), project_root)
         page = _GUIDE_HTML_WRAP.replace("__TITLE__", html.escape(title)).replace("__BODY__", body)
         out_path.write_text(page, encoding="utf-8")
+    else:
+        content = linkify_html_refs(out_path.read_text(encoding="utf-8"), project_root)
+        out_path.write_text(content, encoding="utf-8")
     return title
 
 
 def build(session_directory: Path) -> dict[str, Path | None]:
     session_directory = session_directory.resolve()
+    project_root = _project_root_from_session(session_directory)
     guide_md = session_directory / GUIDE_MD
     study_json = session_directory / STUDY_JSON
     if not guide_md.is_file():
@@ -446,9 +643,11 @@ def build(session_directory: Path) -> dict[str, Path | None]:
     guide_pdf = session_directory / GUIDE_PDF
     study_html = session_directory / STUDY_HTML
 
-    title = build_guide_html(guide_md, guide_html)
-    build_study_html(study_json, study_html)
-    pdf_ok = _pandoc_pdf(guide_md, guide_pdf, title)
+    title = build_guide_html(guide_md, guide_html, project_root)
+    build_study_html(study_json, study_html, project_root)
+    enriched_md = session_directory / "understand-guide.enriched.md"
+    pdf_source = enriched_md if enriched_md.is_file() else guide_md
+    pdf_ok = _pandoc_pdf(pdf_source, guide_pdf, title)
 
     return {
         "guide_md": guide_md,

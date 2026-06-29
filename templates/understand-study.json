@@ -1,16 +1,21 @@
 {
   "title": "Codebase study: <project name>",
+  "project_path": "<filled by build script from session.json — optional in author draft>",
   "flashcards": [
     {
       "id": "fc-1",
       "front": "What is a <concept> in this codebase?",
-      "back": "<definition>. See `path:line`.",
+      "back": "<definition>.",
+      "refs": [{"path": "path/to/file.py", "line": 42, "endLine": 50}],
+      "code": "<optional: same snippet as guide — ≤ 20 lines>",
       "tags": ["concept"]
     },
     {
       "id": "fc-2",
       "front": "Where is <behaviour> implemented?",
-      "back": "`path:line` — <one-line explanation>.",
+      "back": "<one-line explanation>.",
+      "refs": [{"path": "scripts/kon_session.py", "line": 404}],
+      "code": "def cmd_wait_for_user(...):\n    ...",
       "tags": ["implementation"]
     }
   ],
@@ -26,6 +31,7 @@
       ],
       "answer": 0,
       "explanation": "Evidence: …",
+      "refs": [{"path": "scripts/dashboard.py", "line": 1}],
       "tags": ["concept", "architecture"]
     },
     {
@@ -33,7 +39,9 @@
       "question": "Which file defines wait-for-user?",
       "choices": ["scripts/dashboard.py", "scripts/kon_session.py", "hooks/init_kon_session.py", "agents/Mugi.md"],
       "answer": 1,
-      "explanation": "`cmd_wait_for_user` in kon_session.py sets checkpoint.ts.",
+      "explanation": "`cmd_wait_for_user` sets checkpoint.ts.",
+      "refs": [{"path": "scripts/kon_session.py", "line": 404, "endLine": 422}],
+      "code": "def cmd_wait_for_user(args: argparse.Namespace) -> None:\n    ...",
       "tags": ["implementation"]
     }
   ]

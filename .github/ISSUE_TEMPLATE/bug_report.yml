@@ -1,0 +1,113 @@
+name: Bug report
+description: Something is broken in kon (hooks, commands, dashboard, setup, …)
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for filing a bug. If you use kon in Cursor, `/kon:hunt` can produce a read-only analysis; `/kon:debug` runs an investigation + fix workflow.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What is broken, in one or two sentences?
+      placeholder: Dashboard shows undefined for session dots after /kon:team completes.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Which part of kon is affected?
+      options:
+        - Hooks / session tracking
+        - Dashboard
+        - Setup / install (`setup_cursor.sh`, paths)
+        - Agent / command / skill markdown
+        - Scripts (`kon_session.py`, `kon_todo.py`, …)
+        - Cursor adapter
+        - Codex adapter
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: command
+    attributes:
+      label: kon command (if applicable)
+      placeholder: e.g. /kon:team, /kon:debug, /kon:begin
+    validations:
+      required: false
+
+  - type: input
+    id: session-id
+    attributes:
+      label: Session ID (if applicable)
+      description: From the dashboard or `~/.kon/projects/<repo>/sessions/`
+      placeholder: e.g. 20260629-211416-my-task
+    validations:
+      required: false
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include error messages verbatim when possible.
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. …
+        2. …
+        3. …
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Python version, Cursor version, kon commit or branch if known.
+      placeholder: |
+        - OS: macOS 15
+        - Python: 3.12
+        - Cursor: 0.x
+        - kon: main @ abc1234
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - critical
+        - high
+        - medium
+        - low
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / commands (optional)
+      description: Failing pytest command, hook log path (`~/.kon/logs/`), or stderr output.
+      render: shell
+    validations:
+      required: false

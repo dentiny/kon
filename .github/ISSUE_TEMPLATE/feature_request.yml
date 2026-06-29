@@ -1,0 +1,57 @@
+name: Feature request
+description: Suggest an improvement or new capability for kon
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe the problem and what you'd like kon to do. For design-only discussion, `/kon:design` in a kon session can explore trade-offs before implementation.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / use case
+      description: What are you trying to accomplish? Who benefits?
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: How should kon behave? Commands, hooks, agents, docs — whatever fits.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Primary area
+      options:
+        - New or changed `/kon:*` command
+        - Agent persona or skill
+        - Hook / quality gate
+        - Dashboard
+        - Setup / adapter (Cursor, Codex, other harness)
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered (optional)
+      description: Other approaches, workarounds, or tools you looked at.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      options:
+        - label: I am willing to open a PR for this (guidance welcome)
+          required: false

@@ -28,6 +28,11 @@
         "command": "python3 $KON_ROOT/hooks/on_subagent_stop.py"
       }
     ],
+    "preCompact": [
+      {
+        "command": "python3 $KON_ROOT/hooks/on_pre_compact.py"
+      }
+    ],
     "afterAgentResponse": [
       {
         "command": "python3 $KON_ROOT/hooks/log_begin_response.py"

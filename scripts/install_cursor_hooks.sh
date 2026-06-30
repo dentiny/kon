@@ -37,6 +37,7 @@ KON_HOOK_SCRIPTS = [
     "no_git_write.py",
     "log_begin_response.py",
     "on_subagent_stop.py",
+    "on_pre_compact.py",
 ]
 
 # Removed hooks — stripped from ~/.cursor/hooks.json on every install/upgrade.
@@ -56,6 +57,7 @@ entries = [
     ("beforeShellExecution", "no_git_write.py"),
     ("afterAgentResponse", "log_begin_response.py"),
     ("subagentStop", "on_subagent_stop.py"),
+    ("preCompact", "on_pre_compact.py"),
 ]
 
 if hooks_path.is_file():

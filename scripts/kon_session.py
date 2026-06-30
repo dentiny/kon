@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import datetime
 import json
+import os
 import re
 import sys
 from collections.abc import Iterator
@@ -21,11 +22,16 @@ from _session_paths import (  # noqa: E402
     session_dir,
     session_json_path,
 )
+from _context_profile import (  # noqa: E402
+    resolve_context_window_size,
+    task_context_snapshot,
+)
 from _token_estimate import SOURCE as USAGE_SOURCE  # noqa: E402
 
 _BEGIN_COMMAND = "/kon:begin"
 _TASK_AGENT_SCOPE_DEFAULT = "impl-loop"
 _IMPL_LOOP_AGENTS = frozenset({"Yui", "Sawako", "Mio"})
+_DEFAULT_TASK_CONTEXT_THRESHOLD = 0.8
 
 # One-shot commands: auto-complete when the sole agent finishes (no dashboard clutter).
 _EPHEMERAL_COMMANDS = frozenset(
@@ -309,6 +315,7 @@ def cmd_complete_agent(args: argparse.Namespace) -> None:
             last["usage"] = usage
         data["log"] = log
         _recompute_usage_totals(data)
+        _maybe_update_task_context(data, agent, usage or last.get("usage"))
         _save(path, data)
         return
 
@@ -319,6 +326,7 @@ def cmd_complete_agent(args: argparse.Namespace) -> None:
     log.append(entry)
     data["log"] = log
     _recompute_usage_totals(data)
+    _maybe_update_task_context(data, agent, usage)
     _save(path, data)
 
 
@@ -531,7 +539,7 @@ def cmd_get_task_agent(args: argparse.Namespace) -> None:
 
 
 def cmd_clear_task_agents(args: argparse.Namespace) -> None:
-    """Drop stored Task ids for a scope (e.g. after Mio approves a milestone)."""
+    """Drop stored Task ids for a scope (manual or after context budget exceeded)."""
     path, data = _load(args.id, args.project)
     scope = _task_agent_scope(args)
     task_agents = data.get("task_agents") or {}
@@ -542,6 +550,132 @@ def cmd_clear_task_agents(args: argparse.Namespace) -> None:
     else:
         data.pop("task_agents", None)
     _save(path, data)
+
+
+def _task_context_threshold() -> float:
+    raw = os.environ.get("KON_TASK_CONTEXT_THRESHOLD", "").strip()
+    if raw:
+        value = float(raw)
+        return min(1.0, max(0.1, value))
+    return _DEFAULT_TASK_CONTEXT_THRESHOLD
+
+
+def _latest_agent_context_tokens(data: dict, agent: str) -> int:
+    """Best-effort context size from the latest subagentStop usage for this agent."""
+    ctx = (data.get("task_context") or {}).get(agent)
+    if isinstance(ctx, dict) and ctx.get("tokens") is not None:
+        return int(ctx["tokens"])
+    for entry in reversed(data.get("log") or []):
+        if entry.get("agent") != agent:
+            continue
+        usage = entry.get("usage")
+        if not usage:
+            continue
+        return int(usage.get("input_tokens", 0)) + int(usage.get("output_tokens", 0))
+    return 0
+
+
+def _agent_usage_percent(
+    data: dict,
+    agent: str,
+    *,
+    window_size: int | None,
+) -> float | None:
+    ctx = (data.get("task_context") or {}).get(agent)
+    if isinstance(ctx, dict) and ctx.get("usage_percent") is not None:
+        try:
+            return float(ctx["usage_percent"])
+        except (TypeError, ValueError):
+            pass
+    if not window_size:
+        return None
+    tokens = _latest_agent_context_tokens(data, agent)
+    if tokens <= 0:
+        return None
+    return tokens / window_size * 100
+
+
+def _maybe_update_task_context(
+    data: dict,
+    agent: str,
+    usage: dict | None,
+) -> None:
+    if agent not in _IMPL_LOOP_AGENTS or not usage:
+        return
+    tokens = int(usage.get("input_tokens", 0)) + int(usage.get("output_tokens", 0))
+    window = resolve_context_window_size(data)
+    snapshot = task_context_snapshot(tokens=tokens, window_size=window)
+    bucket = data.setdefault("task_context", {})
+    bucket[agent] = {**snapshot, "ts": _ts()}
+    if window and not data.get("context_window_size"):
+        data["context_window_size"] = window
+
+
+def should_refresh_task_agents(
+    data: dict,
+    *,
+    scope: str = _TASK_AGENT_SCOPE_DEFAULT,
+    budget: int | None = None,
+    threshold: float | None = None,
+) -> bool:
+    """True when impl-loop Task ids should be cleared before the next milestone."""
+    bucket = _task_agent_bucket(data, scope)
+    if not bucket:
+        return False
+    window = resolve_context_window_size(data, budget_override=budget)
+    if window is None:
+        return False
+    thresh = threshold if threshold is not None else _task_context_threshold()
+    thresh_pct = thresh * 100
+    token_limit = int(window * thresh)
+    for agent in _IMPL_LOOP_AGENTS:
+        if agent not in bucket:
+            continue
+        pct = _agent_usage_percent(data, agent, window_size=window)
+        if pct is not None and pct >= thresh_pct:
+            return True
+        if _latest_agent_context_tokens(data, agent) >= token_limit:
+            return True
+    return False
+
+
+def cmd_should_refresh_task_agents(args: argparse.Namespace) -> None:
+    """Print 'refresh' or 'keep' — orchestrator clears task ids only on 'refresh'."""
+    _path, data = _load(args.id, args.project)
+    threshold = args.threshold if args.threshold is not None else _task_context_threshold()
+    if should_refresh_task_agents(
+        data,
+        scope=_task_agent_scope(args),
+        budget=args.budget,
+        threshold=threshold,
+    ):
+        print("refresh")
+    else:
+        print("keep")
+
+
+def cmd_maybe_clear_task_agents(args: argparse.Namespace) -> None:
+    """Clear task ids only when should-refresh-task-agents would print 'refresh'."""
+    path, data = _load(args.id, args.project)
+    threshold = args.threshold if args.threshold is not None else _task_context_threshold()
+    if should_refresh_task_agents(
+        data,
+        scope=_task_agent_scope(args),
+        budget=args.budget,
+        threshold=threshold,
+    ):
+        scope = _task_agent_scope(args)
+        task_agents = data.get("task_agents") or {}
+        if scope in task_agents:
+            del task_agents[scope]
+        if task_agents:
+            data["task_agents"] = task_agents
+        else:
+            data.pop("task_agents", None)
+        _save(path, data)
+        print("cleared")
+    else:
+        print("kept")
 
 
 def main() -> None:
@@ -706,7 +840,7 @@ def main() -> None:
 
     clear_task = sub.add_parser(
         "clear-task-agents",
-        help="Clear stored Task ids for a scope (after milestone approved)",
+        help="Clear stored Task ids for a scope (manual or forced refresh)",
     )
     clear_task.add_argument("--id", required=True)
     clear_task.add_argument(
@@ -715,6 +849,50 @@ def main() -> None:
         help=f"Loop scope (default: {_TASK_AGENT_SCOPE_DEFAULT})",
     )
     clear_task.set_defaults(func=cmd_clear_task_agents)
+
+    should_refresh = sub.add_parser(
+        "should-refresh-task-agents",
+        help="Print 'refresh' or 'keep' based on estimated Task context usage",
+    )
+    should_refresh.add_argument("--id", required=True)
+    should_refresh.add_argument(
+        "--scope",
+        default=_TASK_AGENT_SCOPE_DEFAULT,
+        help=f"Loop scope (default: {_TASK_AGENT_SCOPE_DEFAULT})",
+    )
+    should_refresh.add_argument(
+        "--budget",
+        type=int,
+        default=None,
+        help=(
+            "Context token budget override "
+            "(default: KON_TASK_CONTEXT_BUDGET, config, session, or preCompact profile)"
+        ),
+    )
+    should_refresh.add_argument(
+        "--threshold",
+        type=float,
+        default=None,
+        help=(
+            f"Refresh when any agent >= budget * threshold "
+            f"(default: {_DEFAULT_TASK_CONTEXT_THRESHOLD})"
+        ),
+    )
+    should_refresh.set_defaults(func=cmd_should_refresh_task_agents)
+
+    maybe_clear = sub.add_parser(
+        "maybe-clear-task-agents",
+        help="Clear task ids only when context budget exceeded; prints 'cleared' or 'kept'",
+    )
+    maybe_clear.add_argument("--id", required=True)
+    maybe_clear.add_argument(
+        "--scope",
+        default=_TASK_AGENT_SCOPE_DEFAULT,
+        help=f"Loop scope (default: {_TASK_AGENT_SCOPE_DEFAULT})",
+    )
+    maybe_clear.add_argument("--budget", type=int, default=None)
+    maybe_clear.add_argument("--threshold", type=float, default=None)
+    maybe_clear.set_defaults(func=cmd_maybe_clear_task_agents)
 
     args = parser.parse_args()
     args.func(args)

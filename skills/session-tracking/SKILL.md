@@ -123,12 +123,14 @@ in_progress  →  waiting  →  completed
 }
 ```
 
-`task_agents` — Cursor Task subagent ids for **resume** within the implement→review loop (see **Implementation loop — Task resume** in [`skills/teammate-flow`](../teammate-flow/SKILL.md)). Scope `impl-loop` is cleared when Mio approves a milestone. Managed via:
+`task_agents` — Cursor Task subagent ids for **resume** within the implement→review loop (see **Implementation loop — Task resume** in [`skills/teammate-flow`](../teammate-flow/SKILL.md)). Ids are **kept across milestones** until estimated context usage exceeds the observed window (from Cursor `preCompact`) or resume fails. Managed via:
 
 ```bash
 python3 $KON_ROOT/scripts/kon_session.py set-task-agent --id "$SID" --agent Mio --task-id "<id>"
 python3 $KON_ROOT/scripts/kon_session.py get-task-agent --id "$SID" --agent Mio
-python3 $KON_ROOT/scripts/kon_session.py clear-task-agents --id "$SID"
+python3 $KON_ROOT/scripts/kon_session.py should-refresh-task-agents --id "$SID"   # refresh | keep
+python3 $KON_ROOT/scripts/kon_session.py maybe-clear-task-agents --id "$SID"     # cleared | kept
+python3 $KON_ROOT/scripts/kon_session.py clear-task-agents --id "$SID"           # manual force
 ```
 
 `steps_failed` — agents that hit an unresolvable error.

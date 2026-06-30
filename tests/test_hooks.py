@@ -712,3 +712,27 @@ class TestBeginAutoLog:
         data = json.loads(_session_json_path(data_root, sid).read_text())
         assert data["log"][-1]["agent"] == "Assistant"
         assert data["log"][-1]["summary"] == "The test fails because KUBECONFIG is unset in CI."
+
+
+class TestPreCompactHook:
+    def test_records_context_profile(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        data_root = tmp_path / "kon-data"
+        monkeypatch.setenv("KON_DATA_DIR", str(data_root))
+        monkeypatch.setenv("KON_ROOT", str(ROOT))
+
+        result = run_hook(
+            "on_pre_compact.py",
+            {
+                "hook_event_name": "preCompact",
+                "context_window_size": 128000,
+                "context_tokens": 110000,
+                "context_usage_percent": 85.9,
+                "trigger": "auto",
+            },
+        )
+        assert result.get("decision") == "approve"
+
+        profile = json.loads((data_root / "context_profile.json").read_text())
+        assert profile["context_window_size"] == 128000
+        assert profile["context_tokens"] == 110000
+        assert profile["source"] == "preCompact"

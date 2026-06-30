@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import json
 import subprocess
+from pathlib import Path
 
 import pytest
 
@@ -726,3 +728,322 @@ def test_task_agent_set_get_clear() -> None:
         run_kon_session(["clear-task-agents", "--id", sid], env, project)
         data = load_session(sessions, sid)
         assert "task_agents" not in data
+
+
+def test_should_refresh_task_agents_keep_when_under_budget() -> None:
+    tmp, project, env, sessions = isolated_kon_env()
+    with tmp:
+        sid = run_kon_session(
+            ["init", "--command", "/kon:team", "--task", "context budget"],
+            env,
+            project,
+        )
+        run_kon_session(
+            [
+                "set-task-agent",
+                "--id",
+                sid,
+                "--agent",
+                "Yui",
+                "--task-id",
+                "yui-task-1",
+            ],
+            env,
+            project,
+        )
+        run_kon_session(
+            [
+                "complete-agent",
+                "--id",
+                sid,
+                "--agent",
+                "Yui",
+                "--summary",
+                "m1 done",
+                "--input-tokens",
+                "10000",
+                "--output-tokens",
+                "5000",
+            ],
+            env,
+            project,
+        )
+        verdict = run_kon_session(
+            [
+                "should-refresh-task-agents",
+                "--id",
+                sid,
+                "--budget",
+                "200000",
+                "--threshold",
+                "0.8",
+            ],
+            env,
+            project,
+        )
+        assert verdict == "keep"
+        assert load_session(sessions, sid)["task_agents"]["impl-loop"]["Yui"] == "yui-task-1"
+
+
+def test_should_refresh_task_agents_refresh_when_over_threshold() -> None:
+    tmp, project, env, sessions = isolated_kon_env()
+    with tmp:
+        sid = run_kon_session(
+            ["init", "--command", "/kon:team", "--task", "context budget"],
+            env,
+            project,
+        )
+        run_kon_session(
+            [
+                "set-task-agent",
+                "--id",
+                sid,
+                "--agent",
+                "Mio",
+                "--task-id",
+                "mio-task-1",
+            ],
+            env,
+            project,
+        )
+        run_kon_session(
+            [
+                "complete-agent",
+                "--id",
+                sid,
+                "--agent",
+                "Mio",
+                "--summary",
+                "review done",
+                "--input-tokens",
+                "150000",
+                "--output-tokens",
+                "10000",
+            ],
+            env,
+            project,
+        )
+        verdict = run_kon_session(
+            [
+                "should-refresh-task-agents",
+                "--id",
+                sid,
+                "--budget",
+                "200000",
+                "--threshold",
+                "0.8",
+            ],
+            env,
+            project,
+        )
+        assert verdict == "refresh"
+
+
+def test_maybe_clear_task_agents_keeps_ids_under_budget() -> None:
+    tmp, project, env, sessions = isolated_kon_env()
+    with tmp:
+        sid = run_kon_session(
+            ["init", "--command", "/kon:team", "--task", "maybe clear"],
+            env,
+            project,
+        )
+        run_kon_session(
+            [
+                "set-task-agent",
+                "--id",
+                sid,
+                "--agent",
+                "Sawako",
+                "--task-id",
+                "sawako-1",
+            ],
+            env,
+            project,
+        )
+        run_kon_session(
+            [
+                "complete-agent",
+                "--id",
+                sid,
+                "--agent",
+                "Sawako",
+                "--summary",
+                "cleaned",
+                "--input-tokens",
+                "1000",
+                "--output-tokens",
+                "500",
+            ],
+            env,
+            project,
+        )
+        result = run_kon_session(
+            ["maybe-clear-task-agents", "--id", sid, "--budget", "100000"],
+            env,
+            project,
+        )
+        assert result == "kept"
+        assert load_session(sessions, sid)["task_agents"]["impl-loop"]["Sawako"] == "sawako-1"
+
+
+def test_maybe_clear_task_agents_clears_when_over_budget() -> None:
+    tmp, project, env, sessions = isolated_kon_env()
+    with tmp:
+        sid = run_kon_session(
+            ["init", "--command", "/kon:team", "--task", "maybe clear"],
+            env,
+            project,
+        )
+        run_kon_session(
+            [
+                "set-task-agent",
+                "--id",
+                sid,
+                "--agent",
+                "Yui",
+                "--task-id",
+                "yui-heavy",
+            ],
+            env,
+            project,
+        )
+        run_kon_session(
+            [
+                "complete-agent",
+                "--id",
+                sid,
+                "--agent",
+                "Yui",
+                "--summary",
+                "large context",
+                "--input-tokens",
+                "90000",
+                "--output-tokens",
+                "10000",
+            ],
+            env,
+            project,
+        )
+        result = run_kon_session(
+            [
+                "maybe-clear-task-agents",
+                "--id",
+                sid,
+                "--budget",
+                "100000",
+                "--threshold",
+                "0.8",
+            ],
+            env,
+            project,
+        )
+        assert result == "cleared"
+        assert "task_agents" not in load_session(sessions, sid)
+
+
+def test_should_refresh_keeps_when_context_window_unknown() -> None:
+    """Without observed window or --budget, never refresh (fail-open on agent retention)."""
+    tmp, project, env, sessions = isolated_kon_env()
+    with tmp:
+        sid = run_kon_session(
+            ["init", "--command", "/kon:team", "--task", "unknown window"],
+            env,
+            project,
+        )
+        run_kon_session(
+            [
+                "set-task-agent",
+                "--id",
+                sid,
+                "--agent",
+                "Mio",
+                "--task-id",
+                "mio-heavy",
+            ],
+            env,
+            project,
+        )
+        run_kon_session(
+            [
+                "complete-agent",
+                "--id",
+                sid,
+                "--agent",
+                "Mio",
+                "--summary",
+                "large context",
+                "--input-tokens",
+                "150000",
+                "--output-tokens",
+                "10000",
+            ],
+            env,
+            project,
+        )
+        verdict = run_kon_session(
+            ["should-refresh-task-agents", "--id", sid],
+            env,
+            project,
+        )
+        assert verdict == "keep"
+
+
+def test_should_refresh_uses_context_profile() -> None:
+    tmp, project, env, sessions = isolated_kon_env()
+    with tmp:
+        data_dir = Path(env["KON_DATA_DIR"])
+        data_dir.mkdir(parents=True, exist_ok=True)
+        profile = data_dir / "context_profile.json"
+        profile.write_text(
+            json.dumps({"context_window_size": 100000, "source": "preCompact"}),
+            encoding="utf-8",
+        )
+        sid = run_kon_session(
+            ["init", "--command", "/kon:team", "--task", "profile window"],
+            env,
+            project,
+        )
+        run_kon_session(
+            [
+                "set-task-agent",
+                "--id",
+                sid,
+                "--agent",
+                "Yui",
+                "--task-id",
+                "yui-heavy",
+            ],
+            env,
+            project,
+        )
+        run_kon_session(
+            [
+                "complete-agent",
+                "--id",
+                sid,
+                "--agent",
+                "Yui",
+                "--summary",
+                "heavy",
+                "--input-tokens",
+                "85000",
+                "--output-tokens",
+                "5000",
+            ],
+            env,
+            project,
+        )
+        session = load_session(sessions, sid)
+        assert session["task_context"]["Yui"]["usage_percent"] == 90.0
+        verdict = run_kon_session(
+            [
+                "should-refresh-task-agents",
+                "--id",
+                sid,
+                "--threshold",
+                "0.8",
+            ],
+            env,
+            project,
+        )
+        assert verdict == "refresh"

@@ -8,6 +8,8 @@ description: This skill should be used by the kon orchestrator at the start of e
 **Owner**: orchestrator
 **Consumers**: all `/kon:*` commands (including `/kon:ask`)
 
+**Core principles (always):** follow [`skills/core-principles`](core-principles/SKILL.md) — record session state accurately; don't hide blocked or failed stages.
+
 The orchestrator writes and updates a session file so `scripts/dashboard.py`
 can display live status and a clickable log of every run.
 

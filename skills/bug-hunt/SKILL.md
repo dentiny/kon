@@ -8,6 +8,8 @@ description: This skill should be used for /kon:hunt — read-only bug analysis 
 **Owner**: 🎸 Azusa
 **Consumers**: [`/kon:hunt`](../commands/hunt.md)
 
+**Core principles (always):** follow [`skills/core-principles`](core-principles/SKILL.md) — first principles (don't hide the issue); simplest, most concise correct solution.
+
 Static bug analysis from the codebase. **Read-only** — no file edits, no fixes, no
 mutating shell. Output includes **best-effort** repro SQL and test/command
 suggestions the user can run themselves.

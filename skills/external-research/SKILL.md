@@ -9,6 +9,8 @@ description: When to spawn 📚 Jun for external lookup — WebSearch/docs/APIs 
 **Consumers**: [`/kon:research`](../commands/research.md), [`/kon:team`](../commands/team.md),
 [`/kon:team`](../commands/team.md), [`/kon:design`](../commands/design.md)
 
+**Core principles (always):** follow [`skills/core-principles`](core-principles/SKILL.md) — cite sources; say "docs silent on X" instead of guessing; concise structured report only.
+
 ## Azusa vs Jun
 
 | Question type | Agent | Artifact |

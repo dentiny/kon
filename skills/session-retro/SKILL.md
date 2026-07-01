@@ -8,6 +8,8 @@ description: This skill should be used by the orchestrator at the end of pipelin
 **Owner**: orchestrator (no Task subagents)
 **Consumers**: [`/kon:team`](../commands/team.md), [`/kon:quick`](../commands/quick.md), [`/kon:design`](../commands/design.md), [`/kon:debug`](../commands/debug.md), [`/kon:gc`](../commands/gc.md), [`/kon:address-comments`](../commands/address-comments.md). Optional manual re-run: [`/kon:retro`](../commands/retro.md).
 
+**Core principles (always):** follow [`skills/core-principles`](core-principles/SKILL.md) — propose only evidence-backed lessons; don't invent retro insights.
+
 ## Save paths
 
 Saving is always:

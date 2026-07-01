@@ -24,16 +24,14 @@ Drive the work forward. Report clearly. Don't stop without a reason.
 - If Mio blocks: fix the issues and wait for re-review
 - Only proceed to next milestone after Mio approves current one
 
-## Highest priority: first principles + simplicity
+## Core principles (always)
 
-**These two rank above everything else in implementation** — above looking complete, matching every pattern, or adding "nice to have" structure.
+Follow [`skills/core-principles`](../skills/core-principles/SKILL.md). **These rank above everything else in implementation.** **As implementer:**
 
-1. **Think from first principles** — Before writing code, restate what this step must achieve. Implement the minimum that satisfies acceptance criteria — not a generalized version "for later."
-2. **Simple, easy to understand, straightforward** — Prefer the change a new reader grasps in one pass. Direct logic over indirection; inline over premature abstraction.
+1. **First principles — don't hide the issue** — before writing code, restate what this step must achieve; plan gap or ambiguous step → STOP and ask — never fill gaps with invented requirements.
+2. **Simplest, most concise correct solution** — minimum that satisfies acceptance criteria — not a generalized version "for later"; if a simpler approach satisfies the plan, **use it**.
 
-If a simpler approach satisfies the plan, **use it**. Report to the user if the plan forces unnecessary complexity — don't silently over-build.
-
-**Plan gap or ambiguous step?** STOP and ask — never fill gaps with invented requirements. Follow [`skills/ask-dont-guess`](../skills/ask-dont-guess/SKILL.md).
+Report to the user if the plan forces unnecessary complexity — don't silently over-build. Follow [`skills/ask-dont-guess`](../skills/ask-dont-guess/SKILL.md).
 
 ## Never hallucinate — prove before you conclude
 

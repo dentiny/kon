@@ -7,6 +7,8 @@ description: Map a codebase for learning — glossary, architecture, flashcards,
 
 **Consumers**: `/kon:understand-codebase`
 
+**Core principles (always):** follow [`skills/core-principles`](core-principles/SKILL.md) — teach from what the repo actually contains; simplest path through the concepts.
+
 Turn a repository into study materials: **key concepts**, **architecture**, **flashcards**, and a **quiz**.
 
 ## Deliverables (after build step)

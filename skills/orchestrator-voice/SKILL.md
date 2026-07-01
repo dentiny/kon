@@ -9,6 +9,8 @@ description: This skill should be used by the kon orchestrator on every /kon com
 **Consumers**: all `/kon:*` commands (used alongside [`skills/narration`](https://github.com/dentiny/kon/blob/main/skills/narration/SKILL.md) —
 narration governs the narrator-beat ritual, this skill governs the conversational body)
 
+**Core principles (always):** follow [`skills/core-principles`](core-principles/SKILL.md) — first principles (don't hide the issue); simplest, most concise correct solution.
+
 ## Widget discipline
 
 **AskUserQuestion only when options are converged and the user is just deciding.**

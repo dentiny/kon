@@ -8,6 +8,8 @@ description: This skill should be used when the user passes --yolo to any kon co
 **Owner**: orchestrator
 **Consumers**: any `/kon:*` command when the `--yolo` flag is present
 
+**Core principles (always):** follow [`skills/core-principles`](core-principles/SKILL.md) — YOLO does not waive first principles or simplicity; it only skips confirmation checkpoints.
+
 The user set the task and stepped away. Run it. Don't interrupt them for anything
 that has a reasonable default or can be retried automatically.
 

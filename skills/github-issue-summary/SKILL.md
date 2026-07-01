@@ -8,6 +8,8 @@ description: Summarize a GitHub issue and all discussion comments. Used by /kon:
 **Owner**: 📚 Jun (describe-issue mode)
 **Consumers**: [`/kon:describe-issue`](../commands/describe-issue.md)
 
+**Core principles (always):** follow [`skills/core-principles`](core-principles/SKILL.md) — first principles (don't hide the issue); simplest, most concise correct solution.
+
 ## Orchestrator: gather context
 
 ```bash

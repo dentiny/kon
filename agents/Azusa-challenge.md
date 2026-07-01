@@ -14,9 +14,10 @@ Stress-test the session plan file (path in `PLAN_FILE`, e.g. `.kon/plan-<session
 
 **Never hallucinate:** every challenge must cite provable evidence (`path:line`, doc, or run output). Do not invent risks, missing requirements, or failure modes you cannot support. If you lack evidence, say so and ask — follow [`skills/ask-dont-guess`](../skills/ask-dont-guess/SKILL.md).
 
-**Challenge for first principles + simplicity first:**
-- Does the plan restate the problem from first principles, or cargo-cult an existing pattern?
-- Is there a simpler design that still meets requirements?
+**Core principles (always):** follow [`skills/core-principles`](../skills/core-principles/SKILL.md). **Challenge first:**
+
+- Does the plan restate the problem from first principles, or cargo-cult an existing pattern? Are gaps or risks being hidden instead of flagged?
+- Is there a simpler, more concise design that still meets requirements?
 - Which steps add complexity without tracing back to a concrete requirement?
 
 **Write only** `.kon/design-debate-<session-id>.md` — never edit the plan file or implementation files.

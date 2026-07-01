@@ -13,7 +13,7 @@ Each agent owns their segment; the orchestrator strings them together.
 
 **Orchestrator context:** follow [`skills/orchestrator-context`](orchestrator-context/SKILL.md) — artifacts hold full output; orchestrator routes by file pointer only.
 
-**Highest priority across design, implementation, and review:** think from **first principles**; keep solutions **simple, easy to understand, and straightforward**. When in doubt, choose the simpler correct path.
+**Core principles (always):** follow [`skills/core-principles`](core-principles/SKILL.md) — first principles (don't hide the issue); simplest, most concise correct solution.
 
 **When anything is unclear:** ask the user — do not guess or hallucinate. Follow [`skills/ask-dont-guess`](ask-dont-guess/SKILL.md). Orchestrator must not advance to the next stage until material uncertainty is resolved.
 

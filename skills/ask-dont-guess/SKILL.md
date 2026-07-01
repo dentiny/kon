@@ -8,6 +8,8 @@ description: When requirements, code behavior, root cause, or review scope is un
 **Owner**: all agents + orchestrator
 **Consumers**: every `/kon:*` command and every workflow stage (explore, research, plan, design debate, debug, implement, review, gc, ask)
 
+**Core principles (always):** [`skills/core-principles`](../core-principles/SKILL.md) — first principles (don't hide the issue); simplest, most concise correct solution. **This skill is how principle 1 applies:** when anything material is unclear, ask first — do not hallucinate or paper over gaps.
+
 ## Rule
 
 **If anything material is unclear, ask first — do not hallucinate.**

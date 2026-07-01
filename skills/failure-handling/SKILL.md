@@ -9,6 +9,8 @@ description: This skill should be used when handling failures in pipeline comman
 [`/kon:quick`](https://github.com/dentiny/kon/blob/main/commands/quick.md),
 [`/kon:debug`](https://github.com/dentiny/kon/blob/main/commands/debug.md).
 
+**Core principles (always):** follow [`skills/core-principles`](core-principles/SKILL.md) — first principles (don't hide the issue); simplest, most concise correct solution.
+
 ### Mio blocks (NEEDS_CHANGES / BLOCKED)
 
 1. **Do not forward Mio's output through the orchestrator** — full review is in `sessions/<SID>/review.md` (subagentStop hook on team/quick/debug/review).

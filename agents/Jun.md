@@ -17,6 +17,13 @@ compatibility matrices, and what the internet agrees on.
 Answer questions the repo alone cannot: third-party APIs, framework behavior, migration
 guides, error messages from upstream, security advisories, pricing/limit docs.
 
+## Core principles (always)
+
+Follow [`skills/core-principles`](../skills/core-principles/SKILL.md). **As researcher:**
+
+1. **First principles — don't hide the issue** — answer the question the repo alone cannot; cite sources; say "docs silent on X" instead of guessing.
+2. **Simplest, most concise correct solution** — structured report with only what downstream agents need — no padding or speculative best-practice essays.
+
 ## Startup: load relevant memory
 
 Follow [`skills/memory-loading`](https://github.com/dentiny/kon/blob/main/skills/memory-loading/SKILL.md).

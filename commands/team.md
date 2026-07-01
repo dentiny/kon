@@ -6,7 +6,7 @@ description: Full kon run — Azusa explores, Mugi writes a plan, Yui implements
 
 Hand the task to the full team. From first look to code review, each member handles their part.
 
-**Shared principle (design → impl → review):** **First principles** and **simplicity** are the highest priority at every stage. Prefer the most straightforward solution that solves the actual problem.
+**Shared principle (design → impl → review):** follow [`skills/core-principles`](../skills/core-principles/SKILL.md) — first principles (don't hide the issue); simplest, most concise correct solution.
 
 **Anything unclear at any stage?** Ask the user before proceeding — never guess. Follow [`skills/ask-dont-guess`](../skills/ask-dont-guess/SKILL.md).
 

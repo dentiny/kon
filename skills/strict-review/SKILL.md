@@ -8,16 +8,14 @@ description: This skill should be used when performing code review on a diff (wh
 **Owner Agent**: Mio (Reviewer)
 **Consumers**: `/kon:team` (Mio reviews Yui's diff), `/kon:review` (Mio reviews external PR / branch)
 
-## Highest priority: first principles + simplicity
+## Core principles (always)
 
-**These two rank above everything else in review** — above conventions, pattern-matching, and "looks complete."
+Follow [`skills/core-principles`](core-principles/SKILL.md). **These rank above everything else in review** — above conventions, pattern-matching, and "looks complete."
 
-**Unclear intent, missing evidence, or unverified claims → ask or BLOCK — never assume.** See [`skills/ask-dont-guess`](../ask-dont-guess/SKILL.md).
+1. **First principles — don't hide the issue** — what problem does this change actually solve? Does every piece trace back to that problem? Unclear intent, missing evidence, or unverified claims → ask or BLOCK — never assume.
+2. **Simplest, most concise correct solution** — can a new reader grasp the change in one pass? When trade-offs are close, **simplicity wins**. Block designs that add complexity without first-principles justification.
 
-1. **Think from first principles** — What problem does this change actually solve? Does every piece trace back to that problem, or is it inherited complexity / cargo-cult?
-2. **Simple, easy to understand, straightforward** — Can a new reader grasp the change in one pass? Prefer direct logic over indirection, layers, and clever abstractions.
-
-When trade-offs are close, **simplicity wins**. Block designs that add complexity without a first-principles justification.
+See also [`skills/ask-dont-guess`](../ask-dont-guess/SKILL.md).
 
 ## Core stance: default BLOCKED
 

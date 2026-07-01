@@ -8,6 +8,8 @@ description: This skill should be used by the kon orchestrator when saving memor
 **Owner**: orchestrator
 **Consumers**: pipeline commands that end with retro (see [`skills/session-retro`](session-retro/SKILL.md)) plus mid-session propose from [`/kon:team`](../commands/team.md), [`/kon:quick`](../commands/quick.md), [`/kon:debug`](../commands/debug.md).
 
+**Core principles (always):** follow [`skills/core-principles`](core-principles/SKILL.md) — propose only evidence-backed entries; ask before saving ambiguous lessons.
+
 Saving is **propose + retro only** (human confirm each write). Browse stored entries with `cat` on the two `MEMORY.md` indexes.
 
 ## Storage paths

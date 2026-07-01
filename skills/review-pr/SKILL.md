@@ -8,6 +8,8 @@ description: Holistic GitHub PR review — code diff, PR description, existing r
 **Owner**: 📝 Mio (review-pr mode)
 **Consumers**: [`/kon:review-pr`](../commands/review-pr.md)
 
+**Core principles (always):** follow [`skills/core-principles`](core-principles/SKILL.md) — first principles (don't hide the issue); simplest, most concise correct solution.
+
 ## Scope
 
 Review the **whole PR package**, not just the diff:

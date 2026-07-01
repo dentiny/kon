@@ -8,6 +8,8 @@ description: Task subagents must use the orchestrator's model — Cursor default
 **Owner**: orchestrator  
 **Consumers**: all `/kon:*` commands that spawn Task subagents
 
+**Core principles (always):** follow [`skills/core-principles`](core-principles/SKILL.md) — simplest correct spawn config; never omit `model` and hide the mismatch.
+
 ## Problem
 
 Cursor **does not** inherit the parent chat model on Task subagents. If you omit `model`, subagents often run on **Composer** while the orchestrator uses **Opus**, **Sonnet**, etc.

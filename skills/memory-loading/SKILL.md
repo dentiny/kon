@@ -8,6 +8,8 @@ description: This skill should be used by all kon agents at startup, before begi
 **Owner**: all memory-reading agents
 **Consumers**: [`agents/Azusa.md`](../agents/Azusa.md), [`agents/Mugi.md`](../agents/Mugi.md), [`agents/Mio.md`](../agents/Mio.md), [`agents/Jun.md`](../agents/Jun.md)
 
+**Core principles (always):** follow [`skills/core-principles`](core-principles/SKILL.md) — load only entries relevant to the task; don't hide gaps in memory coverage.
+
 ## Storage layout
 
 | Scope | Path | Contents |

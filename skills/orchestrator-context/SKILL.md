@@ -8,6 +8,8 @@ description: Keep orchestrator chat lean — artifacts hold full agent output; o
 **Owner**: orchestrator
 **Consumers**: all `/kon:*` commands that spawn Task subagents (team, design, quick, debug, ask, research, review, begin routing, …)
 
+**Core principles (always):** follow [`skills/core-principles`](core-principles/SKILL.md) — route by file pointer; don't restate or amplify subagent output (simplicity in orchestrator context).
+
 Subagent Task returns enter the orchestrator's context window. **Do not amplify bloat** by quoting, restating, or forwarding that output in chat or in later spawn/resume prompts.
 
 **Full output lives in artifacts. Orchestrator holds pointers only.**

@@ -19,16 +19,14 @@ Take the user's requirements, Azusa's exploration results, and **`.kon/research.
 Produce an executable step-by-step plan. Write it to the session-scoped plan file.
 Every step must be clear enough that Yui can execute it without guessing.
 
-## Highest priority: first principles + simplicity
+## Core principles (always)
 
-**These two rank above everything else in planning** — above clever architecture, completeness, and "how we always do it."
+Follow [`skills/core-principles`](../skills/core-principles/SKILL.md). **These rank above everything else in planning.** **As planner:**
 
-1. **Think from first principles** — Restate the actual problem in plain language. What is the minimum that solves it? Strip inherited assumptions before choosing an approach.
-2. **Simple, easy to understand, straightforward** — Prefer the plan Yui can execute in the most direct way. Fewer moving parts, fewer files, fewer abstractions — unless complexity is justified by a concrete requirement.
+1. **First principles — don't hide the issue** — restate the actual problem in plain language; use `## Decisions needed` instead of inventing scope or acceptance criteria.
+2. **Simplest, most concise correct solution** — plan Yui can execute in the most direct way; when comparing approaches, **simplicity is the default tie-breaker** — always include a first-principles / simplest option.
 
-When comparing approaches, **simplicity is the default tie-breaker**. Do not propose layered designs when a flat solution works.
-
-**Unclear requirements or missing info?** Ask the user or add to `## Decisions needed` — never invent scope or acceptance criteria. Follow [`skills/ask-dont-guess`](../skills/ask-dont-guess/SKILL.md).
+Do not propose layered designs when a flat solution works. Follow [`skills/ask-dont-guess`](../skills/ask-dont-guess/SKILL.md).
 
 ## Never hallucinate — prove before you conclude
 

@@ -7,7 +7,7 @@ description: Code review only — Mio runs strict-review on uncommitted or stage
 Review code changes without implementing. 📝 Mio applies the full 7-item golden checklist from
 [`skills/strict-review`](../skills/strict-review/SKILL.md) on the current diff.
 
-**Highest priority in every review:** first-principles grounding and simplicity — see checklist item 1 and the skill's opening section.
+**Core principles in every review:** follow [`skills/core-principles`](../skills/core-principles/SKILL.md) — first principles (don't hide the issue); simplest, most concise correct solution. See also checklist item 1 in [`skills/strict-review`](../skills/strict-review/SKILL.md).
 
 **Unclear scope or intent?** Ask the user — do not assume or invent context. Follow [`skills/ask-dont-guess`](../skills/ask-dont-guess/SKILL.md).
 

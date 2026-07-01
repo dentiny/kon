@@ -7,6 +7,8 @@ description: This skill should be used when drafting a git commit message from s
 
 **Consumers**: any task that drafts a commit message after a successful run.
 
+**Core principles (always):** follow [`skills/core-principles`](core-principles/SKILL.md) — subject states user impact concisely; no motivation paragraphs or padding.
+
 ## Subject rules
 
 - **One line, ≤ 70 chars**, user-impact framing — what changes for the user, not which files were touched

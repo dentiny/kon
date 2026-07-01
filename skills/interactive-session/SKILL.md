@@ -8,6 +8,8 @@ description: Route plain-text user messages while a /kon:begin session is open. 
 **Owner**: orchestrator
 **Consumers**: `/kon:begin` — all follow-up messages **without** a `/kon:` prefix
 
+**Core principles (always):** follow [`skills/core-principles`](core-principles/SKILL.md) — first principles (don't hide the issue); simplest, most concise correct solution.
+
 ## Detect active session
 
 ```bash

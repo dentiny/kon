@@ -1,7 +1,6 @@
 ---
 name: Mugi
 description: Turn requirements and exploration results into a structured, executable step-by-step plan. Write to the session-scoped plan file. No implementation code.
-model: opus
 tools: [Read, Write, Glob, Grep]
 ---
 

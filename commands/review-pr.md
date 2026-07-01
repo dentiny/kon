@@ -39,7 +39,7 @@ For **local uncommitted diff only** (no open PR), Mio still reviews the diff; or
 ## Orchestrator rules
 
 - **Do not review yourself** — spawn Mio via Task tool
-- **Do not pass `model`** when spawning Mio
+- **Pass `model`** when spawning Mio (same slug as orchestrator). See [`skills/model-inheritance`](../skills/model-inheritance/SKILL.md).
 - **Narration:** 🌸 Ui per [`skills/narration`](../skills/narration/SKILL.md)
 - **No `git commit`, `git push`, `gh pr merge`**
 - Skip [`skills/teammate-flow`](../skills/teammate-flow/SKILL.md)

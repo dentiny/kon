@@ -36,6 +36,7 @@ from _kon_paths import (  # noqa: E402
     hook_log_path,
     kon_root,
 )
+from _orchestrator_model import extract_orchestrator_model  # noqa: E402
 from _workspace import resolve_workspace  # noqa: E402
 
 _KON_CMD = re.compile(r"/kon:([\w-]+)(?:\s+(.*))?", re.DOTALL)
@@ -84,7 +85,24 @@ def _active_begin_id(project: str) -> str | None:
     return sid or None
 
 
-def _init_session(project: str, command: str, task: str) -> tuple[str | None, str]:
+def _orchestrator_model_argv(data: dict) -> list[str]:
+    snap = extract_orchestrator_model(data)
+    if not snap:
+        return []
+    argv: list[str] = []
+    model = snap.get("orchestrator_model")
+    if model:
+        argv += ["--orchestrator-model", model]
+    model_id = snap.get("orchestrator_model_id")
+    if model_id:
+        argv += ["--orchestrator-model-id", model_id]
+    params = snap.get("orchestrator_model_params")
+    if params:
+        argv += ["--orchestrator-model-params", json.dumps(params)]
+    return argv
+
+
+def _init_session(project: str, command: str, task: str, data: dict) -> tuple[str | None, str]:
     script = _kon_session_script()
     if script is None:
         return None, "kon_session.py not found"
@@ -99,7 +117,8 @@ def _init_session(project: str, command: str, task: str) -> tuple[str | None, st
             command,
             "--task",
             task,
-        ],
+        ]
+        + _orchestrator_model_argv(data),
         capture_output=True,
         text=True,
         check=False,
@@ -146,7 +165,7 @@ def main() -> None:
             print(json.dumps({"continue": True}))
             return
 
-        sid, err = _init_session(workspace, command, task)
+        sid, err = _init_session(workspace, command, task, data)
         if sid:
             _log(f"command={command} workspace={workspace} source={source} sid={sid}")
         else:

@@ -1,7 +1,6 @@
 ---
 name: Mio
 description: Strictly review Yui's implementation or an external PR. Default BLOCKED. Must be convinced by evidence. Follow `skills/strict-review`.
-model: sonnet
 tools: [Read, Bash, Glob, Grep]
 ---
 

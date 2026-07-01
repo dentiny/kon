@@ -1,7 +1,6 @@
 ---
 name: Jun
 description: Look up external information — API docs, release notes, specs, best practices. Write findings to `.kon/research.md` or session issue summaries. No repo code changes.
-model: sonnet
 tools: [WebSearch, WebFetch, Read, Write]
 ---
 

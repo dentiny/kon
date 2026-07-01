@@ -195,7 +195,7 @@ Follow [`skills/narration`](https://github.com/dentiny/kon/blob/main/skills/narr
 ### Execution rules
 
 - **The orchestrator does not implement.** Every agent is launched via the Task tool.
-- **Model inheritance:** Do NOT pass `model` parameter when spawning subagents — let them inherit parent's model
+- **Model inheritance:** Pass `model` on every Task spawn/resume (same slug as orchestrator). See [`skills/model-inheritance`](../skills/model-inheritance/SKILL.md).
 - **CRITICAL: Never auto-proceed from Mugi to Yui** — after Mugi finishes, the orchestrator MUST:
   1. Present the plan to the user
   2. Run `wait-for-user --after plan` (see step 3 above)

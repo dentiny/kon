@@ -26,6 +26,7 @@ from _context_profile import (  # noqa: E402
     resolve_context_window_size,
     task_context_snapshot,
 )
+from _orchestrator_model import resolve_orchestrator_model, session_model_patch  # noqa: E402
 from _token_estimate import SOURCE as USAGE_SOURCE  # noqa: E402
 
 _BEGIN_COMMAND = "/kon:begin"
@@ -216,6 +217,15 @@ def cmd_init(args: argparse.Namespace) -> None:
     if command == _BEGIN_COMMAND:
         data["mode"] = "interactive"
         data["turns"] = []
+    if args.orchestrator_model:
+        data["orchestrator_model"] = args.orchestrator_model.strip()
+    if args.orchestrator_model_id:
+        data["orchestrator_model_id"] = args.orchestrator_model_id.strip()
+    if args.orchestrator_model_params:
+        try:
+            data["orchestrator_model_params"] = json.loads(args.orchestrator_model_params)
+        except json.JSONDecodeError:
+            pass
     ensure_session_dir(args.project, sid)
     path = session_json_path(args.project, sid)
     _save(path, data)
@@ -538,6 +548,32 @@ def cmd_get_task_agent(args: argparse.Namespace) -> None:
         print(task_id)
 
 
+def cmd_patch_orchestrator_model(args: argparse.Namespace) -> None:
+    path, data = _load(args.id, args.project)
+    snap: dict = {}
+    if args.model:
+        snap["orchestrator_model"] = args.model.strip()
+    if args.model_id:
+        snap["orchestrator_model_id"] = args.model_id.strip()
+    if args.model_params:
+        try:
+            snap["orchestrator_model_params"] = json.loads(args.model_params)
+        except json.JSONDecodeError:
+            pass
+    patch = session_model_patch(snap)
+    if not patch:
+        return
+    data.update(patch)
+    _save(path, data)
+
+
+def cmd_get_orchestrator_model(args: argparse.Namespace) -> None:
+    _path, data = _load(args.id, args.project)
+    model = resolve_orchestrator_model(data)
+    if model:
+        print(model)
+
+
 def cmd_clear_task_agents(args: argparse.Namespace) -> None:
     """Drop stored Task ids for a scope (manual or after context budget exceeded)."""
     path, data = _load(args.id, args.project)
@@ -687,6 +723,17 @@ def main() -> None:
     init.add_argument("--command", required=True, help='e.g. "/kon:ask", "/kon:team"')
     init.add_argument("--task", required=True, help="Task or question text")
     init.add_argument("--pending", nargs="*", default=None, help="Override steps_pending")
+    init.add_argument(
+        "--orchestrator-model", default=None, help="Cursor model slug for Task spawns"
+    )
+    init.add_argument(
+        "--orchestrator-model-id", default=None, help="Structured model id from Cursor hook"
+    )
+    init.add_argument(
+        "--orchestrator-model-params",
+        default=None,
+        help="JSON array of model params from Cursor hook",
+    )
     init.set_defaults(func=cmd_init)
 
     start = sub.add_parser("start-agent", help="Mark agent as current")
@@ -849,6 +896,23 @@ def main() -> None:
         help=f"Loop scope (default: {_TASK_AGENT_SCOPE_DEFAULT})",
     )
     clear_task.set_defaults(func=cmd_clear_task_agents)
+
+    patch_model = sub.add_parser(
+        "patch-orchestrator-model",
+        help="Update orchestrator model slug on session (from Cursor hook)",
+    )
+    patch_model.add_argument("--id", required=True)
+    patch_model.add_argument("--model", default=None)
+    patch_model.add_argument("--model-id", default=None)
+    patch_model.add_argument("--model-params", default=None, help="JSON array")
+    patch_model.set_defaults(func=cmd_patch_orchestrator_model)
+
+    get_model = sub.add_parser(
+        "get-orchestrator-model",
+        help="Print orchestrator model slug for Task spawns",
+    )
+    get_model.add_argument("--id", required=True)
+    get_model.set_defaults(func=cmd_get_orchestrator_model)
 
     should_refresh = sub.add_parser(
         "should-refresh-task-agents",

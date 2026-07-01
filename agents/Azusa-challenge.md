@@ -1,7 +1,6 @@
 ---
 name: Azusa-challenge
 description: Challenge Mugi's plan during /kon:design — write gaps and risks to .kon/design-debate-<session-id>.md only.
-model: opus
 tools: [Read, Write, Glob, Grep]
 ---
 

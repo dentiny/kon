@@ -1047,3 +1047,72 @@ def test_should_refresh_uses_context_profile() -> None:
             project,
         )
         assert verdict == "refresh"
+
+
+def test_init_stores_orchestrator_model() -> None:
+    tmp, project, env, sessions = isolated_kon_env()
+    with tmp:
+        sid = run_kon_session(
+            [
+                "init",
+                "--command",
+                "/kon:team",
+                "--task",
+                "model test",
+                "--orchestrator-model",
+                "claude-opus-4-8-thinking-high",
+                "--orchestrator-model-id",
+                "claude-opus-4-8",
+            ],
+            env,
+            project,
+        )
+        data = load_session(sessions, sid)
+        assert data["orchestrator_model"] == "claude-opus-4-8-thinking-high"
+        assert data["orchestrator_model_id"] == "claude-opus-4-8"
+
+
+def test_get_orchestrator_model_from_session() -> None:
+    tmp, project, env, sessions = isolated_kon_env()
+    with tmp:
+        sid = run_kon_session(
+            [
+                "init",
+                "--command",
+                "/kon:team",
+                "--task",
+                "model get",
+                "--orchestrator-model",
+                "claude-opus-4-8-thinking-high",
+            ],
+            env,
+            project,
+        )
+        model = run_kon_session(
+            ["get-orchestrator-model", "--id", sid],
+            env,
+            project,
+        )
+        assert model == "claude-opus-4-8-thinking-high"
+
+
+def test_get_orchestrator_model_falls_back_to_profile() -> None:
+    tmp, project, env, sessions = isolated_kon_env()
+    with tmp:
+        data_dir = Path(env["KON_DATA_DIR"])
+        data_dir.mkdir(parents=True, exist_ok=True)
+        (data_dir / "context_profile.json").write_text(
+            json.dumps({"orchestrator_model": "claude-sonnet-5-thinking-high"}),
+            encoding="utf-8",
+        )
+        sid = run_kon_session(
+            ["init", "--command", "/kon:team", "--task", "profile model"],
+            env,
+            project,
+        )
+        model = run_kon_session(
+            ["get-orchestrator-model", "--id", sid],
+            env,
+            project,
+        )
+        assert model == "claude-sonnet-5-thinking-high"

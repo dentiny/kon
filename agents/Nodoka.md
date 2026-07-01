@@ -1,7 +1,6 @@
 ---
 name: Nodoka
 description: Write a clean, complete summary of what happened in the session. Called at the end of every run and on-demand via /kon:summarize.
-model: sonnet
 tools: [Read, Glob]
 ---
 

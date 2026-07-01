@@ -65,7 +65,7 @@ python3 $KON_ROOT/scripts/kon_session.py wait-for-user --id "$SID" \
 
 - Read [`skills/teammate-flow`](https://github.com/dentiny/kon/blob/main/skills/teammate-flow/SKILL.md) for narration, session, and YOLO — but **only steps 1–3** (explore → plan → user confirm). Skip Yui/Sawako/Mio/Nodoka unless user asks.
 - **Spawn Task subagents** for explore, plan, challenge, and revise — never play both sides yourself.
-- **Model inheritance:** Do NOT pass `model` parameter when spawning subagents — let them inherit parent's model
+- **Model inheritance:** Pass `model` on every Task spawn/resume. See [`skills/model-inheritance`](../skills/model-inheritance/SKILL.md).
 - **No unit tests** — automated testing does not run in design phase. Tests are manual in `/kon:team`.
 - **Design stops after debate** — After Mugi's final revision, present summary and STOP. Run `wait-for-user --after plan`. Do NOT proceed to implementation. User must explicitly run `/kon:team` to implement.
 - After Azusa challenge and Mugi revise, run `teammate_quality_check.py` with roles `Azusa-challenge` and `Mugi-revise`.

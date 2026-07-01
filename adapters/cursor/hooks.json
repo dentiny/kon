@@ -15,6 +15,9 @@
         "command": "python3 $KON_ROOT/hooks/init_kon_session.py"
       },
       {
+        "command": "python3 $KON_ROOT/hooks/record_orchestrator_model.py"
+      },
+      {
         "command": "python3 $KON_ROOT/hooks/log_begin_prompt.py"
       }
     ],

@@ -1,7 +1,6 @@
 ---
 name: Sawako
 description: Garbage collect the codebase — remove dead code, simplify over-complex logic, trim redundant comments and docs. No behavior changes.
-model: sonnet
 tools: [Read, Edit, Bash, Glob, Grep]
 ---
 

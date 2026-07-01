@@ -38,7 +38,7 @@ When the task needs web/docs lookup, spawn Jun per [`skills/external-research`](
 ## Orchestrator rules
 
 - Follow [`skills/orchestrator-context`](../skills/orchestrator-context/SKILL.md) — route by artifact pointer; never paste subagent output in chat or spawn prompts.
-- **Model inheritance:** Do NOT pass `model` parameter when spawning subagents — let them inherit parent's model
+- **Model inheritance:** Pass `model` on **every** Task spawn/resume — same slug as the orchestrator. Cursor defaults subagents to Composer otherwise. See [`skills/model-inheritance`](../skills/model-inheritance/SKILL.md); resolve slug via `get-orchestrator-model --id "$SID"`.
 - **MANDATORY user confirmation:** After Mugi finishes, STOP before Yui (`wait-for-user --after plan`). After **each** milestone is Mio-approved, STOP before the next milestone or summarize (`wait-for-user --after milestone --milestone N`). The inner Yui → Sawako → Mio fix loop runs autonomously until Mio approves. See [`skills/teammate-flow`](../skills/teammate-flow/SKILL.md).
 - **Milestone-based implementation and review:**
   - Yui implements ONE milestone at a time
@@ -48,7 +48,7 @@ When the task needs web/docs lookup, spawn Jun per [`skills/external-research`](
   - Do NOT implement all milestones before review
 - **Task resume in the impl loop:** Within each milestone, spawn Yui/Sawako/Mio once (full agent + skill), store Task ids in session JSON, **resume** on fix/re-review until Mio approves — then `clear-task-agents`. See [`skills/teammate-flow`](../skills/teammate-flow/SKILL.md) **Implementation loop — Task resume**.
 - Follow [`skills/teammate-flow`](https://github.com/dentiny/kon/blob/main/skills/teammate-flow/SKILL.md) for full execution rules
-- All agents launched via Task tool with no model specification
+- All agents launched via Task tool with explicit `model=<orchestrator slug>`
 
 ## Plan reuse (after `/kon:design`)
 

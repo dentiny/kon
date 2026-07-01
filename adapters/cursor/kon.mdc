@@ -122,7 +122,7 @@ For `/kon:todo`: read `commands/todo.md`, run `scripts/kon_todo.py` directly —
 
 3. Read `$KON_ROOT/skills/teammate-flow/SKILL.md` for orchestration rules — **skip for `/kon:ask`, `/kon:hunt`, `/kon:understand-codebase`, `/kon:research`, `/kon:review`, `/kon:review-pr`, `/kon:address-comments` (triage only), `/kon:retro`, and `/kon:describe-issue`**. For `/kon:debug`, follow `commands/debug.md`. For `/kon:design`, also read `$KON_ROOT/skills/design-debate/SKILL.md`. For external lookup in team/design, also read `$KON_ROOT/skills/external-research/SKILL.md`.
 
-4. Spawn Task subagents. **Explore/plan agents** (Azusa, Mugi, Jun, design debate): new Task each time — pass agent file (+ skill if needed).
+4. Spawn Task subagents. **Always pass `model`** — same slug as the orchestrator (`get-orchestrator-model --id "$SID"`). See `$KON_ROOT/skills/model-inheritance/SKILL.md`. **Explore/plan agents** (Azusa, Mugi, Jun, design debate): new Task each time — pass agent file (+ skill if needed).
 
    **Implementation loop** (Yui → Sawako → Mio per milestone): **spawn once per role per milestone**, then **`resume`** on fix/re-review until Mio approves. After **each** milestone Mio-approved, run **`wait-for-user --after milestone --milestone N`** and **STOP the turn**; then **`user-continued`** before next milestone or Nodoka/summarize. Full rules: `$KON_ROOT/skills/teammate-flow/SKILL.md`.
 

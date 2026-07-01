@@ -155,7 +155,7 @@ On create: `command: "/kon:debug"`, `steps_pending: ["Azusa", "Mugi", "User", "Y
 ## Orchestrator rules
 
 - **Narration:** use 🌸 Ui for opening, closing, stuck-point beats. Follow [`skills/narration`](https://github.com/dentiny/kon/blob/main/skills/narration/SKILL.md).
-- **Model inheritance:** Do NOT pass `model` parameter when spawning subagents — let them inherit parent's model
+- **Model inheritance:** Pass `model` on every Task spawn/resume. See [`skills/model-inheritance`](../skills/model-inheritance/SKILL.md).
 - **The orchestrator does not implement or debug** — spawn agents via Task tool.
 - **MANDATORY user confirmation:** After Mugi proposes fixes, STOP and wait for user to select approach before spawning Yui (even in `--yolo` mode)
 - **Stop if root cause unknown:** If Azusa or Mugi indicate root cause cannot be determined, do NOT proceed to Yui. Present the uncertainty to user and ask for guidance.

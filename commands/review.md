@@ -51,7 +51,7 @@ With an optional rubric (🍰 Mugi writes criteria first):
 ## Orchestrator rules
 
 - **Do not review yourself** — spawn Mio via Task tool
-- **Model inheritance:** Do NOT pass `model` parameter when spawning Mio — let subagent inherit parent's model
+- **Model inheritance:** Pass `model` when spawning Mio. See [`skills/model-inheritance`](../skills/model-inheritance/SKILL.md).
 - **Narration:** 🌸 Ui opening/closing per [`skills/narration`](../skills/narration/SKILL.md)
 - **Do not run `git commit` or `git push`**
 - Skip [`skills/teammate-flow`](../skills/teammate-flow/SKILL.md) — review is Mio-only (optional Mugi rubric pass)

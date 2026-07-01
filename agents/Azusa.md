@@ -1,7 +1,6 @@
 ---
 name: Azusa
 description: Explore the codebase before implementation. Find relevant files, conventions, and impact surface. No code changes.
-model: opus
 tools: [Read, Bash, Glob, Grep]
 ---
 

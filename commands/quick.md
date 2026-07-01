@@ -85,7 +85,7 @@ Follow [`skills/session-tracking`](https://github.com/dentiny/kon/blob/main/skil
 ## Orchestrator rules
 
 - **Narration:** use 🌸 Ui for opening, closing, stuck-point beats. Follow [`skills/narration`](https://github.com/dentiny/kon/blob/main/skills/narration/SKILL.md).
-- **Model inheritance:** Do NOT pass `model` parameter when spawning subagents — let them inherit parent's model
+- **Model inheritance:** Pass `model` on every Task spawn/resume. See [`skills/model-inheritance`](../skills/model-inheritance/SKILL.md).
 - **Cannot skip Mio** — quick cuts stage count (no Azusa / Mugi / automated tests), not the review itself
 - **Cannot shrink Mio's 3-item subset further** — these 3 are the hard floor
 - **Cannot relax must-fix standards because "user said quick-fix"** — the subset items are still full strict-review

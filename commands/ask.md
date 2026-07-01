@@ -85,7 +85,7 @@ In addition to exploration notes, Azusa must end with a direct answer:
 ## Orchestrator rules
 
 - **Narration:** use 🌸 Ui for opening and closing beats. Follow [`skills/narration`](https://github.com/dentiny/kon/blob/main/skills/narration/SKILL.md).
-- **Model inheritance:** Do NOT pass `model` parameter when spawning Azusa — let subagent inherit parent's model
+- **Model inheritance:** Pass `model` when spawning Azusa. See [`skills/model-inheritance`](../skills/model-inheritance/SKILL.md).
 - **Do not spawn Yui, Mugi, Mio, or Sawako** — ask mode is Azusa + answer only.
 - **Do not self-investigate instead of Azusa** — spawn Azusa via Task tool for the exploration pass.
 - **Do not draft commit messages** — there are no code changes.

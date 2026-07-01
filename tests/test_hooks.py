@@ -736,3 +736,28 @@ class TestPreCompactHook:
         assert profile["context_window_size"] == 128000
         assert profile["context_tokens"] == 110000
         assert profile["source"] == "preCompact"
+
+
+class TestRecordOrchestratorModelHook:
+    def test_records_model_on_profile(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        data_root = tmp_path / "kon-data"
+        monkeypatch.setenv("KON_DATA_DIR", str(data_root))
+        monkeypatch.setenv("KON_ROOT", str(ROOT))
+
+        result = run_hook(
+            "record_orchestrator_model.py",
+            {
+                "hook_event_name": "beforeSubmitPrompt",
+                "prompt": "hello",
+                "model": "claude-opus-4-8-thinking-high",
+                "model_id": "claude-opus-4-8",
+                "model_params": [{"id": "thinking", "value": "true"}],
+            },
+        )
+        assert result.get("continue") is True
+
+        profile = json.loads((data_root / "context_profile.json").read_text())
+        assert profile["orchestrator_model"] == "claude-opus-4-8-thinking-high"
+        assert profile["orchestrator_model_id"] == "claude-opus-4-8"

@@ -1,7 +1,6 @@
 ---
 name: Yui
 description: Implement code changes per Mugi's plan. Follow existing conventions. No self-review.
-model: sonnet
 tools: [Read, Write, Edit, Bash, Glob, Grep]
 ---
 

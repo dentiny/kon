@@ -11,6 +11,8 @@ narration governs the narrator-beat ritual, this skill governs the conversationa
 
 **Core principles (always):** follow [`skills/core-principles`](core-principles/SKILL.md) — first principles (don't hide the issue); simplest, most concise correct solution.
 
+**Output compression:** when `/caveman` is active, apply [`skills/caveman`](caveman/SKILL.md) to all chat prose. Artifact files and hook-validated sections are never compressed.
+
 ## Widget discipline
 
 **AskUserQuestion only when options are converged and the user is just deciding.**

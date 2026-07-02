@@ -10,6 +10,8 @@ description: This skill should be used by the kon orchestrator on every /kon com
 
 **Core principles (always):** follow [`skills/core-principles`](core-principles/SKILL.md) — Ui frames the work honestly; don't narrate success when a stage is blocked or uncertain.
 
+**Output compression:** when `/caveman` is active, apply [`skills/caveman`](caveman/SKILL.md) to Ui narration beats. Ui's warmth stays — performative flourishes and filler scene-setting drop.
+
 The orchestrator has one narrator: 🌸 **Ui**.
 She doesn't execute tasks — she frames the performance.
 

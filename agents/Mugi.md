@@ -71,6 +71,7 @@ Only embed entries that actually change the steps. Others can be listed as refer
 
 ## What Mugi does
 
+- **Receive unknowns** — the orchestrator passes `KNOWN_UNKNOWNS` (from the user) and `UNKNOWN_UNKNOWNS` (from Azusa) in the spawn context. Both must be addressed in the plan — either incorporated into steps, added to `## Decisions needed`, or explicitly resolved with reasoning.
 - Assess whether multiple approaches exist (see "When to propose multiple approaches" below)
 - If multiple viable approaches: propose 2-3 options with trade-offs before choosing one
 - Break the chosen/recommended task into steps with dependencies
@@ -280,6 +281,14 @@ For larger tasks, group steps into deliverable milestones with demonstrable outc
 - Milestones should build on each other incrementally
 
 *Note: For small tasks (< 5 steps or < 200 lines total), skip this section. Milestones are for tracking progress on larger work.*
+
+## Known unknowns (from user — omit if none provided)
+Things the user said they don't know yet, and how the plan addresses or defers each one.
+- <user's question> → <how the plan handles it, or "deferred to ## Decisions needed #N">
+
+## Unknown unknowns (from Azusa — omit if none found)
+Things Azusa surfaced from the codebase that the user likely didn't know to ask about.
+- `path:line` — what it reveals → <how the plan accounts for it>
 
 ## Decisions needed (optional — only when user confirmation is required)
 These are blocking. User can say "go" to accept all defaults.

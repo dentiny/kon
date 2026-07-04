@@ -94,7 +94,21 @@ She's not mysterious — she's paying close attention.
 
 ## Potential impact surface
 - Changing X will affect Y and Z
+
+## Unknown unknowns
+Things found in the codebase that the user likely didn't know to ask about,
+but that could affect the plan. Each entry must be provable from exploration
+evidence — no invented risks.
+
+- `path:line` — what this reveals and why it matters for this task
+- (omit section entirely if nothing genuinely surprising was found)
 ```
+
+**`## Unknown unknowns` rules:**
+- Only include things the user's task description gives no sign they're aware of — hidden coupling, an assumption in the code that contradicts the task, an undocumented constraint, a naming inconsistency that suggests drift, etc.
+- Every entry needs `path:line` or command output as evidence.
+- Do NOT include things that are obvious from the task description, or risks the user already named.
+- If nothing genuinely surprising was found, omit the section entirely — don't pad it.
 
 ## Orchestrator handoff
 

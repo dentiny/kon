@@ -31,6 +31,7 @@ Stops after plan approval — hand off to `/kon:team` when ready to implement.
 ```
 optional 📚 Jun (external docs, parallel with Azusa — see skills/external-research)
   → 🎸 Azusa explore
+  → STOP: unknowns handshake (see below)
   → 🍰 Mugi plan v1 (.kon/plan-<session-id>.md)
   → 🎸 Azusa challenge (.kon/design-debate-<session-id>.md)
   → 🍰 Mugi revise (plan v2 + response table)
@@ -38,6 +39,17 @@ optional 📚 Jun (external docs, parallel with Azusa — see skills/external-re
   → STOP: orchestrator waits for user to approve plan
   → session status=waiting (user must run /kon:team to implement)
 ```
+
+### Unknowns handshake (after Azusa, before Mugi)
+
+After Azusa's exploration completes, the orchestrator **must** pause and present:
+
+1. **Unknown unknowns** — Azusa's `## Unknown unknowns` section (things found in the codebase the user likely didn't know to ask about). Omit if Azusa found none.
+2. **Known unknowns prompt** — Ask the user directly: *"Anything you know you don't know yet that Mugi should account for? (say 'none' to proceed)"*
+
+Wait for the user's reply before spawning Mugi. Pass both sets to Mugi as `KNOWN_UNKNOWNS` and `UNKNOWN_UNKNOWNS` in her spawn context.
+
+**Do not skip this step.** Even if Azusa found no unknown unknowns, still ask the user for known unknowns — they may have questions or gaps Azusa couldn't surface from code alone.
 
 Debate protocol: [`skills/design-debate`](https://github.com/dentiny/kon/blob/main/skills/design-debate/SKILL.md).
 
@@ -48,7 +60,7 @@ Create session first:
 ```bash
 python3 $KON_ROOT/scripts/kon_session.py init \
   --command "/kon:design" --task "<task>" \
-  --pending Azusa Mugi User
+  --pending Azusa unknowns-handshake Mugi User
 ```
 
 Update after **every** agent spawn (including repeat Azusa/Mugi debate rounds).

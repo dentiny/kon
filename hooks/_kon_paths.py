@@ -29,6 +29,7 @@ _LAST_WORKSPACE_FILENAME = "last_workspace.json"
 _PUBLIC_SUBDIR = "public"
 _MEMORY_SUBDIR = "memory"
 _MEMORY_INDEX = "MEMORY.md"
+_SKILLS_SUBDIR = "skills"
 _SKILL_FILENAME = "SKILL.md"
 _LOGS_SUBDIR = "logs"
 _LEGACY_PUBLIC_MEMORY = Path.home() / ".config" / "kon" / "memory"
@@ -254,9 +255,21 @@ def project_memory_dir(project_dir: Path | str | None = None) -> Path:
     return project_data_dir(project_dir) / _MEMORY_SUBDIR
 
 
-def project_skill_path(project_dir: Path | str | None = None) -> Path:
-    """Per-repo skill: ``~/.kon/projects/<repo-name>/SKILL.md``."""
-    return project_data_dir(project_dir) / _SKILL_FILENAME
+def project_skills_dir(project_dir: Path | str | None = None) -> Path:
+    """Per-repo skills directory: ``~/.kon/projects/<repo-name>/skills/``."""
+    return project_data_dir(project_dir) / _SKILLS_SUBDIR
+
+
+def iter_project_skill_paths(project_dir: Path | str | None = None) -> list[Path]:
+    """All ``SKILL.md`` entry points under ``~/.kon/projects/<repo-name>/skills/*/``.
+
+    Each named subdirectory is one skill. Returns paths sorted by skill name.
+    Returns an empty list when the directory does not exist or has no skills.
+    """
+    skills = project_skills_dir(project_dir)
+    if not skills.is_dir():
+        return []
+    return sorted(p for p in skills.glob("*/SKILL.md") if p.is_file())
 
 
 def _memory_index_body(scope_label: str) -> str:
@@ -350,7 +363,8 @@ def _cli() -> None:
     if len(sys.argv) < 2:
         print(
             "usage: _kon_paths.py "
-            "<root|data|sessions|project-data|project-kon|public-memory|project-memory|project-skill|repo-name|ensure|write-config>",
+            "<root|data|sessions|project-data|project-kon|public-memory|project-memory|"
+            "project-skills-dir|project-skill-files|repo-name|ensure|write-config>",
             file=sys.stderr,
         )
         sys.exit(1)
@@ -374,8 +388,11 @@ def _cli() -> None:
         print(ensure_public_memory_dir())
     elif cmd == "project-memory":
         print(ensure_project_memory_dir())
-    elif cmd == "project-skill":
-        print(project_skill_path())
+    elif cmd == "project-skills-dir":
+        print(project_skills_dir())
+    elif cmd == "project-skill-files":
+        for path in iter_project_skill_paths():
+            print(path)
     elif cmd == "repo-name":
         print(git_repo_name())
     elif cmd == "ensure":

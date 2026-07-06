@@ -1,71 +1,87 @@
 ---
 name: repo-skill
-description: Convention for per-repo skill files. Each repo gets a SKILL.md at ~/.kon/projects/<repo-name>/SKILL.md. Agents load it as the first step before memory entries. Use it for repo-specific context, conventions, and constraints that every agent should know.
+description: Convention for per-repo skill directories at ~/.kon/projects/<repo-name>/skills/<name>/SKILL.md. Each named subdirectory is one skill. Agents load all SKILL.md files as the first step before memory entries.
 ---
 
 # Repo Skill
 
-**Owner**: user (writes the file) + all agents (read it)
+**Owner**: user (writes the files) + all agents (read them)
 **Consumers**: every agent, via [`skills/memory-loading`](../memory-loading/SKILL.md) step 0
 
 ## What it is
 
-A freeform instruction file written by you for a specific repo. Unlike memory entries (which are key-value facts agents accumulate), a repo skill is **your words**, loaded verbatim before any work begins.
+A directory of skill files you write for a specific repo. Unlike memory entries (which are key-value facts agents accumulate over sessions), repo skills are **your words**, loaded verbatim before any work begins.
 
-Use it to capture things that are always true about this codebase and that every agent should know from the first message:
+Each skill is a named subdirectory with a `SKILL.md` entry point and optional sibling files. Use as many or as few skills as you want — start with one and split later.
+
+Use repo skills to capture things that are always true about this codebase:
 
 - Language, build system, test runner, style guide
-- Who the maintainers are and how reviews work in this project
+- Maintainer and review expectations
 - Architectural invariants agents must not violate
-- Conventions that differ from the general defaults in `~/.kon/public/memory/`
-- Known footguns or constraints ("never introduce new locks in the WAL path")
+- Conventions that differ from defaults in `~/.kon/public/memory/`
+- Known footguns or constraints
 
 ## Path
 
 ```
-~/.kon/projects/<repo-name>/SKILL.md
+~/.kon/projects/<repo-name>/skills/
+├── build/
+│   └── SKILL.md          ← build commands, flags, test runner
+├── conventions/
+│   ├── SKILL.md          ← coding style, naming, patterns
+│   └── examples.md       ← optional sibling files within a skill
+└── architecture/
+    └── SKILL.md          ← component layout, invariants
 ```
 
-Resolve with:
+Example: `~/.kon/projects/duckdb/skills/build/SKILL.md`
+
+Resolve paths:
 
 ```bash
-python3 $KON_ROOT/hooks/_kon_paths.py project-skill
+python3 $KON_ROOT/hooks/_kon_paths.py project-skills-dir   # → .../skills/
+python3 $KON_ROOT/hooks/_kon_paths.py project-skill-files  # → all skills/*/SKILL.md, sorted
 ```
 
 ## Format
 
 Plain markdown. No frontmatter required. Write what you'd tell a new engineer on their first day.
 
-Example:
+Example `skills/build/SKILL.md`:
 
 ```markdown
-# DuckDB — repo context for kon agents
+# DuckDB — build
 
 **Language**: C++17. All new code must compile clean with `-Wall -Werror`.
-**Test runner**: `make test` or `python3 scripts/run_tests.py`. No mocking — use real DuckDB instances.
-**Maintainer style**: Mark is the primary reviewer. He prefers small, incremental PRs.
-  Address every comment directly — no "done" without showing the fix.
+**Build**: `make reldebug` — always prefix with `CMAKE_BUILD_PARALLEL_LEVEL=10`.
+**Test runner**: `make test`. No mocking — use real DuckDB instances.
+```
+
+Example `skills/conventions/SKILL.md`:
+
+```markdown
+# DuckDB — conventions
+
+**Maintainer**: Mark. Prefers small incremental PRs; address every comment directly.
 **Architectural invariants**:
 - Never acquire new locks inside the WAL write path.
 - All new catalog entries must go through `CatalogTransaction`.
-- Prefer existing utility classes (`BufferedFileWriter`, `FileSystem`) over raw I/O.
-**Conventions**:
-- File-level comments explain *why* the abstraction exists, not what the code does.
-- New features need a SQL-level test in `test/sql/`.
 ```
 
 ## Loading behavior
 
-- If the file exists: loaded verbatim as the **first context** before memory entries
-- If the file does not exist: skip silently — no error, no prompt to create it
-- Agents print `[repo-skill: loaded]` or `[repo-skill: not found]` in `## Loaded memory entries`
+- All `skills/*/SKILL.md` files are loaded, sorted by skill name
+- Optional sibling files within a skill subdirectory (e.g. `examples.md`) are not auto-loaded — reference them from `SKILL.md` if needed
+- If `skills/` does not exist: skip silently — no error, no prompt
+- Agents print `[repo-skill: loaded — build, conventions]` or `[repo-skill: not found]` in `## Loaded memory entries`
 
-## Creating or editing
-
-Write or edit the file directly. There is no propose/confirm flow — this is your instruction file, not agent-generated memory.
+## Creating a skill
 
 ```bash
-$EDITOR $(python3 $KON_ROOT/hooks/_kon_paths.py project-skill)
+SKILL_DIR=$(python3 $KON_ROOT/hooks/_kon_paths.py project-skills-dir)
+mkdir -p "$SKILL_DIR/build"
+$EDITOR "$SKILL_DIR/build/SKILL.md"
 ```
 
 Changes take effect immediately on the next agent startup.
@@ -73,5 +89,5 @@ Changes take effect immediately on the next agent startup.
 ## What it is NOT
 
 - Not a replacement for memory entries (those accumulate incrementally from sessions)
-- Not auto-generated by agents — only you write it
-- Not a `.cursorrules` or `AGENTS.md` inside the repo — it lives outside the repo in `~/.kon/` so it never appears in git history
+- Not auto-generated by agents — only you write them
+- Not a `.cursorrules` or `AGENTS.md` inside the repo — lives outside the repo in `~/.kon/` so it never appears in git history

@@ -14,6 +14,7 @@ description: This skill should be used by all kon agents at startup, before begi
 
 | Scope | Path | Contents |
 |-------|------|----------|
+| **Repo skills** (always first) | `~/.kon/projects/<repo-name>/skills/*/` | Your named skill dirs for this repo — loaded verbatim before memory entries |
 | **Public** (cross-project) | `~/.kon/public/memory/` | User prefs, habits, feedback across repos |
 | **Repo** (per project) | `~/.kon/projects/<repo-name>/memory/` | Conventions specific to this checkout |
 
@@ -32,7 +33,7 @@ Override data root with `KON_DATA_DIR` (default `~/.kon`).
 
 Before starting work:
 
-0. **Load repo skill** — check for `~/.kon/projects/<repo-name>/SKILL.md` (resolve with `python3 $KON_ROOT/hooks/_kon_paths.py project-skill`). If present, read it in full and treat it as the first context for all downstream work. Print `[repo-skill: loaded]` or `[repo-skill: not found]` in `## Loaded memory entries`. See [`skills/repo-skill`](repo-skill/SKILL.md) for format and authoring guide.
+0. **Load repo skills** — list files with `python3 $KON_ROOT/hooks/_kon_paths.py project-skill-files` (returns all `~/.kon/projects/<repo-name>/skills/*/SKILL.md` sorted by skill name). Read every listed file in full and treat as the first context for all downstream work. Print `[repo-skill: loaded — build, conventions, ...]` or `[repo-skill: not found]` in `## Loaded memory entries`. See [`skills/repo-skill`](repo-skill/SKILL.md) for format and authoring guide.
 1. **Read both indexes** (if they exist):
    - `~/.kon/public/memory/MEMORY.md`
    - `~/.kon/projects/<repo-name>/memory/MEMORY.md`

@@ -297,10 +297,15 @@ Explicitly state how the design handles growth and load. If the plan introduces 
 
 | Resource | Bound / mitigation | Evidence |
 |----------|--------------------|----------|
-| Memory (caches, buffers, queues) | e.g. LRU cap of N, TTL eviction | `path:line` |
+| Memory (caches, queues, buffers) | e.g. LRU cap of N, TTL eviction | `path:line` |
 | Request concurrency | e.g. semaphore of N, rate limit X/s | `path:line` |
 | Loops / recursion | e.g. hard cap of N iterations, depth limit | `path:line` |
-| Storage / file handles / connections | e.g. pooled, closed after use, TTL | `path:line` |
+| File descriptors | e.g. `with`/RAII, explicit close in all error paths | `path:line` |
+| TCP / network connections | e.g. pool max N, keep-alive timeout, reconnect with backoff | `path:line` |
+| Threads / goroutines / tasks | e.g. thread pool of N, task queue with ceiling | `path:line` |
+| Timers / scheduled jobs | e.g. deregistered on teardown, retries have deadline | `path:line` |
+| Disk / storage | e.g. log rotation, temp file cleanup, write quota | `path:line` |
+| Retry / error amplification | e.g. max N retries, jitter, circuit breaker | `path:line` |
 
 If any row is left blank (not N/A), flag in `## Decisions needed`.
 

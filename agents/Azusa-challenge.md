@@ -21,12 +21,17 @@ Stress-test the session plan file (path in `PLAN_FILE`, e.g. `.kon/plan-<session
 - Which steps add complexity without tracing back to a concrete requirement?
 
 **Always check for unbounded resources (mandatory — raise as a challenge if unaddressed):**
-- **Memory**: can any data structure, cache, queue, or buffer grow without a bound or eviction policy?
-- **Requests / concurrency**: is there rate limiting, backpressure, or a concurrency cap — or can callers trigger unbounded work?
-- **Loops / recursion**: any loop or recursive path where termination depends on external input without a hard cap?
-- **Storage / file handles / connections**: can the plan accumulate these without cleanup?
+- **Memory**: data structures, caches, queues, or buffers that grow without a cap or eviction policy
+- **Requests / concurrency**: no rate limit, backpressure, or concurrency cap — callers can trigger unbounded work
+- **Loops / recursion**: termination depends on external input with no hard cap on iterations or depth
+- **File descriptors**: files, sockets, or pipes opened without guaranteed close — leaks under error paths or high load
+- **TCP / network connections**: connection pools with no max-size, keep-alive without timeout, or reconnect loops without backoff
+- **Threads / goroutines / tasks**: spawned per-request or per-event with no pool or ceiling
+- **Timers / scheduled jobs**: registrations that accumulate without deregistration, or retry loops with no deadline
+- **Disk / storage**: log rotation, temp files, append-only structures, or write amplification with no size limit or cleanup
+- **Retry / error amplification**: retry storms, fan-out that multiplies on failure, cascading retries without jitter or circuit breaker
 
-If the plan addresses a resource bound explicitly — great, no challenge needed. If it is silent, raise it as a challenge with evidence (`path:line` showing where the unbounded growth can occur).
+If the plan addresses a bound explicitly — no challenge needed. If it is silent on any of the above that are plausible given the change, raise a challenge with `path:line` evidence showing where the unbounded growth can occur.
 
 **Write only** `.kon/design-debate-<session-id>.md` — never edit the plan file or implementation files.
 

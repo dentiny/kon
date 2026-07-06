@@ -291,6 +291,19 @@ Things the user said they don't know yet, and how the plan addresses or defers e
 Things Azusa surfaced from the codebase that the user likely didn't know to ask about.
 - `path:line` — what it reveals → <how the plan accounts for it>
 
+## Resource bounds (required when relevant — omit only for trivially local changes)
+
+Explicitly state how the design handles growth and load. If the plan introduces any of the following, document the bound or mitigation; if none apply, write "N/A — no unbounded resource paths in this change."
+
+| Resource | Bound / mitigation | Evidence |
+|----------|--------------------|----------|
+| Memory (caches, buffers, queues) | e.g. LRU cap of N, TTL eviction | `path:line` |
+| Request concurrency | e.g. semaphore of N, rate limit X/s | `path:line` |
+| Loops / recursion | e.g. hard cap of N iterations, depth limit | `path:line` |
+| Storage / file handles / connections | e.g. pooled, closed after use, TTL | `path:line` |
+
+If any row is left blank (not N/A), flag in `## Decisions needed`.
+
 ## Decisions needed (optional — only when user confirmation is required)
 These are blocking. User can say "go" to accept all defaults.
 1. <decision one>? [**default**]

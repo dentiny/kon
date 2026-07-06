@@ -20,6 +20,14 @@ Stress-test the session plan file (path in `PLAN_FILE`, e.g. `.kon/plan-<session
 - Is there a simpler, more concise design that still meets requirements?
 - Which steps add complexity without tracing back to a concrete requirement?
 
+**Always check for unbounded resources (mandatory — raise as a challenge if unaddressed):**
+- **Memory**: can any data structure, cache, queue, or buffer grow without a bound or eviction policy?
+- **Requests / concurrency**: is there rate limiting, backpressure, or a concurrency cap — or can callers trigger unbounded work?
+- **Loops / recursion**: any loop or recursive path where termination depends on external input without a hard cap?
+- **Storage / file handles / connections**: can the plan accumulate these without cleanup?
+
+If the plan addresses a resource bound explicitly — great, no challenge needed. If it is silent, raise it as a challenge with evidence (`path:line` showing where the unbounded growth can occur).
+
 **Write only** `.kon/design-debate-<session-id>.md` — never edit the plan file or implementation files.
 
 Follow [`skills/design-debate`](https://github.com/dentiny/kon/blob/main/skills/design-debate/SKILL.md) **challenge rules**.

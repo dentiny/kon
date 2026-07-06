@@ -82,6 +82,11 @@ Spawn Azusa-challenge with:
 
 Azusa MUST:
 - Find **3–7 concrete challenges** (not nitpicks): missing edge cases, convention mismatches, scope creep, untestable steps, hidden dependencies
+- **Always check resource bounds** — if the plan is silent on any of these, raise a challenge with `path:line` evidence:
+  - Unbounded memory (data structures, caches, queues, buffers with no eviction or cap)
+  - Unbounded requests / concurrency (no rate limit, backpressure, or concurrency cap)
+  - Unbounded loops or recursion (termination depends on external input without a hard limit)
+  - Unbounded storage, file handles, or connections (no cleanup / TTL)
 - Cite codebase evidence for each (`path:line` or observed convention)
 - Assign stable IDs: `C1`, `C2`, …
 - Write challenges to `.kon/design-debate-<session-id>.md` under `## Round N — Azusa challenges`

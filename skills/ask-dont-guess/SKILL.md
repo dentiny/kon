@@ -22,7 +22,7 @@ Material = would change what you write, what you implement, what you block on, o
 |-------|----------------|---------|
 | Explore / ask | File ownership, intended behavior, which module is authoritative | Ask user; say what you found vs what you need |
 | Research | Which API version, which doc source, conflicting docs | Ask which source/version applies |
-| Plan / design | Scope, trade-off preference, missing acceptance criteria | Add to `## Decisions needed` or ask before writing steps |
+| Plan / design | Scope, trade-off preference, missing acceptance criteria | Run [`skills/pre-plan-gate`](../pre-plan-gate/SKILL.md) before Mugi; add to `## Decisions needed` only after Q&A |
 | Debug | Root cause unknown, repro fails, multiple equally likely causes | Say **"I don't know"** and ask for more info — no workaround patches |
 | Implement | Plan gap, ambiguous step, two valid interpretations | STOP; ask user (A or B) — do not pick silently |
 | Review | Cannot verify claim, missing evidence, unclear intent | BLOCK or list under `## Evidence pending` — do not assume pass |

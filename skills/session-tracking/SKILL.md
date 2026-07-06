@@ -23,6 +23,7 @@ Each run gets one directory — delete the folder (dashboard 🗑) and all artif
   summary.md            # Nodoka debrief (optional)
   plan.md               # Mugi plan
   explore.md            # Azusa exploration (/kon:team, /kon:design)
+  understanding.md      # Pre-plan Q&A (team, design, debug — orchestrator)
   review.md             # Mio review (team, quick, review, debug)
   pr-review.md          # Mio holistic PR review (/kon:review-pr)
   issue-summary.md      # Jun issue summary (/kon:describe-issue)
@@ -234,15 +235,15 @@ Ask is read-only for the repo but still tracks a session:
 
 Bug investigation — repro before fix, Mugi proposes fix approaches:
 
-- On create: `command: "/kon:debug"`, `steps_pending: ["Azusa", "Mugi", "User", "Yui", "Sawako", "Mio", "Nodoka"]`
-- Orchestrator writes `.kon/debug-<session-id>.md` after Azusa, before Mugi
+- On create: `command: "/kon:debug"`, `steps_pending: ["Azusa", "pre-plan-gate", "Mugi", "User", "Yui", "Mio", "Nodoka"]`
+- Orchestrator writes `debug.md` after Azusa; `understanding.md` after pre-plan gate, before Mugi
 - After all agents: `status=waiting` (pipeline — not auto-completed)
 
 ### `/kon:design` variant
 
 Design runs explore → plan → debate rounds → user confirm (no Yui/Mio/Sawako):
 
-- On create: `command: "/kon:design"`, `steps_pending: ["Azusa", "Mugi", "User"]`
+- On create: `command: "/kon:design"`, `steps_pending: ["Azusa", "pre-plan-gate", "Mugi", "User"]`
 - Log **each** agent spawn including repeat Azusa/Mugi debate passes (same agent name is OK — log carries round detail)
 - After Mugi revise: `wait-for-user --after plan`
 - Do **not** auto-set `completed` until user runs `/kon:finish` or approves and closes

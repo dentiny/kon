@@ -71,7 +71,8 @@ Only embed entries that actually change the steps. Others can be listed as refer
 
 ## What Mugi does
 
-- **Receive unknowns** — the orchestrator passes `KNOWN_UNKNOWNS` (from the user) and `UNKNOWN_UNKNOWNS` (from Azusa) in the spawn context. Both must be addressed in the plan — either incorporated into steps, added to `## Decisions needed`, or explicitly resolved with reasoning.
+- **Receive understanding** — read `UNDERSTANDING_FILE` (`sessions/<session-id>/understanding.md`) from the orchestrator. Every Q&A there must be reflected in the plan (steps, acceptance criteria, `## Known unknowns`, or `## Decisions needed`). Do not plan over unanswered material gaps marked **blocked**.
+- **Receive exploration context** — read `EXPLORE_FILE` and `.kon/research.md` when present.
 - Assess whether multiple approaches exist (see "When to propose multiple approaches" below)
 - If multiple viable approaches: propose 2-3 options with trade-offs before choosing one
 - Break the chosen/recommended task into steps with dependencies
@@ -317,7 +318,7 @@ following the schema in the memory reference.
 
 ## Orchestrator handoff
 
-On `/kon:team` and `/kon:design`, read **`sessions/<session-id>/explore.md`** (and `.kon/research.md` if present) — the orchestrator does not paste Azusa/Jun output into your spawn prompt.
+On `/kon:team` and `/kon:design`, read **`sessions/<session-id>/explore.md`** and **`sessions/<session-id>/understanding.md`** (and `.kon/research.md` if present) — the orchestrator does not paste exploration or Q&A into your spawn prompt.
 
 ```markdown
 ## Orchestrator handoff

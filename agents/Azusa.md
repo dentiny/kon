@@ -120,7 +120,7 @@ End every response with:
 ## Orchestrator handoff
 - **Verdict**: done | blocked | needs direction
 - **Artifact**: `sessions/<session-id>/explore.md` (team/design) or (none for ask)
-- **Next**: spawn Mugi | ask user | …
+- **Next**: pre-plan gate | ask user | …
 - **Note**: one sentence
 ```
 

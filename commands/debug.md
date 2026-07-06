@@ -37,14 +37,18 @@ Examples:
    - **Repro steps** — concrete commands or UI steps
    - **Root cause analysis** — why this is happening
    - **Related code** — key files and functions involved
-3. **🍰 Mugi** — propose multiple fix approaches:
+3. **Pre-plan gate (MANDATORY)** — orchestrator runs [`skills/pre-plan-gate`](../skills/pre-plan-gate/SKILL.md):
+   ask high-level + implementation questions about the bug, expected behavior, and fix constraints;
+   write `sessions/<SID>/understanding.md`. **Do not spawn Mugi** until answers resolve material gaps.
+   If root cause is UNKNOWN in `debug.md`, stop here — do not proceed to Mugi.
+4. **🍰 Mugi** — propose multiple fix approaches:
    - Read Azusa's investigation and debug file
    - **If Azusa couldn't find root cause: say "Cannot propose fixes without understanding root cause" and stop**
    - Otherwise: Propose 2-3 different fix approaches with trade-offs
    - Compare: complexity, risk, maintainability, scope
    - Recommend one approach with reasoning
    - Write proposals to debug file under `## Fix Proposals` section
-4. **User confirms fix approach** (MANDATORY):
+5. **User confirms fix approach** (MANDATORY):
    - Orchestrator presents Mugi's proposals
    - **STOP and wait for user to select approach** (or suggest alternative)
    - Update session (dashboard Waiting queue):
@@ -53,22 +57,22 @@ Examples:
        --after decision --summary "Select fix approach to implement?"
      ```
    - Only proceed after user approval and `user-continued` (even in `--yolo` mode)
-5. **🎶 Yui** — **reproduce first** (mandatory), document evidence, then implement approved fix.
+6. **🎶 Yui** — **reproduce first** (mandatory), document evidence, then implement approved fix.
    - Run repro steps; capture command + exit code + relevant output
    - Implement the user-approved approach only
    - Smallest diff that addresses the root cause
    - No drive-by refactors or scope expansion
    - If fix has multiple logical parts: implement incrementally, get review per part
    - **Task resume:** after first Yui spawn, resume the same Task id on must-fix passes (see [`skills/teammate-flow`](../skills/teammate-flow/SKILL.md) **Implementation loop — Task resume**)
-6. **📝 Mio** — review the fix (full 7-item golden checklist, same as `/kon:team`)
+7. **📝 Mio** — review the fix (full 7-item golden checklist, same as `/kon:team`)
    - For multi-part fixes: review each part after implementation before next part
    - Full review saved to **`sessions/<SESSION_ID>/review.md`** (subagentStop hook; append on each review pass)
    - **Task resume:** first review = full agent + `strict-review`; re-reviews = `resume` + delta prompt only
-7. **Manual testing** — After Mio approves, user verifies the fix works
-8. **📋 Nodoka** — session summary (auto via [`/kon:summarize`](summarize.md)).
-9. **Retro** — orchestrator runs [`skills/session-retro`](../skills/session-retro/SKILL.md) (user may **skip retro**).
+8. **Manual testing** — After Mio approves, user verifies the fix works
+9. **📋 Nodoka** — session summary (auto via [`/kon:summarize`](summarize.md)).
+10. **Retro** — orchestrator runs [`skills/session-retro`](../skills/session-retro/SKILL.md) (user may **skip retro**).
 
-Pass `SESSION_DIR` and `DEBUG_FILE: debug.md` (paths from `kon_session.py session-dir` / `artifact-path`) to Azusa, Mugi, and Yui in task prompts.
+Pass `SESSION_DIR`, `DEBUG_FILE`, and `UNDERSTANDING_FILE: sessions/<SID>/understanding.md` (paths from `kon_session.py`) to Azusa, Mugi, and Yui in task prompts.
 
 ## Evidence rules (hard)
 
@@ -150,7 +154,7 @@ same 2-consecutive-same-issue limit applies to Mio's must-fix items.
 Pipeline command — set `status=waiting` when agents finish (not auto-completed).
 Follow [`skills/session-tracking`](https://github.com/dentiny/kon/blob/main/skills/session-tracking/SKILL.md).
 
-On create: `command: "/kon:debug"`, `steps_pending: ["Azusa", "Mugi", "User", "Yui", "Mio", "Nodoka"]`.
+On create: `command: "/kon:debug"`, `steps_pending: ["Azusa", "pre-plan-gate", "Mugi", "User", "Yui", "Mio", "Nodoka"]`.
 
 ## Orchestrator rules
 

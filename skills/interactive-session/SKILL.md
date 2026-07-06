@@ -48,8 +48,8 @@ Begin sessions stay `in_progress` after each agent — only `/kon:finish` closes
 | **Summarize issue** / GitHub issue thread | describe-issue | 📚 Jun |
 | **Bug** / failing test / regression / "X is broken" | debug | 🎸 Azusa → 🍰 Mugi → User → 🎶 Yui → 🧹 Sawako → 📝 Mio |
 | **Small** fix, typo, one file | quick | 🎶 Yui → 📝 Mio |
-| **Feature**, multi-file, unclear scope | team | full pipeline |
-| **Design** first, no code yet | design | Azusa → Mugi → debate |
+| **Feature**, multi-file, unclear scope | team | Azusa → pre-plan gate → Mugi → … |
+| **Design** first, no code yet | design | Azusa → pre-plan gate → Mugi → debate |
 | **Todo** / "remind me to…" / add to list | todo | run `kon_todo.py add` (no agent) |
 | Greeting / meta / "what can you do" | orchestrator | no agent spawn — reply + `log-turn` User |
 

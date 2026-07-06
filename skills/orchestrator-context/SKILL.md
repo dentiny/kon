@@ -18,6 +18,7 @@ Subagent Task returns enter the orchestrator's context window. **Do not amplify 
 
 | Agent | Full output artifact | When |
 |-------|---------------------|------|
+| Orchestrator | `sessions/<SID>/understanding.md` | team, design, debug (orchestrator writes after pre-plan gate) |
 | 🎸 Azusa | `sessions/<SID>/explore.md` | `/kon:team`, `/kon:design` (subagentStop hook) |
 | 🎸 Azusa | `sessions/<SID>/debug.md` | `/kon:debug` (orchestrator writes once after Azusa) |
 | 📚 Jun | `.kon/research.md` | external research steps |
@@ -46,12 +47,13 @@ EXPLORE_FILE=$(python3 $KON_ROOT/scripts/kon_session.py artifact-path --id "$SID
 
 ## Spawn prompt templates (pointers only)
 
-**Mugi (after Azusa on team/design):**
+**Mugi (after pre-plan gate on team/design/debug):**
 
 ```text
 PLAN_FILE: .kon/plan-<SID>.md
+UNDERSTANDING_FILE: sessions/<SID>/understanding.md
 EXPLORE_FILE: sessions/<SID>/explore.md
-Read EXPLORE_FILE and .kon/research.md (if present). Write the plan. No implementation.
+Read UNDERSTANDING_FILE, EXPLORE_FILE, and .kon/research.md (if present). Write the plan. No implementation.
 ```
 
 **Yui resume (after Mio block):**

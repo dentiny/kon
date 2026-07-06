@@ -23,16 +23,19 @@ These steps are required in order for `/kon:team`:
 
 0. **Plan reuse check** — if `.kon/plan-<SESSION_ID>.md` exists (or the most recent `.kon/plan-*.md`
    for cross-session reuse after `/kon:design`), read it and ask the user once: reuse or re-plan?
-   Skip Azusa + Mugi on reuse (unless user chooses re-plan).
+   Skip Azusa, pre-plan gate, and Mugi on reuse (unless user chooses re-plan).
    See [`commands/team.md`](../commands/team.md#plan-reuse-after-kondesign).
 1. **🎸 Azusa** + optional **📚 Jun** (parallel when task needs external docs) — see
    [`skills/external-research`](external-research/SKILL.md). Jun writes `.kon/research.md`.
-2. **🍰 Mugi** — structure the work into `.kon/plan-<SESSION_ID>.md` (read `.kon/research.md` if present).
-3. **User confirms plan (MANDATORY)** — After Mugi finishes:
+2. **Pre-plan gate (MANDATORY)** — orchestrator runs [`skills/pre-plan-gate`](pre-plan-gate/SKILL.md):
+   ask high-level + implementation questions; write `sessions/<SID>/understanding.md`;
+   **do not spawn Mugi** until understanding is sufficient and user has answered.
+3. **🍰 Mugi** — structure the work into `.kon/plan-<SESSION_ID>.md` (read `understanding.md`, `.kon/research.md`, `explore.md`).
+4. **User confirms plan (MANDATORY)** — After Mugi finishes:
    - Orchestrator presents the plan summary to the user
    - If `## Decisions needed` section exists, present each decision with its default
    - **STOP and wait for explicit user approval** — do NOT spawn Yui automatically
-   - Only proceed to step 4 after user says "go", "approved", "proceed", or similar confirmation
+   - Only proceed to step 5 after user says "go", "approved", "proceed", or similar confirmation
    - **This applies even in `--yolo` mode** — plan approval is always required
    - Update session (required — dashboard shows ⏸ waiting):
      ```bash
@@ -44,7 +47,7 @@ These steps are required in order for `/kon:team`:
      python3 $KON_ROOT/scripts/kon_session.py user-continued --id "$SID" \
        --summary "Approved plan"
      ```
-4. **Milestone loop** — For each milestone in the plan (or all steps if no milestones):
+5. **Milestone loop** — For each milestone in the plan (or all steps if no milestones):
    - **🎶 Yui** — implement this milestone only. "Working on Milestone X..."
      - Execute steps for current milestone
      - Stop after completing milestone (don't continue to next milestone)
@@ -67,9 +70,9 @@ These steps are required in order for `/kon:team`:
            --summary "Milestone N approved by Mio — proceed to milestone N+1?" 
          ```
          (Last milestone: summary text like "Milestone N approved — proceed to summarize?")
-       - After user confirms: `user-continued`, then next milestone or step 5
+       - After user confirms: `user-continued`, then next milestone or step 6
    - Repeat until all milestones complete (each followed by user gate)
-5. **Manual testing** — After the last milestone gate, user runs tests themselves.
+6. **Manual testing** — After the last milestone gate, user runs tests themselves.
    - User verifies the implementation works in their environment
 
 After review passes, always call **📋 Nodoka** as the final step to write the session summary.

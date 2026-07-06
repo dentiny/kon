@@ -19,7 +19,7 @@ Hand the task to the full team. From first look to code review, each member hand
 ## Flow
 
 Full flow follows [`skills/teammate-flow`](https://github.com/dentiny/kon/blob/main/skills/teammate-flow/SKILL.md) —
-optional **📚 Jun** (external docs, parallel with Azusa) → 🎸 Azusa explores → 🍰 Mugi writes plan →
+optional **📚 Jun** (parallel with Azusa) → 🎸 Azusa explores → **pre-plan gate** ([`skills/pre-plan-gate`](../skills/pre-plan-gate/SKILL.md)) → 🍰 Mugi writes plan →
 **WAIT for user confirmation** → **milestone loop** (autonomous): 🎶 Yui → 🧹 Sawako → 📝 Mio per milestone → repeat until all complete → **WAIT for user** → summarize / close.
 
 When the task needs web/docs lookup, spawn Jun per [`skills/external-research`](https://github.com/dentiny/kon/blob/main/skills/external-research/SKILL.md).
@@ -57,8 +57,8 @@ then fall back to the most recent `.kon/plan-*.md` for cross-session reuse (e.g.
 
 1. Read the plan and show a one-line summary (goal + step count).
 2. Ask the user: **reuse this plan, or re-run Azusa + Mugi?**
-3. **Reuse**: skip Azusa and Mugi; resolve any open items in `## Decisions needed`, then **WAIT for user to confirm the plan** before starting Yui. Pass the existing plan path as `PLAN_FILE` to Yui.
-4. **Re-plan**: run Azusa → Mugi as usual. Mugi writes a new `.kon/plan-<SESSION_ID>.md`.
+3. **Reuse**: skip Azusa, pre-plan gate, and Mugi; resolve any open items in `## Decisions needed`, then **WAIT for user to confirm the plan** before starting Yui. Pass the existing plan path as `PLAN_FILE` to Yui.
+4. **Re-plan**: run Azusa → pre-plan gate → Mugi as usual. Mugi writes a new `.kon/plan-<SESSION_ID>.md`.
 
 Always confirm plan before implementation — no silent reuse even in `--yolo` mode.
 

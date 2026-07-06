@@ -32,6 +32,7 @@ Override data root with `KON_DATA_DIR` (default `~/.kon`).
 
 Before starting work:
 
+0. **Load repo skill** — check for `~/.kon/projects/<repo-name>/SKILL.md` (resolve with `python3 $KON_ROOT/hooks/_kon_paths.py project-skill`). If present, read it in full and treat it as the first context for all downstream work. Print `[repo-skill: loaded]` or `[repo-skill: not found]` in `## Loaded memory entries`. See [`skills/repo-skill`](repo-skill/SKILL.md) for format and authoring guide.
 1. **Read both indexes** (if they exist):
    - `~/.kon/public/memory/MEMORY.md`
    - `~/.kon/projects/<repo-name>/memory/MEMORY.md`

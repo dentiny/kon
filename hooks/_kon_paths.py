@@ -29,6 +29,7 @@ _LAST_WORKSPACE_FILENAME = "last_workspace.json"
 _PUBLIC_SUBDIR = "public"
 _MEMORY_SUBDIR = "memory"
 _MEMORY_INDEX = "MEMORY.md"
+_SKILL_FILENAME = "SKILL.md"
 _LOGS_SUBDIR = "logs"
 _LEGACY_PUBLIC_MEMORY = Path.home() / ".config" / "kon" / "memory"
 
@@ -253,6 +254,11 @@ def project_memory_dir(project_dir: Path | str | None = None) -> Path:
     return project_data_dir(project_dir) / _MEMORY_SUBDIR
 
 
+def project_skill_path(project_dir: Path | str | None = None) -> Path:
+    """Per-repo skill: ``~/.kon/projects/<repo-name>/SKILL.md``."""
+    return project_data_dir(project_dir) / _SKILL_FILENAME
+
+
 def _memory_index_body(scope_label: str) -> str:
     return f"""# kon memory index ({scope_label})
 
@@ -344,7 +350,7 @@ def _cli() -> None:
     if len(sys.argv) < 2:
         print(
             "usage: _kon_paths.py "
-            "<root|data|sessions|project-data|project-kon|public-memory|project-memory|repo-name|ensure|write-config>",
+            "<root|data|sessions|project-data|project-kon|public-memory|project-memory|project-skill|repo-name|ensure|write-config>",
             file=sys.stderr,
         )
         sys.exit(1)
@@ -368,6 +374,8 @@ def _cli() -> None:
         print(ensure_public_memory_dir())
     elif cmd == "project-memory":
         print(ensure_project_memory_dir())
+    elif cmd == "project-skill":
+        print(project_skill_path())
     elif cmd == "repo-name":
         print(git_repo_name())
     elif cmd == "ensure":

@@ -80,7 +80,7 @@ No obvious inefficiencies introduced; improvement opportunities identified.
 Code follows project conventions, avoids security risks, and has adequate test coverage.
 - **Conventions**: naming, structure, import style match neighboring code (verify with `grep`)
 - **Safety**: no hardcoded secrets, `eval`, shell injection, SQL concatenation, path traversal
-- **Testing**: core logic and edge cases have tests (hard-to-test code like UI/timing/external deps OK if documented)
+- **Testing**: core logic and edge cases have tests (hard-to-test code like UI/timing/external deps OK if documented); **any bug identified in this review must have a regression test — see "Bug detected → regression test required" pattern below**
 - **TODO discipline**: TODOs for future enhancements are fine; blocking if used to defer bugs/errors/required work (see "TODO comments" pattern below)
 
 If any item is `[ ]`, verdict stays at NEEDS_CHANGES or BLOCKED.
@@ -243,7 +243,26 @@ At review time, flag the following as must-fix:
 
 Require: refactor to `@pytest.mark.parametrize` with `pytest.param(..., id=...)` per case.
 
-### No banner-style section separator comments
+### Bug detected → regression test required (must-fix, no exceptions)
+
+Every bug Mio identifies in the diff — whether in the changed code or uncovered by it — must be accompanied by a must-fix for a regression test that:
+
+1. **Reproduces the bug** — would fail before the fix, pass after it
+2. **Is specific** — tests the exact condition that caused the bug, not just "something related"
+
+Block until both the fix *and* the test are present. "I'll add it later" is TODO evasion (see pattern above).
+
+**Acceptable exceptions** (document, don't silently skip):
+- Bug is in timing/concurrency/external I/O where a reliable unit test is genuinely infeasible → require a comment explaining the condition and how to reproduce manually
+- Reproducing requires infrastructure unavailable in CI → require a manual repro note + issue filed
+
+**Must-fix format for this pattern:**
+> `src/foo.py:42` — off-by-one: `range(n)` should be `range(n+1)`, misses last element when input is empty.
+> → **Fix:** change `range(n)` to `range(n + 1)` at line 42.
+> → **Regression test:** add `test_foo_empty_input` asserting `foo([]) == []` (currently panics).
+> → **Why:** no test currently catches this path; without one this will regress silently.
+
+
 
 Do not use `# ----------` banners or `# --- section name ---` style separators in code.
 At review: require full deletion including the label inside the banner —

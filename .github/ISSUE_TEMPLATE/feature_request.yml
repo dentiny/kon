@@ -34,7 +34,7 @@ body:
         - Agent persona or skill
         - Hook / quality gate
         - Dashboard
-        - Setup / adapter (Cursor, Codex, other harness)
+        - Setup / adapter (Cursor, Codex, Claude Code, other harness)
         - Documentation
         - Other
     validations:

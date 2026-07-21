@@ -13,7 +13,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _hook_io import emit, read_hook_stdin, set_hook_event  # noqa: E402
+from _hook_io import emit, hook_event_name, read_hook_stdin, set_hook_event  # noqa: E402
 
 _BLOCKED_SUBCOMMANDS = frozenset({"commit", "push"})
 
@@ -129,7 +129,7 @@ def _shell_command(data: dict) -> str:
 
 def main() -> None:
     data = read_hook_stdin()
-    set_hook_event(data.get("hook_event_name"))
+    set_hook_event(hook_event_name(data))
 
     command = _shell_command(data)
     if not command:

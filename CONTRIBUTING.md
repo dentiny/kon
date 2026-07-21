@@ -17,7 +17,13 @@ Thanks for your interest in kon! This guide covers local setup, what to change w
    bash scripts/setup_cursor.sh
    ```
 
-3. Set up the Python dev environment:
+3. Install Claude Code integration (if you use Claude Code):
+
+   ```bash
+   bash scripts/setup_claude_code.sh
+   ```
+
+4. Set up the Python dev environment:
 
    ```bash
    bash scripts/install_hooks.sh          # creates .venv, installs ruff, sets git hooks
@@ -25,7 +31,7 @@ Thanks for your interest in kon! This guide covers local setup, what to change w
    pip install -e ".[dev]"
    ```
 
-4. Verify everything works:
+5. Verify everything works:
 
    ```bash
    ruff check .
@@ -55,7 +61,7 @@ When contributing, prefer explicit `KON_ROOT` or `setup_cursor.sh` over relying 
 | `skills/` | Shared process knowledge |
 | `hooks/` | Machine enforcement (Python) — regressions here are costly |
 | `scripts/` | CLI tools (dashboard, session tracking, setup) |
-| `adapters/` | Harness-specific integration (Cursor, Codex) |
+| `adapters/` | Harness-specific integration (Cursor, Codex, Claude Code) |
 | `tests/` | pytest suite for hooks and scripts |
 
 **Hooks vs skills:** enforcement that must block agent turns belongs in `hooks/`; narrative and convention belongs in `skills/`. See [`AGENTS.md`](AGENTS.md).
@@ -72,7 +78,7 @@ When contributing, prefer explicit `KON_ROOT` or `setup_cursor.sh` over relying 
 
 - Keep agent emoji prefixes consistent (see [`AGENTS.md`](AGENTS.md)).
 - Link to skills with relative paths within the repo; use `https://github.com/dentiny/kon/blob/main/...` for stable external references.
-- If you add a new hook event or command, update the matching adapter (`adapters/cursor/kon.mdc`, README) and run `setup_cursor.sh` instructions where paths change.
+- If you add a new hook event or command, update the matching adapter (`adapters/cursor/kon.mdc`, `adapters/claude-code/`, README) and run the relevant setup script where paths change.
 
 ### Cursor hooks
 
@@ -83,6 +89,14 @@ bash scripts/setup_cursor.sh
 ```
 
 Document any new hook in README under the hooks table.
+
+### Claude Code plugin
+
+After adding or removing hook entries or kon commands, regenerate stubs and refresh the install:
+
+```bash
+bash scripts/setup_claude_code.sh
+```
 
 ## Pull requests
 

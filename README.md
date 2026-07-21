@@ -105,7 +105,8 @@ kon splits into **live clone content** (agents, skills, hook `.py` logic) and **
 | Hook **script logic** (same filename) | `git pull` only — `hooks.json` already points at the file |
 | **New or removed** Cursor hook | `git pull` then `bash ~/kon/scripts/setup_cursor.sh` |
 | `adapters/cursor/kon.mdc` (commands, agent table) | `git pull` then `bash ~/kon/scripts/setup_cursor.sh` |
-| Moved kon clone to a new path | `bash ~/kon/scripts/setup_cursor.sh` |
+| **New or removed** Claude Code hook / command stub | `git pull` then `bash ~/kon/scripts/setup_claude_code.sh` |
+| Moved kon clone to a new path | `bash ~/kon/scripts/setup_cursor.sh` or `setup_claude_code.sh` |
 
 `setup_cursor.sh` is **safe to re-run** — it refreshes `kon.mdc`, rewrites `~/.kon/config.json`, replaces kon hook entries in `~/.cursor/hooks.json`, and removes deprecated kon hooks (e.g. old `verify_completion.py`, `repo_detect.py`).
 
@@ -117,6 +118,8 @@ bash scripts/setup_cursor.sh
 ```
 
 Codex-only users: `git pull` + re-append or merge `adapters/codex/AGENTS.md` into `~/.codex/AGENTS.md` if that file changed.
+
+Claude Code users: `git pull` then `bash ~/kon/scripts/setup_claude_code.sh` (regenerates command stubs and refreshes the plugin symlink).
 
 **What does not sync across machines automatically:**
 
@@ -183,6 +186,7 @@ hooks/*.py               ← quality checks (pure Python, any harness can shell 
 adapters/
   cursor/kon.mdc          ← Cursor integration (run setup_cursor.sh — do not copy hooks.json raw)
   codex/AGENTS.md         ← Codex CLI integration
+  claude-code/            ← Claude Code plugin (run setup_claude_code.sh)
 ```
 
 Each harness needs only a thin adapter that defines:
@@ -268,6 +272,35 @@ Then in any Codex session:
 
 > `AGENTS.md` is a universal standard — the same file format also works in Cursor,
 > Amp, Jules (Google), and Gemini CLI.
+
+### Claude Code
+
+**New machine — one command:**
+
+```bash
+git clone https://github.com/dentiny/kon.git ~/kon
+bash ~/kon/scripts/setup_claude_code.sh
+```
+
+This symlinks `adapters/claude-code` into `~/.claude/skills/kon`, writes `~/.kon/config.json`, and generates `/kon:*` slash-command stubs. In Claude Code:
+
+```
+/reload-plugins
+/kon:team add email validation to auth.py
+/kon:ask how does session tracking work?
+```
+
+**Marketplace install** (alternative — no symlink):
+
+```
+/plugin marketplace add dentiny/kon
+/plugin install kon@dentiny-kon
+/reload-plugins
+```
+
+Plugin hooks (session tracking, git guard, subagent quality checks) ship in `adapters/claude-code/hooks/hooks.json` and call the same Python scripts as Cursor.
+
+Re-run `setup_claude_code.sh` after moving your kon clone or adding commands/hooks.
 
 ### Other harnesses (future)
 
@@ -404,4 +437,4 @@ See [DISCLAIMER.md](DISCLAIMER.md) for the full statement (Maigo influence, Curs
 
 ## Acknowledgments
 
-kon's multi-agent workflow — role-based agents, commands, skills, hooks, and strict review gating — draws heavily from [Maigo](https://github.com/Lee-W/maigo), Lee-W's MyGO!!!!! themed multi-agent dev workflow. kon adapts that model for Cursor and Codex with a K-On! cast and harness-specific adapters.
+kon's multi-agent workflow — role-based agents, commands, skills, hooks, and strict review gating — draws heavily from [Maigo](https://github.com/Lee-W/maigo), Lee-W's MyGO!!!!! themed multi-agent dev workflow. kon adapts that model for Cursor, Codex, and Claude Code with a K-On! cast and harness-specific adapters.

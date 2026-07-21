@@ -32,7 +32,7 @@ def main() -> None:
             print("{}")
             return
 
-        text = str(data.get("text") or "")
+        text = str(data.get("text") or data.get("last_assistant_message") or "")
         summary = assistant_summary_from_text(text)
         if summary is None:
             print("{}")

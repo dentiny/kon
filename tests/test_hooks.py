@@ -8,7 +8,6 @@ import sys
 from pathlib import Path
 
 import pytest
-
 from conftest import mio_output, run_hook
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -43,6 +42,18 @@ class TestHookIo:
         payload = format_payload("block", "retry please", event="stop")
         assert payload == {"followup_message": "retry please"}
 
+    def test_claude_pre_tool_use_deny(self) -> None:
+        payload = format_payload("block", "nope", event="PreToolUse")
+        assert payload["hookSpecificOutput"]["permissionDecision"] == "deny"
+        assert payload["hookSpecificOutput"]["permissionDecisionReason"] == "nope"
+
+    def test_claude_subagent_stop_block(self) -> None:
+        payload = format_payload("block", "retry please", event="SubagentStop")
+        assert payload == {"decision": "block", "reason": "retry please"}
+
+    def test_claude_pre_tool_use_allow(self) -> None:
+        assert format_payload("approve", "", event="PreToolUse") == {}
+
     def test_legacy_approve(self) -> None:
         payload = format_payload("approve", "ok", event=None)
         assert payload["decision"] == "approve"
@@ -70,6 +81,17 @@ class TestNoGitWrite:
     )
     def test_blocks_git_write_variants(self, command: str) -> None:
         assert is_git_write_blocked(command)
+
+    def test_blocks_commit_pre_tool_use(self) -> None:
+        result = run_hook(
+            "no_git_write.py",
+            {
+                "hook_event_name": "PreToolUse",
+                "tool_name": "Bash",
+                "tool_input": {"command": "git commit -m test"},
+            },
+        )
+        assert result["hookSpecificOutput"]["permissionDecision"] == "deny"
 
     def test_allows_status(self) -> None:
         result = run_hook(

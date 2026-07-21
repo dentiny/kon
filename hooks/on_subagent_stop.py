@@ -10,7 +10,6 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _hook_io import emit, format_payload, read_hook_stdin, resolve_hook_cwd, set_hook_event  # noqa: E402
 from _begin_log import (  # noqa: E402
     agent_logged_since_last_user,
     append_session_log,
@@ -18,12 +17,15 @@ from _begin_log import (  # noqa: E402
     find_active_begin,
     hook_log,
 )
-from _kon_paths import kon_root  # noqa: E402
-from _token_estimate import (  # noqa: E402
-    SOURCE as USAGE_SOURCE,
-    estimate_tokens_from_output_text,
-    estimate_tokens_from_transcript,
+from _hook_io import (  # noqa: E402
+    emit,
+    format_payload,
+    hook_event_name,
+    read_hook_stdin,
+    resolve_hook_cwd,
+    set_hook_event,
 )
+from _kon_paths import kon_root  # noqa: E402
 from _review_artifact import (
     maybe_write_explore_from_hook,
     maybe_write_hunt_from_hook,
@@ -31,6 +33,13 @@ from _review_artifact import (
     maybe_write_review_from_hook,
     maybe_write_understand_explore_from_hook,
 )  # noqa: E402
+from _token_estimate import (  # noqa: E402
+    SOURCE as USAGE_SOURCE,
+)
+from _token_estimate import (
+    estimate_tokens_from_output_text,
+    estimate_tokens_from_transcript,
+)
 
 # Order matters — more specific roles first.
 _ROLE_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
@@ -60,7 +69,10 @@ _ROLE_TO_AGENT: dict[str, str] = {
 
 
 def _infer_role(data: dict) -> str | None:
-    haystack = "\n".join(str(data.get(key) or "") for key in ("task", "description", "summary"))
+    haystack = "\n".join(
+        str(data.get(key) or "")
+        for key in ("task", "description", "summary", "agent_type", "last_assistant_message")
+    )
     for role, pattern in _ROLE_PATTERNS:
         if pattern.search(haystack):
             return role
@@ -68,7 +80,7 @@ def _infer_role(data: dict) -> str | None:
 
 
 def _load_output(data: dict) -> str:
-    summary = str(data.get("summary") or "").strip()
+    summary = str(data.get("summary") or data.get("last_assistant_message") or "").strip()
     transcript = data.get("agent_transcript_path")
     if isinstance(transcript, str) and transcript.strip():
         path = Path(transcript.strip())
@@ -187,7 +199,7 @@ def _log_subagent_to_begin_session(project: str, agent: str, output: str) -> Non
 
 def main() -> None:
     data = read_hook_stdin()
-    set_hook_event(data.get("hook_event_name") or "subagentStop")
+    set_hook_event(hook_event_name(data) or "subagentStop")
 
     status = str(data.get("status") or "completed")
     if status != "completed":

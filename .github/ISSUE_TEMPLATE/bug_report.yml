@@ -31,6 +31,7 @@ body:
         - Scripts (`kon_session.py`, `kon_todo.py`, …)
         - Cursor adapter
         - Codex adapter
+        - Claude Code adapter
         - Other
     validations:
       required: true

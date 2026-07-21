@@ -1,0 +1,12 @@
+{
+  "name": "kon",
+  "description": "K-On! multi-agent dev workflow — explore, plan, implement, cleanup, review",
+  "version": "1.0.0",
+  "author": {
+    "name": "dentiny",
+    "url": "https://github.com/dentiny/kon"
+  },
+  "homepage": "https://github.com/dentiny/kon",
+  "repository": "https://github.com/dentiny/kon",
+  "license": "MIT"
+}

@@ -1,5 +1,5 @@
 ---
-description: Learn a codebase — Azusa maps it, Jun writes a PDF guide (concepts + architecture) and local HTML (flashcards + quiz).
+description: Learn a codebase — Azusa maps it, Jun writes an interactive HTML guide (concepts + architecture) and study pack (flashcards + quiz).
 ---
 
 # /kon:understand-codebase
@@ -10,9 +10,9 @@ Build **study materials** from a repository: glossary, architecture, flashcards,
 
 | File | Format | Contents |
 |------|--------|----------|
-| `understand-guide.pdf` | PDF | Key concepts + **reference code** + architecture + FAQ |
+| `understand-guide.html` | Interactive HTML | Key concepts + architecture + FAQ — **click term / diagram node → side-panel detail**; mermaid + `vscode://` source links |
 | `understand-study.html` | Local HTML | Flashcards + quiz with snippets + **clickable `vscode://` source links** |
-| `understand-guide.html` | Local HTML | Guide + mermaid; source links open in Cursor/VS Code |
+| `understand-guide.pdf` | PDF (optional) | Print export when pandoc + LaTeX are installed |
 
 Artifacts: `~/.kon/projects/<repo>/sessions/<session-id>/`
 
@@ -39,7 +39,7 @@ Optional text narrows Azusa's exploration scope (still read-only).
    ```bash
    python3 $KON_ROOT/scripts/build_understand_codebase.py --id "$SID"
    ```
-5. Present paths to PDF + HTML. `complete-agent` for Jun → `status=completed`.
+5. Present paths to **interactive HTML** first (PDF only if generated). `complete-agent` for Jun → `status=completed`.
 
 Pass `SESSION_DIR` (from `kon_session.py session-dir --id "$SID"`) to both agents.
 
@@ -52,11 +52,13 @@ Pass `SESSION_DIR` (from `kon_session.py session-dir --id "$SID"`) to both agent
 | Edit application source | ❌ |
 | `git commit` / `git push` | ❌ |
 
-## PDF note
+## Interactive guide
 
-Build uses **pandoc** when installed (`brew install pandoc basictex`). Without pandoc, open `understand-guide.html` → Print → Save as PDF.
+`understand-guide.html` is the primary deliverable:
 
-**Source links:** build injects `vscode://file/...:line:1` links from `path:line` refs (opens in Cursor/VS Code from HTML). Requires `project_path` in session JSON (set automatically on `init`).
+- Click a **glossary heading**, **term chip**, or **mermaid diagram node** → detail opens in the **side panel** (definition, usage, source, reference code).
+- Source links use `vscode://file/...:line:1` (opens in Cursor/VS Code). Requires `project_path` in session JSON (set on `init`).
+- Optional PDF: install pandoc + a LaTeX engine (`brew install pandoc basictex`), or Print → Save as PDF from the HTML.
 
 ## Comparison
 
@@ -64,7 +66,7 @@ Build uses **pandoc** when installed (`brew install pandoc basictex`). Without p
 |------|---------------------------|------------|-----------------|
 | Purpose | Learning pack | Q&A | External docs |
 | Agents | Azusa → Jun | Azusa | Jun |
-| PDF / HTML | ✅ | ❌ | ❌ |
+| Interactive HTML | ✅ | ❌ | ❌ |
 | Repo writes | session only | ❌ | `.kon/research.md` |
 
 ## After

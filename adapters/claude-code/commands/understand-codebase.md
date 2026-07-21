@@ -1,5 +1,5 @@
 ---
-description: Learn a codebase — Azusa maps it, Jun writes a PDF guide (concepts + architecture) and local HTML (flashcards + quiz).
+description: Learn a codebase — Azusa maps it, Jun writes an interactive HTML guide (concepts + architecture) and study pack (flashcards + quiz).
 argument-hint: [scope]
 disable-model-invocation: true
 ---

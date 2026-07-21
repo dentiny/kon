@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-"""Build PDF + HTML study pack from /kon:understand-codebase session artifacts.
+"""Build interactive HTML study pack from /kon:understand-codebase session artifacts.
 
 Reads:
   sessions/<id>/understand-guide.md
   sessions/<id>/understand-study.json
 
 Writes:
-  sessions/<id>/understand-guide.html
-  sessions/<id>/understand-guide.pdf   (when pandoc is available)
-  sessions/<id>/understand-study.html
+  sessions/<id>/understand-guide.html   (primary — clickable terms/diagrams + side panel)
+  sessions/<id>/understand-study.html   (flashcards + quiz)
+  sessions/<id>/understand-guide.pdf    (optional — when pandoc + LaTeX available)
 
 Usage:
   python3 scripts/build_understand_codebase.py --id <session-id>
@@ -421,28 +421,201 @@ _GUIDE_HTML_WRAP = """\
 <title>__TITLE__</title>
 <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
 <style>
-body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-       max-width: 820px; margin: 0 auto; padding: 32px 24px 64px;
-       line-height: 1.6; color: #1f2328; background: #fff; }
-@media print { body { max-width: none; padding: 16px; } }
-h1 { font-size: 28px; border-bottom: 1px solid #d0d7de; padding-bottom: 8px; }
+:root {
+  --bg: #0d1117; --panel: #161b22; --border: #30363d; --text: #e6edf3;
+  --muted: #8b949e; --accent: #58a6ff; --accent-soft: #1f3a5f;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.6;
+}
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 360px; min-height: 100vh; }
+@media (max-width: 960px) {
+  .layout { grid-template-columns: 1fr; }
+  .aside { position: fixed; inset: auto 0 0 0; max-height: 55vh; z-index: 20;
+           border-left: none; border-top: 1px solid var(--border);
+           transform: translateY(100%); transition: transform .2s; }
+  .aside.open { transform: translateY(0); }
+  .aside-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 19; }
+  .aside-backdrop.open { display: block; }
+}
+.main { padding: 28px 32px 80px; max-width: 880px; }
+.aside {
+  border-left: 1px solid var(--border); background: var(--panel);
+  padding: 20px 20px 32px; position: sticky; top: 0; height: 100vh; overflow-y: auto;
+}
+.aside-empty { color: var(--muted); font-size: 14px; }
+.aside h2 { font-size: 18px; margin: 0 0 12px; }
+.aside .label { font-size: 11px; text-transform: uppercase; letter-spacing: .04em;
+                color: var(--muted); margin: 16px 0 4px; }
+.aside .value { font-size: 14px; }
+.aside pre { background: #0d1117; border: 1px solid var(--border); border-radius: 8px;
+             padding: 12px; overflow-x: auto; font-size: 12px; white-space: pre-wrap; }
+.aside .close { float: right; border: 1px solid var(--border); background: transparent;
+                color: var(--muted); border-radius: 6px; cursor: pointer; padding: 2px 8px; }
+.hint { color: var(--muted); font-size: 13px; margin: 0 0 16px; }
+.term-index { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 20px; }
+.term-chip, button.term, h3.term-heading {
+  cursor: pointer; border: 1px solid var(--border); background: #21262d; color: #79c0ff;
+  border-radius: 999px; padding: 4px 10px; font-size: 12px;
+}
+h3.term-heading {
+  display: inline-block; border-radius: 8px; padding: 6px 10px; font-size: 18px;
+  margin: 20px 0 8px; color: var(--text); background: transparent;
+}
+h3.term-heading:hover, .term-chip:hover, button.term:hover,
+.mermaid .node { outline: none; }
+h3.term-heading:hover, .term-chip:hover, button.term:hover {
+  border-color: var(--accent); background: var(--accent-soft);
+}
+button.term { font: inherit; display: inline; padding: 0 4px; border-radius: 4px; }
+.mermaid { margin: 16px 0; cursor: default; }
+.mermaid .node { cursor: pointer; }
+.mermaid .node:hover rect, .mermaid .node:hover polygon, .mermaid .node:hover circle {
+  stroke: var(--accent) !important; stroke-width: 2px !important;
+}
+h1 { font-size: 28px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
 h2 { font-size: 22px; margin-top: 32px; }
 h3 { font-size: 18px; margin-top: 24px; }
 table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 14px; }
-th, td { border: 1px solid #d0d7de; padding: 8px 12px; text-align: left; }
-th { background: #f6f8fa; }
-code { background: #f6f8fa; padding: 2px 6px; border-radius: 4px; font-size: 90%; }
-pre { background: #f6f8fa; padding: 16px; overflow-x: auto; border-radius: 8px;
-     border-left: 3px solid #0969da; }
+th, td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; }
+th { background: #21262d; }
+code { background: #21262d; padding: 2px 6px; border-radius: 4px; font-size: 90%; }
+pre { background: #161b22; padding: 16px; overflow-x: auto; border-radius: 8px;
+      border-left: 3px solid var(--accent); }
 pre code { background: none; padding: 0; }
-a.code-ref { color: #0969da; text-decoration: none; }
-a.code-ref:hover { text-decoration: underline; }
-.mermaid { margin: 16px 0; }
+a, a.code-ref { color: #79c0ff; text-decoration: none; }
+a:hover, a.code-ref:hover { text-decoration: underline; }
+@media print {
+  .layout { display: block; }
+  .aside, .hint, .term-index, .aside-backdrop { display: none !important; }
+  .main { max-width: none; color: #000; background: #fff; }
+  body { background: #fff; color: #000; }
+}
 </style>
 </head>
 <body>
-__BODY__
-<script>mermaid.initialize({{ startOnLoad: true, theme: 'neutral' }});</script>
+<div class="aside-backdrop" id="aside-backdrop"></div>
+<div class="layout">
+  <main class="main">
+    <p class="hint">Click a <strong>term</strong>, glossary heading, or <strong>diagram node</strong>
+    to open details in the side panel.</p>
+    <div class="term-index" id="term-index"></div>
+    __BODY__
+  </main>
+  <aside class="aside" id="aside" aria-live="polite">
+    <button type="button" class="close" id="aside-close" hidden>Close</button>
+    <div id="aside-body" class="aside-empty">Select a term or diagram node to see details here.</div>
+  </aside>
+</div>
+<script>
+const GLOSSARY = __GLOSSARY_JSON__;
+const BY_ID = Object.fromEntries(GLOSSARY.map(e => [e.id, e]));
+const BY_TITLE = Object.fromEntries(GLOSSARY.map(e => [e.title.toLowerCase(), e]));
+
+function escapeHtml(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function openEntry(entry) {
+  if (!entry) return;
+  const aside = document.getElementById('aside');
+  const body = document.getElementById('aside-body');
+  const close = document.getElementById('aside-close');
+  const backdrop = document.getElementById('aside-backdrop');
+  close.hidden = false;
+  aside.classList.add('open');
+  backdrop.classList.add('open');
+  let html = '<h2>' + escapeHtml(entry.title) + '</h2>';
+  if (entry.kind) html += '<div class="label">Kind</div><div class="value">' + escapeHtml(entry.kind) + '</div>';
+  if (entry.definition) {
+    html += '<div class="label">Definition</div><div class="value">' + escapeHtml(entry.definition) + '</div>';
+  }
+  if (entry.usage) {
+    html += '<div class="label">Usage</div><div class="value">' + escapeHtml(entry.usage) + '</div>';
+  }
+  if (entry.answer) {
+    html += '<div class="label">Answer</div><div class="value">' + escapeHtml(entry.answer) + '</div>';
+  }
+  if (entry.source) {
+    html += '<div class="label">Source</div><div class="value">' + entry.source_html + '</div>';
+  }
+  if (entry.code) {
+    html += '<div class="label">Reference code</div><pre><code>' + escapeHtml(entry.code) + '</code></pre>';
+  }
+  if (entry.body) {
+    html += '<div class="label">Detail</div><div class="value">' + escapeHtml(entry.body) + '</div>';
+  }
+  body.innerHTML = html;
+  body.classList.remove('aside-empty');
+}
+
+function closeAside() {
+  document.getElementById('aside').classList.remove('open');
+  document.getElementById('aside-backdrop').classList.remove('open');
+  document.getElementById('aside-close').hidden = true;
+}
+
+function resolveTitle(text) {
+  const t = (text || '').trim().toLowerCase().replace(/^q:\\s*/i, '');
+  if (BY_TITLE[t]) return BY_TITLE[t];
+  // Fuzzy: node label contained in title or vice versa
+  for (const e of GLOSSARY) {
+    const title = e.title.toLowerCase();
+    if (title.includes(t) || t.includes(title)) return e;
+  }
+  return null;
+}
+
+document.getElementById('aside-close').onclick = closeAside;
+document.getElementById('aside-backdrop').onclick = closeAside;
+
+const index = document.getElementById('term-index');
+GLOSSARY.forEach(e => {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'term-chip';
+  b.textContent = e.title;
+  b.onclick = () => openEntry(e);
+  index.appendChild(b);
+});
+
+document.querySelectorAll('[data-term-id]').forEach(el => {
+  el.addEventListener('click', (ev) => {
+    ev.preventDefault();
+    openEntry(BY_ID[el.getAttribute('data-term-id')]);
+  });
+});
+
+function bindMermaidClicks(root) {
+  root.querySelectorAll('.node').forEach(node => {
+    const label = (node.textContent || '').replace(/\\s+/g, ' ').trim();
+    const entry = resolveTitle(label);
+    if (!entry) return;
+    node.style.cursor = 'pointer';
+    node.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      openEntry(entry);
+    });
+  });
+}
+
+mermaid.initialize({ startOnLoad: false, theme: 'dark', securityLevel: 'loose' });
+Promise.all([...document.querySelectorAll('pre.mermaid')].map(async (el, i) => {
+  const id = 'mmd-' + i;
+  const graph = el.textContent;
+  try {
+    const { svg } = await mermaid.render(id, graph);
+    el.outerHTML = '<div class="mermaid">' + svg + '</div>';
+  } catch (err) {
+    el.insertAdjacentHTML('afterend', '<p class="hint">Mermaid render failed.</p>');
+  }
+})).then(() => {
+  document.querySelectorAll('div.mermaid').forEach(bindMermaidClicks);
+});
+</script>
 </body>
 </html>
 """
@@ -453,6 +626,154 @@ def _extract_title(md: str, fallback: str) -> str:
         if line.startswith("# "):
             return line[2:].strip()
     return fallback
+
+
+def _slugify(title: str) -> str:
+    slug = re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")
+    return slug or "term"
+
+
+def _table_field(block: str, field: str) -> str:
+    """Pull a Definition/Usage/Source cell from a markdown table block."""
+    pattern = re.compile(
+        rf"\|\s*\*\*{re.escape(field)}\*\*\s*\|\s*(.*?)\s*\|",
+        re.IGNORECASE,
+    )
+    match = pattern.search(block)
+    if not match:
+        return ""
+    return re.sub(r"\s+", " ", match.group(1)).strip()
+
+
+def _fence_code(block: str) -> str:
+    match = re.search(r"```[^\n]*\n(.*?)```", block, re.DOTALL)
+    return match.group(1).rstrip() if match else ""
+
+
+def extract_glossary(md: str) -> list[dict[str, str]]:
+    """Extract clickable glossary entries from guide markdown."""
+    entries: list[dict[str, str]] = []
+    seen: set[str] = set()
+    section = ""
+    lines = md.splitlines()
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        if line.startswith("## "):
+            section = line[3:].strip().lower()
+            i += 1
+            continue
+        if not line.startswith("### "):
+            i += 1
+            continue
+        title = line[4:].strip()
+        if title.lower().startswith("q:"):
+            title = title[2:].strip()
+        i += 1
+        body_lines: list[str] = []
+        while i < len(lines) and not lines[i].startswith("##") and not lines[i].startswith("### "):
+            body_lines.append(lines[i])
+            i += 1
+        block = "\n".join(body_lines).strip()
+        kind = "concept"
+        if "faq" in section:
+            kind = "faq"
+        elif "architecture" in section:
+            kind = "architecture"
+        elif "concept" in section:
+            kind = "concept"
+        else:
+            kind = section or "section"
+
+        entry: dict[str, str] = {
+            "id": _slugify(title),
+            "title": title,
+            "kind": kind,
+            "definition": _table_field(block, "Definition"),
+            "usage": _table_field(block, "Usage"),
+            "source": _table_field(block, "Source"),
+            "code": _fence_code(block),
+            "body": "",
+            "answer": "",
+        }
+        if kind == "faq":
+            # Strip trailing Source / code fences from the answer body.
+            answer = re.sub(r"\*\*Source:\*\*.*", "", block, flags=re.DOTALL)
+            answer = re.sub(r"```.*?```", "", answer, flags=re.DOTALL).strip()
+            entry["answer"] = re.sub(r"\s+", " ", answer)
+        elif not entry["definition"] and block:
+            entry["body"] = re.sub(r"\s+", " ", block[:500])
+
+        base = entry["id"]
+        n = 2
+        while entry["id"] in seen:
+            entry["id"] = f"{base}-{n}"
+            n += 1
+        seen.add(entry["id"])
+        entries.append(entry)
+    return entries
+
+
+def _source_html(source: str) -> str:
+    """Keep existing markdown/HTML links; escape plain text."""
+    if not source:
+        return ""
+    if "<a " in source or "](" in source:
+        # Already linkified markdown may still be present — escape then restore
+        # simple backtick/code remnants for panel display.
+        return html.escape(source)
+    return html.escape(source)
+
+
+def decorate_guide_body(body: str, glossary: list[dict[str, str]]) -> str:
+    """Mark concept/FAQ headings and inline term mentions as clickable."""
+    for entry in glossary:
+        title = entry["title"]
+        esc_title = html.escape(title)
+        # Match h3 from pandoc or simple converter.
+        patterns = [
+            rf"<h3>(?:Q:\s*)?{re.escape(esc_title)}</h3>",
+            rf"<h3>(?:Q:\s*)?{re.escape(title)}</h3>",
+        ]
+        replacement = (
+            f'<h3 class="term-heading" data-term-id="{html.escape(entry["id"], quote=True)}"'
+            f' title="Show details">{esc_title}</h3>'
+        )
+        for pattern in patterns:
+            body = re.sub(pattern, replacement, body, count=1, flags=re.IGNORECASE)
+
+    # Inline term chips for glossary titles appearing as <strong>Term</strong>.
+    # Longest titles first to avoid partial overlaps.
+    for entry in sorted(glossary, key=lambda e: len(e["title"]), reverse=True):
+        title = entry["title"]
+        if len(title) < 3:
+            continue
+        chip = (
+            f'<button type="button" class="term" data-term-id="'
+            f'{html.escape(entry["id"], quote=True)}">{html.escape(title)}</button>'
+        )
+        body = re.sub(
+            rf"(?<![\\w-])<strong>{re.escape(html.escape(title))}</strong>(?![\\w-])",
+            chip,
+            body,
+            flags=re.IGNORECASE,
+        )
+        body = re.sub(
+            rf"(?<![\\w-])<strong>{re.escape(title)}</strong>(?![\\w-])",
+            chip,
+            body,
+            flags=re.IGNORECASE,
+        )
+    return body
+
+
+def _glossary_for_js(glossary: list[dict[str, str]]) -> list[dict[str, str]]:
+    out: list[dict[str, str]] = []
+    for entry in glossary:
+        item = dict(entry)
+        item["source_html"] = _source_html(entry.get("source", ""))
+        out.append(item)
+    return out
 
 
 def _md_to_html_simple(md: str) -> str:
@@ -525,18 +846,16 @@ def _md_to_html_simple(md: str) -> str:
     return "\n".join(out)
 
 
-def _pandoc_html(md_path: Path, html_path: Path, title: str) -> bool:
+def _pandoc_html_body(md_path: Path) -> str | None:
+    """Convert markdown to an HTML fragment (no standalone chrome)."""
     if not shutil.which("pandoc"):
-        return False
+        return None
     result = subprocess.run(
         [
             "pandoc",
             str(md_path),
-            "-o",
-            str(html_path),
-            "--standalone",
-            "--metadata",
-            f"title={title}",
+            "-t",
+            "html",
             "--from",
             "markdown",
         ],
@@ -544,26 +863,22 @@ def _pandoc_html(md_path: Path, html_path: Path, title: str) -> bool:
         text=True,
     )
     if result.returncode != 0:
-        return False
-    # Inject mermaid for fenced blocks pandoc renders as code
-    content = html_path.read_text(encoding="utf-8")
+        return None
+    content = result.stdout
     content = re.sub(
         r'<pre class="([^"]*)"><code class="language-mermaid">(.*?)</code></pre>',
         r'<pre class="mermaid">\2</pre>',
         content,
         flags=re.DOTALL,
     )
-    if "mermaid.min.js" not in content:
-        content = content.replace(
-            "</head>",
-            '<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>\n</head>',
-        )
-        content = content.replace(
-            "</body>",
-            '<script>mermaid.initialize({startOnLoad:true,theme:"neutral"});</script>\n</body>',
-        )
-    html_path.write_text(content, encoding="utf-8")
-    return True
+    content = re.sub(
+        r'<div class="sourceCode"[^>]*>\s*<pre class="sourceCode mermaid">'
+        r'<code class="sourceCode mermaid">(.*?)</code></pre>\s*</div>',
+        r'<pre class="mermaid">\1</pre>',
+        content,
+        flags=re.DOTALL,
+    )
+    return content
 
 
 def _pandoc_pdf(md_path: Path, pdf_path: Path, title: str) -> bool:
@@ -619,13 +934,23 @@ def build_guide_html(md_path: Path, out_path: Path, project_root: Path | None) -
     enriched_path = md_path.parent / "understand-guide.enriched.md"
     enriched_path.write_text(md, encoding="utf-8")
     title = _extract_title(md, "Codebase guide")
-    if not _pandoc_html(enriched_path, out_path, title):
-        body = linkify_html_refs(_md_to_html_simple(md), project_root)
-        page = _GUIDE_HTML_WRAP.replace("__TITLE__", html.escape(title)).replace("__BODY__", body)
-        out_path.write_text(page, encoding="utf-8")
-    else:
-        content = linkify_html_refs(out_path.read_text(encoding="utf-8"), project_root)
-        out_path.write_text(content, encoding="utf-8")
+    glossary = extract_glossary(md)
+
+    body = _pandoc_html_body(enriched_path)
+    if body is None:
+        body = _md_to_html_simple(md)
+    body = linkify_html_refs(body, project_root)
+    body = decorate_guide_body(body, glossary)
+
+    page = (
+        _GUIDE_HTML_WRAP.replace("__TITLE__", html.escape(title))
+        .replace("__BODY__", body)
+        .replace(
+            "__GLOSSARY_JSON__",
+            json.dumps(_glossary_for_js(glossary), ensure_ascii=False),
+        )
+    )
+    out_path.write_text(page, encoding="utf-8")
     return title
 
 
@@ -659,7 +984,9 @@ def build(session_directory: Path) -> dict[str, Path | None]:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Build understand-codebase PDF + HTML")
+    parser = argparse.ArgumentParser(
+        description="Build understand-codebase interactive HTML (+ optional PDF)"
+    )
     parser.add_argument("--id", help="Session id")
     parser.add_argument("--project", default=None, help="Project path for session lookup")
     parser.add_argument("--session-dir", help="Direct path to session artifact directory")

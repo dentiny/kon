@@ -1,6 +1,6 @@
 ---
 name: understand-codebase
-description: Map a codebase for learning — glossary, architecture, flashcards, and quiz. Produces a PDF guide and local HTML study pack.
+description: Map a codebase for learning — glossary, architecture, flashcards, and quiz. Produces interactive HTML (clickable terms/diagrams + side panel) and an optional PDF.
 ---
 
 # Understand Codebase
@@ -15,9 +15,9 @@ Turn a repository into study materials: **key concepts**, **architecture**, **fl
 
 | Output | Contents |
 |--------|----------|
-| `understand-guide.pdf` | Key concepts + **reference code** + architecture + FAQ (links in PDF when pandoc) |
+| `understand-guide.html` | **Primary** — interactive guide: click a term, glossary heading, or mermaid node → detail side panel; mermaid + `vscode://` / `cursor://` source links |
 | `understand-study.html` | Flashcards + quiz with **snippets** + **clickable source links** |
-| `understand-guide.html` | Same as PDF; mermaid + **`vscode://` / `cursor://` links** open files in IDE |
+| `understand-guide.pdf` | Optional print export when pandoc + LaTeX are installed |
 
 All files live under `sessions/<session-id>/`. Orchestrator runs `build_understand_codebase.py` after Jun finishes.
 
@@ -110,7 +110,7 @@ Build script injects `project_path` from session JSON and turns refs into **clic
 ## Orchestrator rules
 
 - Spawn Azusa then Jun — do not self-analyze
-- After Jun: run build script; report paths to PDF + HTML
+- After Jun: run build script; report paths to **interactive HTML** first (PDF only if generated)
 - `--yolo` has no effect (no auto-skip)
 - Skip [`skills/teammate-flow`](../teammate-flow/SKILL.md)
 - Read-only on **application source**; session artifacts only

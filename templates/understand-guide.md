@@ -3,9 +3,12 @@
 **Session**: <session-id>
 **Generated**: /kon:understand-codebase
 
+> After build, open `understand-guide.html`: click a concept heading, term chip, or mermaid node to see details in the side panel.
+
 ## Key concepts
 
 Glossary of domain and technical terms used in this codebase.
+**Use the same names in mermaid node labels** so diagram clicks resolve to these entries.
 
 ### <Concept name>
 

@@ -323,7 +323,7 @@ Re-run `setup_claude_code.sh` after moving your kon clone or adding commands/hoo
 | `/kon:quick <task>` | Skip explore/plan, lightweight 3-item review |
 | `/kon:debug <bug>` | Bug investigation — root cause, fix proposals, user approves, then minimal fix |
 | `/kon:hunt <bug>` | Read-only bug hunt — 🎸 Azusa analyzes source, best-effort repro SQL/tests, **no fixes** |
-| `/kon:understand-codebase [scope]` | Learning pack — 🎸 Azusa maps repo, 📚 Jun writes guide + flashcards/quiz → **PDF** + **HTML** |
+| `/kon:understand-codebase [scope]` | Learning pack — 🎸 Azusa maps repo, 📚 Jun writes guide + flashcards/quiz → **interactive HTML** (click term/diagram → side panel) + optional PDF |
 | `/kon:research <question>` | External lookup — 📚 Jun searches docs/web, writes `.kon/research.md` |
 | `/kon:review` | Code review only — 📝 Mio strict-review on uncommitted/staged diff |
 | `/kon:review-pr` | Holistic PR review — 📝 Mio on diff + PR body + review comments + linked issues |

@@ -30,7 +30,7 @@ User invokes a **slash command** (kon extension system commands):
 - `/kon:quick <task>` — skip explore/plan, lightweight review
 - `/kon:debug <bug>` — investigate root cause, propose fixes, user approves, then minimal fix
 - `/kon:hunt <bug>` — read-only bug analysis from source + best-effort repro SQL/tests (no fixes)
-- `/kon:understand-codebase [scope]` — PDF guide (concepts + architecture) + HTML flashcards/quiz
+- `/kon:understand-codebase [scope]` — interactive HTML guide (click term/diagram → side panel) + flashcards/quiz
 - `/kon:research <question>` — external lookup (📚 Jun, writes `.kon/research.md`)
 - `/kon:review` — code review only (📝 Mio on uncommitted/staged diff)
 - `/kon:review-pr` — holistic PR review (📝 Mio: diff + body + comments + linked issues)
